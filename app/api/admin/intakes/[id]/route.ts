@@ -3,9 +3,10 @@ import { findIntake } from "@/lib/intake-store";
 
 export async function GET(
     _req: Request,
-    { params }: { params: { id: string } }
+    { params }: { params: Promise<{ id: string }> }
 ) {
-    const record = await findIntake(params.id);
+    const { id } = await params;
+    const record = await findIntake(id);
 
     if (!record) {
         return NextResponse.json(

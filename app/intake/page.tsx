@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { KeyboardEvent } from "react";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, Suspense } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -125,7 +125,7 @@ const steps: StepConfig[] = [
     },
 ];
 
-export default function IntakePage() {
+function IntakePageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [currentStep, setCurrentStep] = useState(0);
@@ -454,5 +454,13 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
             </dt>
             <dd className="mt-1 text-base text-foreground">{value}</dd>
         </div>
+    );
+}
+
+export default function IntakePage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <IntakePageContent />
+        </Suspense>
     );
 }

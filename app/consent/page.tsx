@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState } from "react";
+import { useCallback, useState, Suspense } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +14,7 @@ import {
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
-export default function ConsentPage() {
+function ConsentPageContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [agreed, setAgreed] = useState(false);
@@ -77,5 +77,13 @@ export default function ConsentPage() {
                 </Button>
             </div>
         </main>
+    );
+}
+
+export default function ConsentPage() {
+    return (
+        <Suspense fallback={<div>Loading...</div>}>
+            <ConsentPageContent />
+        </Suspense>
     );
 }
