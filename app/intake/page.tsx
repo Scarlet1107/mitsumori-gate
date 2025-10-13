@@ -1,7 +1,30 @@
 "use client";
 
+import { AnimatePresence, motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
+import type { KeyboardEvent } from "react";
 import { useEffect, useMemo, useState } from "react";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Progress } from "@/components/ui/progress";
+
+const stepVariants = {
+    enter: (direction: 1 | -1) => ({
+        x: direction > 0 ? 80 : -80,
+        opacity: 0,
+    }),
+    center: {
+        x: 0,
+        opacity: 1,
+    },
+    exit: (direction: 1 | -1) => ({
+        x: direction > 0 ? -80 : 80,
+        opacity: 0,
+    }),
+};
 
 const TOTAL_STEPS = 8;
 
@@ -23,49 +46,73 @@ interface FormState {
 
 type FieldKey = keyof FormState;
 
+type InputMode =
+    | "none"
+    | "text"
+    | "tel"
+    | "email"
+    | "numeric"
+    | "decimal"
+    | "search"
+    | "url";
+
 type StepConfig = {
     id: FieldKey | "confirm";
     title: string;
     description?: string;
     placeholder?: string;
     required?: boolean;
-    inputType?: "text" | "tel" | "number";
+    inputType?: "text" | "tel" | "email";
+    inputMode?: InputMode;
+    autoComplete?: string;
 };
 
 const steps: StepConfig[] = [
     {
         id: "customer_name",
         title: "お名前を教えてください",
-        placeholder: "例）山田太郎",
+        placeholder: "例）山田 花子",
         required: true,
+        inputMode: "text",
+        autoComplete: "name",
     },
     {
         id: "phone",
         title: "ご連絡先（電話番号）",
-        placeholder: "例）09012345678",
+        placeholder: "例）0242-39-1234",
         inputType: "tel",
+        inputMode: "tel",
+        autoComplete: "tel",
         required: true,
     },
     {
         id: "email",
         title: "メールアドレス（任意）",
-        placeholder: "taro@example.com",
+        placeholder: "例）aizu@example.com",
+        inputType: "email",
+        inputMode: "email",
+        autoComplete: "email",
     },
     {
         id: "address",
         title: "ご住所（任意）",
+        placeholder: "例）福島県会津若松市七日町…",
+        inputMode: "text",
+        autoComplete: "street-address",
     },
     {
         id: "annual_income",
         title: "ご世帯の年間収入（概算）",
-        description: "単位は万円です（例：600 = 600万円）",
-        inputType: "number",
+        placeholder: "例）650",
+        description: "数字のみで入力してください（単位：万円）",
+        inputMode: "numeric",
     },
     {
         id: "budget_total",
         title: "総予算（概算）",
-        description: "単位は万円です（例：2000 = 2000万円）",
-        inputType: "number",
+        placeholder: "例）2800",
+        description: "数字のみで入力してください（単位：万円）",
+        inputMode: "numeric",
     },
     {
         id: "project_type",
@@ -82,6 +129,7 @@ export default function IntakePage() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const [currentStep, setCurrentStep] = useState(0);
+    const [direction, setDirection] = useState<1 | -1>(1);
     const [form, setForm] = useState<FormState>({
         customer_name: "",
         phone: "",
@@ -150,8 +198,8 @@ export default function IntakePage() {
             (activeStep.id === "annual_income" || activeStep.id === "budget_total") &&
             form[activeStep.id].trim().length > 0
         ) {
-            const value = Number.parseInt(form[activeStep.id], 10);
-            if (!Number.isFinite(value) || value < 0) {
+            const numericValue = Number.parseInt(form[activeStep.id], 10);
+            if (!Number.isFinite(numericValue) || numericValue < 0) {
                 setErrors("0以上の数値で入力してください");
                 return false;
             }
@@ -213,120 +261,186 @@ export default function IntakePage() {
             return;
         }
 
+        setDirection(1);
         setCurrentStep((prev) => Math.min(prev + 1, steps.length - 1));
     };
 
     const handleBack = () => {
         setErrors(null);
+        setDirection(-1);
         setCurrentStep((prev) => Math.max(prev - 1, 0));
+    };
+
+    const handleInputKeyDown = (event: KeyboardEvent<HTMLInputElement>) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        void handleNext();
     };
 
     const renderField = () => {
         if (activeStep.id === "project_type") {
             return (
                 <div className="grid gap-3 sm:grid-cols-3">
-                    {PROJECT_OPTIONS.map((option) => (
-                        <button
-                            type="button"
-                            key={option.value}
-                            onClick={() => handleInputChange("project_type", option.value)}
-                            className={`rounded-xl border px-4 py-3 text-sm font-medium transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500 ${form.project_type === option.value
-                                    ? "border-slate-900 bg-slate-900 text-white"
-                                    : "border-slate-200 bg-white text-slate-700 hover:border-slate-400"
-                                }`}
-                        >
-                            {option.label}
-                        </button>
-                    ))}
+                    {PROJECT_OPTIONS.map((option) => {
+                        const isActive = form.project_type === option.value;
+                        return (
+                            <Button
+                                type="button"
+                                key={option.value}
+                                variant={isActive ? "default" : "outline"}
+                                onClick={() => handleInputChange("project_type", option.value)}
+                                className="h-auto rounded-xl px-4 py-3 text-sm"
+                            >
+                                {option.label}
+                            </Button>
+                        );
+                    })}
                 </div>
             );
         }
 
         if (activeStep.id === "confirm") {
+            const summary = [
+                { label: "お名前", value: form.customer_name || "-" },
+                { label: "電話番号", value: form.phone || "-" },
+                { label: "メールアドレス", value: form.email || "-" },
+                { label: "ご住所", value: form.address || "-" },
+                {
+                    label: "年間収入（万円）",
+                    value: form.annual_income ? `${form.annual_income} 万円` : "-",
+                },
+                {
+                    label: "総予算（万円）",
+                    value: form.budget_total ? `${form.budget_total} 万円` : "-",
+                },
+                {
+                    label: "希望内容",
+                    value:
+                        PROJECT_OPTIONS.find((option) => option.value === form.project_type)?.label || "-",
+                },
+            ];
+
             return (
-                <dl className="grid gap-4">
-                    <SummaryItem label="お名前" value={form.customer_name || "-"} />
-                    <SummaryItem label="電話番号" value={form.phone || "-"} />
-                    <SummaryItem label="メールアドレス" value={form.email || "-"} />
-                    <SummaryItem label="ご住所" value={form.address || "-"} />
-                    <SummaryItem
-                        label="年間収入（万円）"
-                        value={form.annual_income || "-"}
-                    />
-                    <SummaryItem label="総予算（万円）" value={form.budget_total || "-"} />
-                    <SummaryItem
-                        label="ご希望の内容"
-                        value={
-                            PROJECT_OPTIONS.find((option) => option.value === form.project_type)?.label ||
-                            "-"
-                        }
-                    />
+                <dl className="space-y-3">
+                    {summary.map((item) => (
+                        <div
+                            key={item.label}
+                            className="rounded-lg border bg-muted/20 px-4 py-3"
+                        >
+                            <SummaryItem label={item.label} value={item.value} />
+                        </div>
+                    ))}
                 </dl>
             );
         }
 
-        const inputType = activeStep.inputType ?? "text";
+        const isCurrency =
+            activeStep.id === "annual_income" || activeStep.id === "budget_total";
+        const value = form[activeStep.id as FieldKey];
+        const type = activeStep.inputType ?? "text";
+
+        if (isCurrency) {
+            return (
+                <div className="flex items-stretch overflow-hidden rounded-xl border bg-background shadow-sm focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">
+                    <Input
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
+                        value={value}
+                        onChange={(event) =>
+                            handleInputChange(activeStep.id as FieldKey, event.target.value)
+                        }
+                        onKeyDown={handleInputKeyDown}
+                        placeholder={activeStep.placeholder}
+                        autoComplete={activeStep.autoComplete}
+                        className="h-12 flex-1 rounded-none border-0 bg-transparent px-4 text-base focus-visible:border-none focus-visible:ring-0 focus-visible:ring-offset-0"
+                    />
+                    <span className="flex items-center bg-muted px-4 text-sm font-medium text-muted-foreground">
+                        万円
+                    </span>
+                </div>
+            );
+        }
 
         return (
-            <input
-                type={inputType}
-                inputMode={inputType === "number" ? "numeric" : undefined}
-                value={form[activeStep.id as FieldKey]}
+            <Input
+                type={type}
+                inputMode={activeStep.inputMode}
+                value={value}
                 onChange={(event) =>
                     handleInputChange(activeStep.id as FieldKey, event.target.value)
                 }
+                onKeyDown={handleInputKeyDown}
                 placeholder={activeStep.placeholder}
-                className="w-full rounded-xl border border-slate-200 px-4 py-3 text-base text-slate-900 shadow-sm focus:border-slate-500 focus:outline-none"
+                autoComplete={activeStep.autoComplete}
+                className="h-12 rounded-xl px-4 text-base"
             />
         );
     };
 
     return (
-        <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-6 py-12 text-slate-900">
-            <header className="space-y-2">
-                <p className="text-sm font-medium text-slate-500">
+        <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-8 px-6 py-12 text-foreground">
+            <header className="space-y-3">
+                <Badge
+                    variant="secondary"
+                    className="w-fit rounded-full px-4 py-1 text-[0.65rem] font-semibold uppercase tracking-[0.3em]"
+                >
                     Step {displayStepNumber} / {TOTAL_STEPS}
-                </p>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-slate-200">
-                    <span
-                        className="block h-full rounded-full bg-slate-900 transition-all duration-300"
-                        style={{ width: `${progress}%` }}
-                    />
-                </div>
+                </Badge>
+                <Progress value={progress} className="h-2" />
             </header>
 
-            <section className="min-h-[380px] rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-                <div className="space-y-3">
-                    <h1 className="text-2xl font-semibold">{activeStep.title}</h1>
-                    {activeStep.description ? (
-                        <p className="text-sm text-slate-500">{activeStep.description}</p>
-                    ) : null}
-                </div>
+            <Card className="min-h-[440px] gap-0 overflow-hidden p-0">
+                <AnimatePresence initial={false} custom={direction} mode="wait">
+                    <motion.div
+                        key={activeStep.id}
+                        custom={direction}
+                        variants={stepVariants}
+                        initial="enter"
+                        animate="center"
+                        exit="exit"
+                        transition={{ duration: 0.35, ease: "easeInOut" }}
+                        className="flex h-full flex-col gap-6 p-6"
+                    >
+                        <div className="space-y-2">
+                            <h1 className="text-2xl font-semibold text-foreground">
+                                {activeStep.title}
+                            </h1>
+                            {activeStep.description ? (
+                                <p className="text-sm text-muted-foreground">
+                                    {activeStep.description}
+                                </p>
+                            ) : null}
+                        </div>
 
-                <div className="mt-8">{renderField()}</div>
+                        <div className="flex-1">{renderField()}</div>
 
-                {errors ? (
-                    <p className="mt-4 text-sm text-red-500">{errors}</p>
-                ) : null}
-            </section>
+                        {errors ? (
+                            <p className="text-sm font-medium text-destructive">{errors}</p>
+                        ) : null}
+                    </motion.div>
+                </AnimatePresence>
+            </Card>
 
             <div className="mt-auto flex items-center justify-between">
-                <button
+                <Button
                     type="button"
+                    variant="outline"
                     onClick={handleBack}
                     disabled={questionStepIndex === 0}
-                    className="rounded-full border border-slate-300 px-5 py-2.5 text-sm font-medium text-slate-700 transition enabled:hover:border-slate-500 enabled:hover:text-slate-900 disabled:cursor-not-allowed disabled:border-slate-200 disabled:text-slate-300"
+                    className="rounded-full px-6"
                 >
                     戻る
-                </button>
-                <button
+                </Button>
+                <Button
                     type="button"
                     onClick={handleNext}
                     disabled={submitting}
-                    className="rounded-full bg-slate-900 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-slate-900/10 transition enabled:hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-400"
+                    size="lg"
+                    className="rounded-full px-8"
                 >
                     {activeStep.id === "confirm" ? (submitting ? "送信中..." : "送信する") : "次へ"}
-                </button>
+                </Button>
             </div>
         </main>
     );
@@ -335,10 +449,10 @@ export default function IntakePage() {
 function SummaryItem({ label, value }: { label: string; value: string }) {
     return (
         <div>
-            <dt className="text-xs uppercase tracking-[0.2em] text-slate-400">
+            <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
                 {label}
             </dt>
-            <dd className="mt-1 text-base text-slate-800">{value}</dd>
+            <dd className="mt-1 text-base text-foreground">{value}</dd>
         </div>
     );
 }

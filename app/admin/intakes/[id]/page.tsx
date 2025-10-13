@@ -1,5 +1,16 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 import { findIntake } from "@/lib/intake-store";
 
 export const dynamic = "force-dynamic";
@@ -44,55 +55,61 @@ export default async function AdminIntakeDetailPage({
     } satisfies Record<string, string | number | boolean | null | undefined>;
 
     return (
-        <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-6 px-6 py-12 text-slate-900">
-            <Link
-                href="/admin/intakes"
-                className="text-sm font-medium text-slate-500 underline-offset-4 hover:text-slate-900 hover:underline"
-            >
-                ← 一覧へ戻る
-            </Link>
+        <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-8 px-6 py-12 text-foreground">
+            <div>
+                <Button asChild variant="link" className="px-0 text-sm text-muted-foreground">
+                    <Link href="/admin/intakes">← 一覧へ戻る</Link>
+                </Button>
+            </div>
 
-            <header className="space-y-2">
-                <p className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                    Intake Detail
-                </p>
-                <h1 className="text-3xl font-semibold">{record.customerName}</h1>
-                <p className="text-sm text-slate-500">
-                    作成日時: {record.createdAt.toLocaleString("ja-JP")} / 状態: {record.status}
-                </p>
-            </header>
+            <Card>
+                <CardHeader className="space-y-2">
+                    <CardDescription className="text-xs uppercase tracking-[0.3em]">
+                        Intake Detail
+                    </CardDescription>
+                    <CardTitle className="text-3xl">{record.customerName}</CardTitle>
+                    <div className="flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
+                        <span>作成日時: {record.createdAt.toLocaleString("ja-JP")}</span>
+                        <Separator orientation="vertical" className="h-4" />
+                        <Badge variant="outline" className="capitalize">
+                            {record.status}
+                        </Badge>
+                    </div>
+                </CardHeader>
+                <CardContent>
+                    <dl className="grid gap-5">
+                        {Object.entries(LABEL_MAP).map(([key, label]) => {
+                            let value = view[key as keyof typeof view];
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-                <dl className="grid gap-6">
-                    {Object.entries(LABEL_MAP).map(([key, label]) => {
-                        let value = view[key as keyof typeof view];
+                            if (key === "project_type" && typeof value === "string") {
+                                value = PROJECT_LABELS[value] ?? value;
+                            }
 
-                        if (key === "project_type" && typeof value === "string") {
-                            value = PROJECT_LABELS[value] ?? value;
-                        }
+                            if (
+                                (key === "annual_income" || key === "budget_total") &&
+                                typeof value === "number"
+                            ) {
+                                value = `${value} 万円`;
+                            }
 
-                        if (
-                            (key === "annual_income" || key === "budget_total") &&
-                            typeof value === "number"
-                        ) {
-                            value = `${value} 万円`;
-                        }
+                            if (value === undefined || value === null || value === "") {
+                                value = "-";
+                            }
 
-                        if (value === undefined || value === null || value === "") {
-                            value = "-";
-                        }
-
-                        return (
-                            <div key={key}>
-                                <dt className="text-xs uppercase tracking-[0.2em] text-slate-400">
-                                    {label}
-                                </dt>
-                                <dd className="mt-1 text-base text-slate-800">{String(value)}</dd>
-                            </div>
-                        );
-                    })}
-                </dl>
-            </section>
+                            return (
+                                <div key={key} className="rounded-lg border bg-muted/30 px-4 py-3">
+                                    <dt className="text-xs font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+                                        {label}
+                                    </dt>
+                                    <dd className="mt-1 text-base text-foreground">
+                                        {String(value)}
+                                    </dd>
+                                </div>
+                            );
+                        })}
+                    </dl>
+                </CardContent>
+            </Card>
         </main>
     );
 }

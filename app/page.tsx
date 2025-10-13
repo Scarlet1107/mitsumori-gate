@@ -1,33 +1,43 @@
 import Link from "next/link";
 
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+
 export default function Home() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center gap-10 bg-slate-50 px-6 py-16 text-slate-900">
-      <div className="max-w-xl text-center">
-        <p className="mb-3 text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
-          Mitsumori Gate
-        </p>
-        <h1 className="mb-4 text-3xl font-semibold sm:text-4xl">
-          初回面談をスムーズにする事前ヒアリングフォーム
-        </h1>
-        <p className="text-base leading-relaxed text-slate-600">
-          タブレットまたはスマホから事前に必要情報を入力し、スタッフとの会話に集中できる環境を整えます。
-        </p>
-      </div>
-      <div className="flex flex-col items-center gap-4 sm:flex-row">
-        <Link
-          href="/consent"
-          className="rounded-full bg-slate-900 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-slate-900/10 transition hover:bg-slate-700"
-        >
-          入力をはじめる
-        </Link>
-        <Link
-          href="/admin/intakes"
-          className="rounded-full border border-slate-300 px-6 py-3 text-sm font-medium text-slate-700 transition hover:border-slate-500 hover:text-slate-900"
-        >
-          社内管理画面へ
-        </Link>
-      </div>
+    <main className="flex min-h-screen flex-col items-center justify-center px-6 py-16 text-foreground">
+      <Card className="max-w-xl items-center text-center">
+        <CardHeader className="space-y-3">
+          <span className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+            Mitsumori Gate
+          </span>
+          <CardTitle className="text-3xl sm:text-4xl">
+            初回面談をスムーズにする事前ヒアリングフォーム
+          </CardTitle>
+          <CardDescription className="text-base leading-relaxed text-muted-foreground">
+            タブレットまたはスマホから事前に必要情報を入力し、スタッフとの会話に集中できる環境を整えます。
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
+          <Button asChild size="lg" className="rounded-full px-8">
+            <Link href="/consent">入力をはじめる</Link>
+          </Button>
+          <Button
+            asChild
+            size="lg"
+            variant="outline"
+            className="rounded-full px-8"
+          >
+            <Link href="/admin/intakes">社内管理画面へ</Link>
+          </Button>
+        </CardContent>
+      </Card>
     </main>
   );
 }

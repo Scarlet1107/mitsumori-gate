@@ -3,6 +3,17 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useState } from "react";
 
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+
 export default function ConsentPage() {
     const router = useRouter();
     const searchParams = useSearchParams();
@@ -20,48 +31,50 @@ export default function ConsentPage() {
     }, [router, from]);
 
     return (
-        <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-10 px-6 py-12 text-slate-900">
-            <header className="space-y-4 pt-10">
-                <p className="text-sm font-medium text-slate-500">Step 1 / 8</p>
-                <h1 className="text-2xl font-semibold">個人情報のお取り扱いについて</h1>
-                <p className="text-base leading-relaxed text-slate-600">
-                    お預かりする情報は、見積りやご案内の目的に限って利用し、適切に管理します。
-                    内容に同意いただける場合は、下のスイッチをオンにしてください。
+        <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-6 py-12 text-foreground">
+            <header className="space-y-2 pt-8">
+                <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                    Step 1 / 8
+                </p>
+                <h1 className="text-3xl font-semibold">同意の確認</h1>
+                <p className="text-base text-muted-foreground">
+                    入力前に、個人情報の利用についてご確認ください。
                 </p>
             </header>
 
-            <section className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-                <div className="flex items-center justify-between gap-6">
-                    <div className="space-y-1">
-                        <p className="text-lg font-medium">同意します（必須）</p>
-                        <p className="text-sm text-slate-500">
-                            スイッチをオンにすると入力フォームへ進めます。
-                        </p>
-                    </div>
-                    <button
-                        type="button"
-                        aria-pressed={agreed}
-                        onClick={() => setAgreed((prev) => !prev)}
-                        className={`relative h-10 w-20 rounded-full transition focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-slate-500 ${agreed ? "bg-slate-900" : "bg-slate-200"
-                            }`}
+            <Card>
+                <CardHeader className="space-y-1">
+                    <CardTitle>個人情報の利用に同意します</CardTitle>
+                    <CardDescription>同意すると入力フォームへ進みます。</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <Label
+                        htmlFor="consent"
+                        className="flex cursor-pointer items-start gap-4 rounded-xl bg-muted/40 px-5 py-4 transition hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
-                        <span
-                            className={`absolute top-1 left-1 h-8 w-8 rounded-full bg-white transition ${agreed ? "translate-x-10" : "translate-x-0"
-                                }`}
+                        <Checkbox
+                            id="consent"
+                            checked={agreed}
+                            onCheckedChange={(value) => setAgreed(Boolean(value))}
+                            className="mt-1 size-6"
                         />
-                    </button>
-                </div>
-            </section>
+                        <span className="space-y-1">
+                            <span className="text-base font-semibold text-foreground">同意する</span>
+                            <span className="block text-sm text-muted-foreground">利用目的を理解し、入力を進めます。</span>
+                        </span>
+                    </Label>
+                </CardContent>
+            </Card>
 
             <div className="mt-auto flex justify-end">
-                <button
+                <Button
                     type="button"
                     disabled={!agreed}
                     onClick={handleContinue}
-                    className="rounded-full bg-slate-900 px-6 py-3 text-sm font-medium text-white shadow-lg shadow-slate-900/10 transition enabled:hover:bg-slate-700 disabled:cursor-not-allowed disabled:bg-slate-300"
+                    className="rounded-full px-8"
                 >
                     入力へ進む
-                </button>
+                </Button>
             </div>
         </main>
     );

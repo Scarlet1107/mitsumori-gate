@@ -1,4 +1,22 @@
 import Link from "next/link";
+
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+    Card,
+    CardContent,
+    CardDescription,
+    CardHeader,
+    CardTitle,
+} from "@/components/ui/card";
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/components/ui/table";
 import { listIntakes } from "@/lib/intake-store";
 
 export const dynamic = "force-dynamic";
@@ -7,58 +25,67 @@ export default async function AdminIntakesPage() {
     const { items } = await listIntakes({ limit: 50 });
 
     return (
-        <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-6 px-6 py-12 text-slate-900">
-            <header className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
-                <div>
-                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-500">
+        <main className="mx-auto flex min-h-screen w-full max-w-5xl flex-col gap-8 px-6 py-12 text-foreground">
+            <Card className="border-none bg-transparent shadow-none">
+                <CardHeader className="px-0">
+                    <CardDescription className="text-xs font-semibold uppercase tracking-[0.3em]">
                         Admin
-                    </p>
-                    <h1 className="text-3xl font-semibold">Intake Entries</h1>
-                    <p className="text-sm text-slate-500">
-                        最新の入力が上に表示されます。
-                    </p>
-                </div>
-            </header>
+                    </CardDescription>
+                    <CardTitle className="text-3xl">Intake Entries</CardTitle>
+                    <CardDescription>最新の入力が上に表示されます。</CardDescription>
+                </CardHeader>
+            </Card>
 
-            <section className="overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm">
-                <table className="min-w-full divide-y divide-slate-200 text-left text-sm">
-                    <thead className="bg-slate-50 text-xs uppercase tracking-[0.2em] text-slate-500">
-                        <tr>
-                            <th className="px-6 py-3">顧客名</th>
-                            <th className="px-6 py-3">ステータス</th>
-                            <th className="px-6 py-3">作成日時</th>
-                            <th className="px-6 py-3">詳細</th>
-                        </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-100">
-                        {items.length === 0 ? (
-                            <tr>
-                                <td className="px-6 py-10 text-center text-slate-500" colSpan={4}>
-                                    まだ入力がありません。
-                                </td>
-                            </tr>
-                        ) : (
-                            items.map((item) => (
-                                <tr key={item.id} className="hover:bg-slate-50">
-                                    <td className="px-6 py-4 text-slate-800">{item.customerName}</td>
-                                    <td className="px-6 py-4 text-slate-500">{item.status}</td>
-                                    <td className="px-6 py-4 text-slate-500">
-                                        {item.createdAt.toLocaleString("ja-JP")}
-                                    </td>
-                                    <td className="px-6 py-4">
-                                        <Link
-                                            className="text-sm font-medium text-slate-900 underline-offset-4 hover:underline"
-                                            href={`/admin/intakes/${item.id}`}
-                                        >
-                                            詳細を見る
-                                        </Link>
-                                    </td>
-                                </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </section>
+            <Card>
+                <CardHeader className="pb-4">
+                    <CardTitle className="text-xl">最新の入力一覧</CardTitle>
+                    <CardDescription>直近50件の来場前ヒアリング結果です。</CardDescription>
+                </CardHeader>
+                <CardContent className="px-0">
+                    <Table>
+                        <TableHeader>
+                            <TableRow>
+                                <TableHead className="px-6">顧客名</TableHead>
+                                <TableHead className="px-6">ステータス</TableHead>
+                                <TableHead className="px-6">作成日時</TableHead>
+                                <TableHead className="px-6" />
+                            </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                            {items.length === 0 ? (
+                                <TableRow>
+                                    <TableCell className="px-6 py-10 text-center text-muted-foreground" colSpan={4}>
+                                        まだ入力がありません。
+                                    </TableCell>
+                                </TableRow>
+                            ) : (
+                                items.map((item) => (
+                                    <TableRow key={item.id}>
+                                        <TableCell className="px-6 font-medium">
+                                            {item.customerName}
+                                        </TableCell>
+                                        <TableCell className="px-6">
+                                            <Badge variant="outline" className="capitalize">
+                                                {item.status}
+                                            </Badge>
+                                        </TableCell>
+                                        <TableCell className="px-6 text-muted-foreground">
+                                            {item.createdAt.toLocaleString("ja-JP")}
+                                        </TableCell>
+                                        <TableCell className="px-6 text-right">
+                                            <Button asChild variant="link" className="px-0">
+                                                <Link href={`/admin/intakes/${item.id}`}>
+                                                    詳細を見る
+                                                </Link>
+                                            </Button>
+                                        </TableCell>
+                                    </TableRow>
+                                ))
+                            )}
+                        </TableBody>
+                    </Table>
+                </CardContent>
+            </Card>
         </main>
     );
 }
