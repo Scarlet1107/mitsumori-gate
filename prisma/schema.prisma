@@ -1,0 +1,42 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../lib/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Intake {
+  id           String       @id @default(uuid()) @db.Uuid
+  createdAt    DateTime     @default(now()) @map("created_at")
+  updatedAt    DateTime     @updatedAt @map("updated_at")
+  consent      Boolean
+  customerName String       @map("customer_name")
+  phone        String
+  email        String?
+  address      String?
+  annualIncome Int?         @map("annual_income")
+  budgetTotal  Int?         @map("budget_total")
+  projectType  ProjectType? @map("project_type")
+  from         String?
+  status       String       @default("new")
+  formVersion  String       @default("v1") @map("form_version")
+
+  @@index([status])
+  @@index([createdAt])
+  @@map("intakes")
+}
+
+enum ProjectType {
+  new
+  reform
+  warehouse
+}
