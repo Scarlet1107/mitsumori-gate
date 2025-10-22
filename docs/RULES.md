@@ -56,13 +56,6 @@
 /prisma
   schema.prisma
 /Docs
-  RULES.md
-  01-context.md
-  02-user-journeys.md
-  03-data-model.sql
-  04-api-contract.md
-  05-ux-copy.md
-  06-privacy-security.md
 ```
 
 ## 3. デザイン指針
