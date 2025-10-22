@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "framer-motion";
 import { useRouter, useSearchParams } from "next/navigation";
 import type { KeyboardEvent } from "react";
-import { useEffect, useMemo, useState, Suspense } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, Suspense } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -141,6 +141,7 @@ function IntakePageContent() {
     });
     const [errors, setErrors] = useState<string | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const inputRef = useRef<HTMLInputElement | null>(null);
 
     const consent = searchParams.get("consent");
     const from = searchParams.get("from") ?? undefined;
@@ -159,6 +160,26 @@ function IntakePageContent() {
 
     const displayStepNumber = Math.min(questionStepIndex + 2, TOTAL_STEPS);
     const progress = (displayStepNumber / TOTAL_STEPS) * 100;
+    const isFocusableStep = activeStep.id !== "project_type" && activeStep.id !== "confirm";
+
+    const setInputNode = useCallback(
+        (node: HTMLInputElement | null) => {
+            inputRef.current = node;
+            if (!node || !isFocusableStep) {
+                return;
+            }
+
+            requestAnimationFrame(() => {
+                const current = inputRef.current;
+                if (!current || current !== node) return;
+                current.focus({ preventScroll: true });
+                if (typeof current.select === "function") {
+                    current.select();
+                }
+            });
+        },
+        [isFocusableStep]
+    );
 
     const handleInputChange = (key: FieldKey, value: string) => {
         setForm((prev) => ({ ...prev, [key]: value }));
@@ -346,6 +367,7 @@ function IntakePageContent() {
                         type="text"
                         inputMode="numeric"
                         pattern="[0-9]*"
+                        ref={setInputNode}
                         value={value}
                         onChange={(event) =>
                             handleInputChange(activeStep.id as FieldKey, event.target.value)
@@ -366,6 +388,7 @@ function IntakePageContent() {
             <Input
                 type={type}
                 inputMode={activeStep.inputMode}
+                ref={setInputNode}
                 value={value}
                 onChange={(event) =>
                     handleInputChange(activeStep.id as FieldKey, event.target.value)

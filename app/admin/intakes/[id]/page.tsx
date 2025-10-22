@@ -35,9 +35,10 @@ const PROJECT_LABELS: Record<string, string> = {
 export default async function AdminIntakeDetailPage({
     params,
 }: {
-    params: { id: string };
+    params: Promise<{ id: string }>;
 }) {
-    const record = await findIntake(params.id);
+    const { id } = await params;
+    const record = await findIntake(id);
 
     if (!record) {
         notFound();

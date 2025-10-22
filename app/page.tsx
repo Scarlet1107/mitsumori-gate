@@ -12,7 +12,7 @@ import {
 export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center justify-center px-6 py-16 text-foreground">
-      <Card className="max-w-xl items-center text-center">
+      <Card className="w-full max-w-3xl text-center">
         <CardHeader className="space-y-3">
           <span className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
             Mitsumori Gate
@@ -34,7 +34,9 @@ export default function Home() {
             variant="outline"
             className="rounded-full px-8"
           >
-            <Link href="/admin/intakes">社内管理画面へ</Link>
+            <Link href="/admin/intakes" prefetch={false}>
+              社内管理画面へ
+            </Link>
           </Button>
         </CardContent>
       </Card>
