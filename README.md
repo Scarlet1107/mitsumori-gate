@@ -1,36 +1,49 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 住宅予算シミュレーション POC
 
-## Getting Started
+住宅ローンの借入可能額と希望条件に基づく予算感を確認できる最小構成のプロトタイプです。顧客が来店前／来店時に必要情報を入力すると、借入可能上限額・希望条件での借入額・参考延床面積を算出して保存できます。
 
-First, run the development server:
+## セットアップ
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+1. 依存関係をインストール
+    ```bash
+    npm install
+    ```
+2. `.env` に `DATABASE_URL` を設定
+3. Prisma のマイグレーションを適用（初回は任意の名前で OK）
+    ```bash
+    npx prisma migrate dev --name init-simulations
+    ```
+4. 開発サーバーを起動
+    ```bash
+    npm run dev
+    ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+ブラウザで [http://localhost:3000/consent](http://localhost:3000/consent) にアクセスし、同意後に表示されるステップフローでシミュレーターを利用できます。（既存の intake フローを拡張しています。）
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## テストと品質確認
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+- 型／Lint: `npm run lint`
+- ユニットテスト（バリデーションと試算ロジック）: `npm test`
 
-## Learn More
+※ 実行環境によっては Vitest がワーカースレッドを利用できずエラーになる場合があります。その場合は Node.js のワーカースレッドを許可するか、CI 上で実行してください。
 
-To learn more about Next.js, take a look at the following resources:
+## 設定値の一元管理
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+金利・返済比率・坪単価などの係数は `lib/simulation/config.ts` の `defaultSimulationConfig` でまとめて管理しています。必要に応じて環境変数や管理画面から上書きできるように `createSimulationConfig` を用意しています。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 保存データ
 
-## Deploy on Vercel
+`prisma/schema.prisma` の `Simulation` モデルに入力値と算出結果を保存します。保存 API は `POST /api/simulations` で、フロントエンドの「この内容で保存」ボタンから呼び出されます。メール通知は将来的に実装予定のため、現在は空のフック `sendSimulationEmail` を呼び出すのみです。
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 画面フロー概要
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. 同意と前提条件の確認
+2. 基礎情報（年齢・郵便番号）
+3. 年収・他借入・自己資金のヒアリング（1問ずつ）
+4. 土地の有無を確認
+5. 借入可能上限（MaxLoan）の提示
+6. 希望返済額・返済期間・ボーナス返済の入力
+7. スライダーで微調整し WishLoan と延床目安を更新
+8. 結果保存と完了画面（メール送信は未実装）
+
+各画面に注意文言を掲示し、金額はすべて「万円」単位で入力します（1を入力すると1万円として保存・計算されます）。結果表示時は円記号＋3桁区切りでフォーマットされ、微調整画面では MaxLoan と WishLoan の比率をプログレスバーで表示し、坪数・平米数の目安も同時に更新します。

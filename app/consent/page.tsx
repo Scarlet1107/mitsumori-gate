@@ -32,20 +32,20 @@ function ConsentPageContent() {
 
     return (
         <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-6 py-12 text-foreground">
-            <header className="space-y-2 pt-8">
+            <header className="space-y-2 pt-8 text-center">
                 <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                    Step 1 / 8
+                    Step 1 / 15
                 </p>
-                <h1 className="text-3xl font-semibold">同意の確認</h1>
+                <h1 className="text-3xl font-semibold">ご利用前のお願い</h1>
                 <p className="text-base text-muted-foreground">
-                    入力前に、個人情報の利用についてご確認ください。
+                    シミュレーションを開始する前に、以下の前提に同意をお願いします。
                 </p>
             </header>
 
             <Card>
                 <CardHeader className="space-y-1">
-                    <CardTitle>個人情報の利用に同意します</CardTitle>
-                    <CardDescription>同意すると入力フォームへ進みます。</CardDescription>
+                    <CardTitle>以下の内容をご確認ください</CardTitle>
+                    <CardDescription>チェック後にスタートできます。</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <Label
@@ -59,8 +59,12 @@ function ConsentPageContent() {
                             className="mt-1 size-6"
                         />
                         <span className="space-y-1">
-                            <span className="text-base font-semibold text-foreground">同意する</span>
-                            <span className="block text-sm text-muted-foreground">利用目的を理解し、入力を進めます。</span>
+                            <span className="text-base font-semibold text-foreground">同意します</span>
+                            <span className="block text-sm text-muted-foreground space-y-2">
+                                <p>入力いただいた個人情報は社内でのシミュレーションと提案検討のみに利用します。</p>
+                                <p>提案資料・見積内容を外部に公開しないことを確認しました。</p>
+                                <p>表示される金額はすべて目安であり、審査・金利条件・諸費用により実際と異なる場合があることを理解しています。</p>
+                            </span>
                         </span>
                     </Label>
                 </CardContent>
