@@ -1,5 +1,5 @@
 import { prisma } from "@/lib/prisma";
-import type { Prisma } from "@/lib/generated/prisma";
+import { Prisma } from "./generated/prisma";
 
 export type ProjectType = "new" | "reform" | "warehouse";
 
