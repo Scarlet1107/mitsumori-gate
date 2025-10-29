@@ -72,13 +72,13 @@ interface StepConfig {
     required?: boolean;
     inputType?: "text" | "number";
     inputMode?:
-        | "text"
-        | "tel"
-        | "email"
-        | "numeric"
-        | "decimal"
-        | "search"
-        | "url";
+    | "text"
+    | "tel"
+    | "email"
+    | "numeric"
+    | "decimal"
+    | "search"
+    | "url";
 }
 
 const steps: StepConfig[] = [
@@ -139,12 +139,6 @@ const steps: StepConfig[] = [
         description: "今回は参考情報として保存します。建築費との按分は今後の拡張で対応予定です。",
     },
     {
-        id: "max_loan",
-        title: "お二人で借りられる上限額（目安）",
-        description:
-            "年収と年齢から算出した借入可能額です。ボーナス返済は含めていません。",
-    },
-    {
         id: "wish_monthly",
         title: "希望する毎月の返済額を入力してください",
         description: unitNote,
@@ -175,6 +169,12 @@ const steps: StepConfig[] = [
         required: true,
         inputType: "number",
         inputMode: "numeric",
+    },
+    {
+        id: "max_loan",
+        title: "借り入れ可能上限額を確認しましょう",
+        description:
+            "年収と年齢から算出した借入可能額です。ボーナス返済は含めていません。",
     },
     {
         id: "adjust",
@@ -387,11 +387,11 @@ function IntakePageContent() {
             case "head_money": {
                 const value = parseIntegerField(
                     form[
-                        activeStep.id === "income_husband"
-                            ? "incomeHusband"
-                            : activeStep.id === "income_wife"
-                              ? "incomeWife"
-                              : activeStep.id === "other_loan"
+                    activeStep.id === "income_husband"
+                        ? "incomeHusband"
+                        : activeStep.id === "income_wife"
+                            ? "incomeWife"
+                            : activeStep.id === "other_loan"
                                 ? "otherLoanAnnualRepay"
                                 : "headMoney"
                     ]
@@ -560,7 +560,7 @@ function IntakePageContent() {
         setErrors(null);
         setDirection(-1);
 
-        if (activeStep.id === "adjust" && !form.bonusEnabled) {
+        if (activeStep.id === "max_loan" && !form.bonusEnabled) {
             setCurrentStepIndex((prev) => Math.max(prev - 2, 0));
             return;
         }
@@ -571,7 +571,7 @@ function IntakePageContent() {
     const primaryActionLabel = useMemo(() => {
         switch (activeStep.id) {
             case "max_loan":
-                return "希望条件の入力へ";
+                return "条件の微調整へ";
             case "adjust":
                 return submitting ? "保存中..." : "この内容で保存";
             case "complete":
@@ -1074,11 +1074,10 @@ function IntakePageContent() {
 
             {toast ? (
                 <div
-                    className={`fixed bottom-6 left-1/2 z-50 w-full max-w-md -translate-x-1/2 rounded-md border px-4 py-3 text-center shadow-lg ${
-                        toast.type === "success"
-                            ? "border-emerald-500 bg-emerald-500/10 text-emerald-900"
-                            : "border-destructive bg-destructive/10 text-destructive"
-                    }`}
+                    className={`fixed bottom-6 left-1/2 z-50 w-full max-w-md -translate-x-1/2 rounded-md border px-4 py-3 text-center shadow-lg ${toast.type === "success"
+                        ? "border-emerald-500 bg-emerald-500/10 text-emerald-900"
+                        : "border-destructive bg-destructive/10 text-destructive"
+                        }`}
                 >
                     <p className="text-sm">{toast.message}</p>
                 </div>
