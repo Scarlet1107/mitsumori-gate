@@ -1,4 +1,8 @@
+"use client";
+
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
+import { Suspense } from "react";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -10,27 +14,66 @@ import {
     CardTitle,
 } from "@/components/ui/card";
 
+function DoneContent() {
+    const searchParams = useSearchParams();
+    const mode = searchParams.get("mode");
+
+    const messages = {
+        web: "ご入力ありがとうございました。より詳細については来店いただいた際にお見せできます。",
+        inperson: "ご入力いただきありがとうございました。",
+    };
+
+    const message = mode === "web" ? messages.web :
+        mode === "inperson" ? messages.inperson :
+            messages.web;
+
+    return (
+        <Card className="w-full items-center text-center">
+            <CardHeader className="flex flex-col items-center space-y-3 pb-4 w-full">
+                <Badge variant="secondary" className="px-4 py-1 text-sm">
+                    完了しました
+                </Badge>
+                <CardTitle className="text-3xl">
+                    入力が完了しました
+                </CardTitle>
+                <CardDescription className="text-base leading-relaxed">
+                    {message}
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="pt-2 pb-6">
+                <Button asChild size="lg" className="rounded-full px-8">
+                    <Link href="/">ホームへ戻る</Link>
+                </Button>
+            </CardContent>
+        </Card>
+    );
+}
+
 export default function DonePage() {
     return (
-        <main className="mx-auto flex min-h-screen w-full max-w-xl flex-col items-center justify-center px-6 py-12 text-foreground">
-            <Card className="w-full items-center text-center">
-                <CardHeader className="space-y-4">
-                    <Badge variant="secondary" className="px-4 py-1 text-sm">
-                        完了しました
-                    </Badge>
-                    <CardTitle className="text-3xl">
-                        入力が完了しました
-                    </CardTitle>
-                    <CardDescription className="text-base leading-relaxed">
-                        ご協力ありがとうございます。入力内容はスタッフが確認し、次回の面談に活用いたします。
-                    </CardDescription>
-                </CardHeader>
-                <CardContent>
-                    <Button asChild size="lg" className="rounded-full px-8">
-                        <Link href="/">ホームへ戻る</Link>
-                    </Button>
-                </CardContent>
-            </Card>
+        <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col items-center justify-center px-6 py-12 text-foreground">
+            <Suspense fallback={
+                <Card className="w-full items-center text-center">
+                    <CardHeader className="flex flex-col items-center space-y-3 pb-4 w-full">
+                        <Badge variant="secondary" className="px-4 py-1 text-sm">
+                            完了しました
+                        </Badge>
+                        <CardTitle className="text-3xl">
+                            入力が完了しました
+                        </CardTitle>
+                        <CardDescription className="text-base leading-relaxed">
+                            読み込み中...
+                        </CardDescription>
+                    </CardHeader>
+                    <CardContent className="pt-2 pb-6">
+                        <Button asChild size="lg" className="rounded-full px-8">
+                            <Link href="/">ホームへ戻る</Link>
+                        </Button>
+                    </CardContent>
+                </Card>
+            }>
+                <DoneContent />
+            </Suspense>
         </main>
     );
 }

@@ -1,9 +1,6 @@
 // This is your Prisma schema file,
 // learn more about it in the docs: https://pris.ly/d/prisma-schema
 
-// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
-// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
-
 generator client {
   provider = "prisma-client-js"
   output   = "../lib/generated/prisma"
@@ -14,70 +11,92 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model Intake {
-  id           String       @id @default(uuid()) @db.Uuid
-  createdAt    DateTime     @default(now()) @map("created_at")
-  updatedAt    DateTime     @updatedAt @map("updated_at")
-  consent      Boolean
-  customerName String       @map("customer_name")
-  phone        String
-  email        String?
-  address      String?
-  annualIncome Int?         @map("annual_income")
-  budgetTotal  Int?         @map("budget_total")
-  projectType  ProjectType? @map("project_type")
-  from         String?
-  status       String       @default("new")
-  formVersion  String       @default("v1") @map("form_version")
+// 顧客のヒアリング情報を管理するメインテーブル
+model Customer {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
-  @@index([status])
+  // 基本情報
+  name       String
+  email      String?
+  phone      String?
+  postalCode String? @map("postal_code")
+  address    String?
+  age        Int?
+
+  // 配偶者情報
+  hasSpouse Boolean? @map("has_spouse")
+
+  // 収入情報
+  ownIncome    Int? @map("own_income")
+  spouseIncome Int? @map("spouse_income")
+
+  // 借入情報
+  ownLoanPayment    Int? @map("own_loan_payment")
+  spouseLoanPayment Int? @map("spouse_loan_payment")
+
+  // 頭金・返済希望
+  downPayment        Int? @map("down_payment")
+  wishMonthlyPayment Int? @map("wish_monthly_payment")
+  wishPaymentYears   Int? @map("wish_payment_years")
+
+  // その他条件
+  usesBonus           Boolean? @map("uses_bonus")
+  hasLand             Boolean? @map("has_land")
+  usesTechnostructure Boolean? @map("uses_technostructure")
+
+  // 入力方式（web/inperson）
+  inputMode String @default("web") @map("input_mode")
+
+  // Web入力完了状態、対面入力完了状態
+  webCompleted      Boolean @default(false) @map("web_completed")
+  inPersonCompleted Boolean @default(false) @map("in_person_completed")
+
+  // 関連するシミュレーション結果
+  simulations Simulation[]
+
+  @@index([name])
   @@index([createdAt])
-  @@map("intakes")
+  @@map("customers")
 }
 
-enum ProjectType {
-  new
-  reform
-  warehouse
-}
-
+// シミュレーション結果保存テーブル
 model Simulation {
-  id                           String   @id @default(uuid()) @db.Uuid
-  createdAt                    DateTime @default(now()) @map("created_at")
-  updatedAt                    DateTime @updatedAt @map("updated_at")
-  age                          Int
-  postalCode                   String   @map("postal_code")
-  incomeHusband                Int      @map("income_husband")
-  incomeWife                   Int      @map("income_wife")
-  otherLoanAnnualRepay         Int      @map("other_loan_annual_repay")
-  headMoney                    Int      @map("head_money")
-  hasLand                      Boolean  @map("has_land")
-  wishMonthly                  Int      @map("wish_monthly")
-  termYearsSelected            Int      @map("term_years_selected")
-  termYearsEffective           Int      @map("term_years_effective")
-  bonusEnabled                 Boolean  @map("bonus_enabled")
-  bonusPerPayment              Int      @map("bonus_per_payment")
-  bonusAnnual                  Int      @map("bonus_annual")
-  bonusMonthly                 Float    @map("bonus_monthly")
-  wishMonthlyTotal             Float    @map("wish_monthly_total")
-  householdAnnualIncome        Int      @map("household_annual_income")
-  maxAnnualDebt                Float    @map("max_annual_debt")
-  availableAnnualForThisLoan   Float    @map("available_annual_for_this_loan")
-  availableMonthlyForThisLoan  Float    @map("available_monthly_for_this_loan")
-  maxLoan                      Float    @map("max_loan")
-  wishLoan                     Float    @map("wish_loan")
-  ratio                        Float
-  budgetForBuilding            Float    @map("budget_for_building")
-  tsubo                        Float
-  squareMeters                 Float    @map("square_meters")
-  termMonths                   Int      @map("term_months")
-  monthlyRate                  Float    @map("monthly_rate")
-  maxTermByAge                 Int      @map("max_term_by_age")
-  configAnnualInterestRate     Float    @map("config_annual_interest_rate")
-  configMaxTermYearsCap        Int      @map("config_max_term_years_cap")
-  configDtiRatio               Float    @map("config_dti_ratio")
-  configUnitPricePerTsubo      Int      @map("config_unit_price_per_tsubo")
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
 
+  customerId String   @map("customer_id") @db.Uuid
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  // 計算結果
+  maxLoanAmount         Float? @map("max_loan_amount")
+  wishLoanAmount        Float? @map("wish_loan_amount")
+  totalBudget           Float? @map("total_budget")
+  buildingBudget        Float? @map("building_budget")
+  estimatedTsubo        Float? @map("estimated_tsubo")
+  estimatedSquareMeters Float? @map("estimated_square_meters")
+
+  // 計算時の設定値（スナップショット）
+  interestRate      Float? @map("interest_rate")
+  dtiRatio          Float? @map("dti_ratio")
+  unitPricePerTsubo Int?   @map("unit_price_per_tsubo")
+
+  @@index([customerId])
   @@index([createdAt])
   @@map("simulations")
+}
+
+// アプリ全体の設定値管理テーブル
+model AppConfig {
+  id        String   @id @default(uuid()) @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  key         String  @unique
+  value       String
+  description String?
+
+  @@map("app_configs")
 }

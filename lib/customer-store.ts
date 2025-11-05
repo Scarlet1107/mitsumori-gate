@@ -1,0 +1,171 @@
+import { prisma } from "@/lib/prisma";
+import { Customer } from "./generated/prisma";
+
+export interface CustomerCreateInput {
+    name: string;
+    email?: string;
+    phone?: string;
+    postalCode?: string;
+    address?: string;
+    age?: number;
+    hasSpouse?: boolean;
+    ownIncome?: number;
+    spouseIncome?: number;
+    ownLoanPayment?: number;
+    spouseLoanPayment?: number;
+    downPayment?: number;
+    wishMonthlyPayment?: number;
+    wishPaymentYears?: number;
+    usesBonus?: boolean;
+    hasLand?: boolean;
+    usesTechnostructure?: boolean;
+    inputMode?: "web" | "inperson";
+}
+
+export interface CustomerUpdateInput {
+    name?: string;
+    email?: string;
+    phone?: string;
+    postalCode?: string;
+    address?: string;
+    age?: number;
+    hasSpouse?: boolean;
+    ownIncome?: number;
+    spouseIncome?: number;
+    ownLoanPayment?: number;
+    spouseLoanPayment?: number;
+    downPayment?: number;
+    wishMonthlyPayment?: number;
+    wishPaymentYears?: number;
+    usesBonus?: boolean;
+    hasLand?: boolean;
+    usesTechnostructure?: boolean;
+    webCompleted?: boolean;
+    inPersonCompleted?: boolean;
+}
+
+// 顧客作成
+export async function createCustomer(input: CustomerCreateInput): Promise<Customer> {
+    return await prisma.customer.create({
+        data: {
+            name: input.name,
+            email: input.email,
+            phone: input.phone,
+            postalCode: input.postalCode,
+            address: input.address,
+            age: input.age,
+            hasSpouse: input.hasSpouse,
+            ownIncome: input.ownIncome,
+            spouseIncome: input.spouseIncome,
+            ownLoanPayment: input.ownLoanPayment,
+            spouseLoanPayment: input.spouseLoanPayment,
+            downPayment: input.downPayment,
+            wishMonthlyPayment: input.wishMonthlyPayment,
+            wishPaymentYears: input.wishPaymentYears,
+            usesBonus: input.usesBonus,
+            hasLand: input.hasLand,
+            usesTechnostructure: input.usesTechnostructure,
+            inputMode: input.inputMode || "web",
+        },
+    });
+}
+
+// 顧客更新
+export async function updateCustomer(
+    id: string,
+    input: CustomerUpdateInput
+): Promise<Customer> {
+    return await prisma.customer.update({
+        where: { id },
+        data: input,
+    });
+}
+
+// ID で顧客取得
+export async function getCustomerById(id: string): Promise<Customer | null> {
+    return await prisma.customer.findUnique({
+        where: { id },
+        include: {
+            simulations: {
+                orderBy: { createdAt: "desc" },
+                take: 5,
+            },
+        },
+    });
+}
+
+// 名前で顧客検索（対面入力用）
+export async function findCustomersByName(name: string): Promise<Customer[]> {
+    return await prisma.customer.findMany({
+        where: {
+            name: {
+                contains: name,
+                mode: "insensitive",
+            },
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+    });
+}
+
+// 名前・メールアドレスで顧客検索（対面入力用）
+export async function findCustomersByNameOrEmail(query: string): Promise<Customer[]> {
+    return await prisma.customer.findMany({
+        where: {
+            OR: [
+                {
+                    name: {
+                        contains: query,
+                        mode: "insensitive",
+                    },
+                },
+                {
+                    email: {
+                        contains: query,
+                        mode: "insensitive",
+                    },
+                },
+            ],
+        },
+        orderBy: { createdAt: "desc" },
+        take: 10,
+    });
+}
+
+// 最新の顧客を取得（デフォルト表示用）
+export async function getRecentCustomers(limit: number = 5): Promise<Customer[]> {
+    return await prisma.customer.findMany({
+        orderBy: { createdAt: "desc" },
+        take: limit,
+    });
+}
+
+// 全顧客一覧取得（管理画面用）
+export async function getAllCustomers(limit = 50, offset = 0): Promise<{
+    customers: Customer[];
+    total: number;
+}> {
+    const [customers, total] = await Promise.all([
+        prisma.customer.findMany({
+            orderBy: { createdAt: "desc" },
+            take: limit,
+            skip: offset,
+            include: {
+                simulations: {
+                    orderBy: { createdAt: "desc" },
+                    take: 1,
+                },
+            },
+        }),
+        prisma.customer.count(),
+    ]);
+
+    return { customers, total };
+}
+
+// 顧客削除
+export async function deleteCustomer(id: string): Promise<void> {
+    await prisma.customer.delete({
+        where: { id },
+    });
+}
