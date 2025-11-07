@@ -15,19 +15,19 @@ export default function Home() {
       <Card className="w-full max-w-3xl text-center">
         <CardHeader className="flex flex-col items-center space-y-3 w-full">
           <span className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-            Mitsumori Gate
+            家づくりシミュレーション
           </span>
           <CardTitle className="text-3xl sm:text-4xl">
-            初回面談をスムーズにする事前ヒアリングフォーム
+            住宅ローンとプランニングのシミュレーション
           </CardTitle>
           <CardDescription className="text-base leading-relaxed text-muted-foreground">
-            タブレットまたはスマホから事前に必要情報を入力し、スタッフとの会話に集中できる環境を整えます。
+            あなたの理想の家づくりを数値でシミュレーションし、最適なプランを見つけましょう。
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Button asChild size="lg" className="rounded-full px-8">
-              <Link href="/web-form">Web入力（来店前）</Link>
+              <Link href="/web-form">Webシミュレーション</Link>
             </Button>
             <Button
               asChild
@@ -35,7 +35,7 @@ export default function Home() {
               variant="outline"
               className="rounded-full px-8"
             >
-              <Link href="/inperson-form">対面入力（来店時）</Link>
+              <Link href="/inperson-form">対面シミュレーション</Link>
             </Button>
           </div>
           <div className="pt-4 border-t">

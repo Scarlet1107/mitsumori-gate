@@ -27,6 +27,7 @@ model Customer {
 
   // 配偶者情報
   hasSpouse Boolean? @map("has_spouse")
+  spouseName String?  @map("spouse_name")
 
   // 収入情報
   ownIncome    Int? @map("own_income")
