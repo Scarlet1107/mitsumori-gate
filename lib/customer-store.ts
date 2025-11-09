@@ -21,6 +21,8 @@ export interface CustomerCreateInput {
     hasLand?: boolean;
     usesTechnostructure?: boolean;
     inputMode?: "web" | "inperson";
+    webCompleted?: boolean;
+    inPersonCompleted?: boolean;
 }
 
 export interface CustomerUpdateInput {
@@ -69,6 +71,8 @@ export async function createCustomer(input: CustomerCreateInput): Promise<Custom
             hasLand: input.hasLand,
             usesTechnostructure: input.usesTechnostructure,
             inputMode: input.inputMode || "web",
+            webCompleted: input.webCompleted ?? (input.inputMode === "web"),
+            inPersonCompleted: input.inPersonCompleted ?? false,
         },
     });
 }

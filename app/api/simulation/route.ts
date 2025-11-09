@@ -166,6 +166,7 @@ async function persistWebFormSubmission(
         usesTechnostructure: getOptionalBoolean(formPayload["usesTechnostructure"]),
         inputMode: "web",
         spouseName: getOptionalString(formPayload["spouseName"]),
+        webCompleted: true,
     };
 
     const customer = await createCustomer(customerInput);
