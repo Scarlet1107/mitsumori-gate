@@ -2,13 +2,23 @@
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { getAllCustomers } from "@/lib/customer-store";
 import { getAllConfigs } from "@/lib/config-store";
+import { AdminCustomerTable } from "./components/AdminCustomerTable";
 
 export default async function AdminPage() {
     const { customers } = await getAllCustomers(20, 0);
     const configs = await getAllConfigs();
+    const serializedCustomers = customers.map(customer => ({
+        id: customer.id,
+        name: customer.name,
+        email: customer.email ?? "",
+        phone: customer.phone ?? "",
+        inputMode: customer.inputMode ?? "",
+        createdAt: customer.createdAt.toISOString(),
+        webCompleted: customer.webCompleted,
+        inPersonCompleted: customer.inPersonCompleted,
+    }));
 
     return (
         <div className="container mx-auto max-w-7xl space-y-8 p-6">
@@ -84,60 +94,12 @@ export default async function AdminPage() {
                 </Card>
             </div>
 
-            {/* 最近の顧客一覧 */}
             <Card>
                 <CardHeader>
                     <CardTitle>最近の顧客</CardTitle>
                 </CardHeader>
                 <CardContent className="px-0">
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="px-6">作成日時</TableHead>
-                                <TableHead className="px-6">お名前</TableHead>
-                                <TableHead className="px-6">入力方式</TableHead>
-                                <TableHead className="px-6">状態</TableHead>
-                                <TableHead className="px-6" />
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {customers.length === 0 ? (
-                                <TableRow>
-                                    <TableCell className="px-6 py-10 text-center text-muted-foreground" colSpan={5}>
-                                        まだ顧客データがありません。
-                                    </TableCell>
-                                </TableRow>
-                            ) : (
-                                customers.slice(0, 10).map((customer) => (
-                                    <TableRow key={customer.id}>
-                                        <TableCell className="px-6 text-muted-foreground">
-                                            {customer.createdAt.toLocaleString("ja-JP")}
-                                        </TableCell>
-                                        <TableCell className="px-6 font-medium">
-                                            {customer.name}
-                                        </TableCell>
-                                        <TableCell className="px-6">
-                                            {customer.inputMode === "web" ? "Web入力" : "対面入力"}
-                                        </TableCell>
-                                        <TableCell className="px-6">
-                                            {customer.webCompleted && customer.inPersonCompleted
-                                                ? "完了"
-                                                : customer.webCompleted
-                                                    ? "Web完了"
-                                                    : customer.inPersonCompleted
-                                                        ? "対面完了"
-                                                        : "入力中"}
-                                        </TableCell>
-                                        <TableCell className="px-6 text-right">
-                                            <span className="text-sm text-muted-foreground">
-                                                ID: {customer.id.slice(0, 8)}...
-                                            </span>
-                                        </TableCell>
-                                    </TableRow>
-                                ))
-                            )}
-                        </TableBody>
-                    </Table>
+                    <AdminCustomerTable initialCustomers={serializedCustomers} />
                 </CardContent>
             </Card>
         </div>

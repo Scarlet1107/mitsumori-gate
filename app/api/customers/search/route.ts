@@ -28,7 +28,6 @@ function serializeCustomers(customers: Customer[]): CustomerSearchResult[] {
         downPayment: toStringValue(customer.downPayment),
         wishMonthlyPayment: toStringValue(customer.wishMonthlyPayment),
         wishPaymentYears: toStringValue(customer.wishPaymentYears),
-        bonusPayment: toStringValue(customer.bonusPayment),
         usesBonus: customer.usesBonus ?? null,
         hasLand: customer.hasLand ?? null,
         usesTechnostructure: customer.usesTechnostructure ?? null,

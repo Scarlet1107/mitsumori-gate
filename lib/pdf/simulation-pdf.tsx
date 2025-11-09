@@ -62,7 +62,7 @@ export async function generatePDFBuffer(data: SimulationData): Promise<Buffer> {
     let yPosition = 20;
 
     addJapaneseFonts(doc);
-    const fontFamily = getJapaneseFontFamily();
+    const fontFamily = getJapaneseFontFamily(doc);
 
     // タイトル
     doc.setFontSize(20);
@@ -184,7 +184,7 @@ export async function generatePDFBuffer(data: SimulationData): Promise<Buffer> {
 // テーブル描画のヘルパー関数
 function drawTable(doc: jsPDF, data: string[][], x: number, y: number, colWidth: number) {
     const rowHeight = 8;
-    const fontFamily = getJapaneseFontFamily();
+    const fontFamily = getJapaneseFontFamily(doc);
 
     data.forEach((row, index) => {
         const currentY = y + (index * rowHeight);

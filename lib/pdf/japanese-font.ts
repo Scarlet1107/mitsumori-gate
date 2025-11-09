@@ -6,7 +6,7 @@ const FONT_FAMILY = "NotoSansJP";
 const FONT_FILE_NAME = "NotoSansJP-Regular.ttf";
 const FALLBACK_FONT = "helvetica";
 
-let fontRegistrationState: "pending" | "loaded" | "failed" = "pending";
+const docsWithJapaneseFont = new WeakSet<jsPDF>();
 let cachedFontData: string | null = null;
 
 function loadFontData(): string | null {
@@ -39,14 +39,8 @@ function loadFontData(): string | null {
 }
 
 export function addJapaneseFonts(doc: jsPDF): boolean {
-    if (fontRegistrationState === "loaded") {
-        doc.setFont(FONT_FAMILY, "normal");
-        return true;
-    }
-
     const fontData = loadFontData();
     if (!fontData) {
-        fontRegistrationState = "failed";
         doc.setFont(FALLBACK_FONT, "normal");
         return false;
     }
@@ -56,11 +50,10 @@ export function addJapaneseFonts(doc: jsPDF): boolean {
         doc.addFont(FONT_FILE_NAME, FONT_FAMILY, "normal");
         doc.addFont(FONT_FILE_NAME, FONT_FAMILY, "bold");
         doc.setFont(FONT_FAMILY, "normal");
-        fontRegistrationState = "loaded";
+        docsWithJapaneseFont.add(doc);
         return true;
     } catch (error) {
         console.warn("日本語フォントの登録に失敗しました:", error);
-        fontRegistrationState = "failed";
         doc.setFont(FALLBACK_FONT, "normal");
         return false;
     }
@@ -73,7 +66,7 @@ export function drawJapaneseText(
     y: number,
     options?: { align?: "left" | "center" | "right" | "justify" }
 ) {
-    if (fontRegistrationState !== "loaded") {
+    if (!docsWithJapaneseFont.has(doc)) {
         doc.setFont(FALLBACK_FONT, "normal");
         doc.text(convertToFallbackText(text), x, y, options);
         return;
@@ -82,8 +75,11 @@ export function drawJapaneseText(
     doc.text(text, x, y, options);
 }
 
-export function getJapaneseFontFamily() {
-    return fontRegistrationState === "loaded" ? FONT_FAMILY : FALLBACK_FONT;
+export function getJapaneseFontFamily(doc?: jsPDF) {
+    if (doc && docsWithJapaneseFont.has(doc)) {
+        return FONT_FAMILY;
+    }
+    return FALLBACK_FONT;
 }
 
 function convertToFallbackText(text: string): string {

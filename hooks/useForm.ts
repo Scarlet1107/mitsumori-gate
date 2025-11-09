@@ -151,7 +151,8 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
                 spouseLoanPayment: "0",
             }));
             setDirection(1);
-            setCurrentStepIndex(prev => Math.min(prev + 4, steps.length - 1)); // 配偶者関連ステップをスキップ
+            // ステップ順: 質問 → 配偶者年収 → 配偶者返済額 → 頭金
+            setCurrentStepIndex(prev => Math.min(prev + 3, steps.length - 1)); // 配偶者関連ステップのみスキップ
             return;
         }
 
@@ -175,7 +176,7 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
         // 配偶者関連の条件分岐（戻る時）
         if (activeStep.id === "downPayment" && form.hasSpouse === false) {
             setDirection(-1);
-            setCurrentStepIndex(prev => Math.max(prev - 4, 0)); // 配偶者関連ステップ分戻る
+            setCurrentStepIndex(prev => Math.max(prev - 3, 0)); // 配偶者関連ステップ分戻る
             return;
         }
 
@@ -213,7 +214,7 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
                     spouseLoanPayment: "0",
                 }));
                 setDirection(1);
-                setCurrentStepIndex(prev => Math.min(prev + 4, steps.length - 1));
+                setCurrentStepIndex(prev => Math.min(prev + 3, steps.length - 1));
                 return;
             }
         }
