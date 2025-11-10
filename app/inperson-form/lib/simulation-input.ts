@@ -25,7 +25,7 @@ export function buildSimulationInput(
         wishPaymentYears: toNumber(form.wishPaymentYears, 0),
         hasSpouse: form.hasSpouse ?? undefined,
         usesBonus: form.usesBonus ?? undefined,
-        bonusPayment: toNumber(form.bonusPayment, 0),
+        bonusPayment: form.usesBonus === false ? 0 : toNumber(form.bonusPayment, 0),
         hasLand: form.hasLand ?? undefined,
         usesTechnostructure: form.usesTechnostructure ?? undefined,
     };

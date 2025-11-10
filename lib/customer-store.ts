@@ -6,7 +6,8 @@ export interface CustomerCreateInput {
     email?: string;
     phone?: string;
     postalCode?: string;
-    address?: string;
+    baseAddress?: string;
+    detailAddress?: string;
     age?: number;
     hasSpouse?: boolean;
     spouseName?: string;
@@ -18,6 +19,7 @@ export interface CustomerCreateInput {
     wishMonthlyPayment?: number;
     wishPaymentYears?: number;
     usesBonus?: boolean;
+    bonusPayment?: number;
     hasLand?: boolean;
     usesTechnostructure?: boolean;
     inputMode?: "web" | "inperson";
@@ -30,7 +32,8 @@ export interface CustomerUpdateInput {
     email?: string;
     phone?: string;
     postalCode?: string;
-    address?: string;
+    baseAddress?: string;
+    detailAddress?: string;
     age?: number;
     hasSpouse?: boolean;
     spouseName?: string;
@@ -42,6 +45,7 @@ export interface CustomerUpdateInput {
     wishMonthlyPayment?: number;
     wishPaymentYears?: number;
     usesBonus?: boolean;
+    bonusPayment?: number;
     hasLand?: boolean;
     usesTechnostructure?: boolean;
     webCompleted?: boolean;
@@ -56,7 +60,8 @@ export async function createCustomer(input: CustomerCreateInput): Promise<Custom
             email: input.email,
             phone: input.phone,
             postalCode: input.postalCode,
-            address: input.address,
+            baseAddress: input.baseAddress,
+            detailAddress: input.detailAddress,
             age: input.age,
             hasSpouse: input.hasSpouse,
             spouseName: input.spouseName,
@@ -68,6 +73,7 @@ export async function createCustomer(input: CustomerCreateInput): Promise<Custom
             wishMonthlyPayment: input.wishMonthlyPayment,
             wishPaymentYears: input.wishPaymentYears,
             usesBonus: input.usesBonus,
+            bonusPayment: input.bonusPayment ?? 0,
             hasLand: input.hasLand,
             usesTechnostructure: input.usesTechnostructure,
             inputMode: input.inputMode || "web",

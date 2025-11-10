@@ -9,32 +9,39 @@ const toStringValue = (value?: number | null) => {
 };
 
 function serializeCustomers(customers: Customer[]): CustomerSearchResult[] {
-    return customers.map(customer => ({
-        id: customer.id,
-        name: customer.name,
-        email: customer.email ?? "",
-        phone: customer.phone ?? "",
-        age: toStringValue(customer.age),
-        postalCode: customer.postalCode ?? "",
-        baseAddress: customer.address ?? "",
-        detailAddress: "",
-        address: customer.address ?? "",
-        hasSpouse: customer.hasSpouse ?? null,
-        spouseName: customer.spouseName ?? "",
-        ownIncome: toStringValue(customer.ownIncome),
-        ownLoanPayment: toStringValue(customer.ownLoanPayment),
-        spouseIncome: toStringValue(customer.spouseIncome),
-        spouseLoanPayment: toStringValue(customer.spouseLoanPayment),
-        downPayment: toStringValue(customer.downPayment),
-        wishMonthlyPayment: toStringValue(customer.wishMonthlyPayment),
-        wishPaymentYears: toStringValue(customer.wishPaymentYears),
-        usesBonus: customer.usesBonus ?? null,
-        hasLand: customer.hasLand ?? null,
-        usesTechnostructure: customer.usesTechnostructure ?? null,
-        createdAt: customer.createdAt instanceof Date
-            ? customer.createdAt.toISOString()
-            : customer.createdAt,
-    }));
+    return customers.map(customer => {
+        const baseAddress = customer.baseAddress ?? "";
+        const detailAddress = customer.detailAddress ?? "";
+        const combinedAddress = `${baseAddress}${detailAddress}`.trim();
+
+        return {
+            id: customer.id,
+            name: customer.name,
+            email: customer.email ?? "",
+            phone: customer.phone ?? "",
+            age: toStringValue(customer.age),
+            postalCode: customer.postalCode ?? "",
+            baseAddress,
+            detailAddress,
+            address: combinedAddress,
+            hasSpouse: customer.hasSpouse ?? null,
+            spouseName: customer.spouseName ?? "",
+            ownIncome: toStringValue(customer.ownIncome),
+            ownLoanPayment: toStringValue(customer.ownLoanPayment),
+            spouseIncome: toStringValue(customer.spouseIncome),
+            spouseLoanPayment: toStringValue(customer.spouseLoanPayment),
+            downPayment: toStringValue(customer.downPayment),
+            wishMonthlyPayment: toStringValue(customer.wishMonthlyPayment),
+            wishPaymentYears: toStringValue(customer.wishPaymentYears),
+            usesBonus: customer.usesBonus ?? null,
+            hasLand: customer.hasLand ?? null,
+            usesTechnostructure: customer.usesTechnostructure ?? null,
+            bonusPayment: toStringValue(customer.bonusPayment),
+            createdAt: customer.createdAt instanceof Date
+                ? customer.createdAt.toISOString()
+                : customer.createdAt,
+        };
+    });
 }
 
 export async function GET(request: Request) {

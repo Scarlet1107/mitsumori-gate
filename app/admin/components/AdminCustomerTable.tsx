@@ -38,6 +38,8 @@ interface SimulationSnapshot {
 
 interface CustomerDetail extends CustomerRow {
     postalCode?: string | null;
+    baseAddress?: string | null;
+    detailAddress?: string | null;
     address?: string | null;
     age?: number | null;
     hasSpouse?: boolean | null;
@@ -50,6 +52,7 @@ interface CustomerDetail extends CustomerRow {
     wishMonthlyPayment?: number | null;
     wishPaymentYears?: number | null;
     usesBonus?: boolean | null;
+    bonusPayment?: number | null;
     hasLand?: boolean | null;
     usesTechnostructure?: boolean | null;
     simulations?: SimulationSnapshot[];
@@ -65,7 +68,8 @@ interface EditFormState {
     email: string;
     phone: string;
     postalCode: string;
-    address: string;
+    baseAddress: string;
+    detailAddress: string;
     age: string;
     hasSpouse: boolean;
     spouseName: string;
@@ -77,6 +81,7 @@ interface EditFormState {
     wishMonthlyPayment: string;
     wishPaymentYears: string;
     usesBonus: boolean;
+    bonusPayment: string;
     hasLand: boolean;
     usesTechnostructure: boolean;
     webCompleted: boolean;
@@ -147,7 +152,8 @@ export function AdminCustomerTable({ initialCustomers }: AdminCustomerTableProps
                 email: data.email || "",
                 phone: data.phone || "",
                 postalCode: data.postalCode || "",
-                address: data.address || "",
+                baseAddress: data.baseAddress || "",
+                detailAddress: data.detailAddress || "",
                 age: data.age?.toString() || "",
                 hasSpouse: toBooleanFromState(data.hasSpouse),
                 spouseName: data.spouseName || "",
@@ -159,6 +165,7 @@ export function AdminCustomerTable({ initialCustomers }: AdminCustomerTableProps
                 wishMonthlyPayment: data.wishMonthlyPayment?.toString() || "",
                 wishPaymentYears: data.wishPaymentYears?.toString() || "",
                 usesBonus: toBooleanFromState(data.usesBonus),
+                bonusPayment: data.bonusPayment?.toString() || "",
                 hasLand: toBooleanFromState(data.hasLand),
                 usesTechnostructure: toBooleanFromState(data.usesTechnostructure),
                 webCompleted: data.webCompleted,
@@ -175,28 +182,40 @@ export function AdminCustomerTable({ initialCustomers }: AdminCustomerTableProps
         setEditForm(prev => prev ? { ...prev, [field]: value } : prev);
     };
 
-    const buildUpdatePayload = (form: EditFormState) => ({
-        name: form.name || undefined,
-        email: form.email || undefined,
-        phone: form.phone || undefined,
-        postalCode: form.postalCode || undefined,
-        address: form.address || undefined,
-        age: toOptionalNumber(form.age),
-        hasSpouse: form.hasSpouse,
-        spouseName: form.hasSpouse ? (form.spouseName || undefined) : undefined,
-        ownIncome: toOptionalNumber(form.ownIncome),
-        spouseIncome: form.hasSpouse ? toOptionalNumber(form.spouseIncome) : undefined,
-        ownLoanPayment: toOptionalNumber(form.ownLoanPayment),
-        spouseLoanPayment: form.hasSpouse ? toOptionalNumber(form.spouseLoanPayment) : undefined,
-        downPayment: toOptionalNumber(form.downPayment),
-        wishMonthlyPayment: toOptionalNumber(form.wishMonthlyPayment),
-        wishPaymentYears: toOptionalNumber(form.wishPaymentYears),
-        usesBonus: form.usesBonus,
-        hasLand: form.hasLand,
-        usesTechnostructure: form.usesTechnostructure,
-        webCompleted: form.webCompleted,
-        inPersonCompleted: form.inPersonCompleted,
-    });
+    const buildUpdatePayload = (form: EditFormState) => {
+        const normalizeBonusPayment = () => {
+            const parsed = toOptionalNumber(form.bonusPayment);
+            if (!form.usesBonus) {
+                return 0;
+            }
+            return parsed ?? 0;
+        };
+
+        return {
+            name: form.name || undefined,
+            email: form.email || undefined,
+            phone: form.phone || undefined,
+            postalCode: form.postalCode || undefined,
+            baseAddress: form.baseAddress || undefined,
+            detailAddress: form.detailAddress || undefined,
+            age: toOptionalNumber(form.age),
+            hasSpouse: form.hasSpouse,
+            spouseName: form.hasSpouse ? (form.spouseName || undefined) : undefined,
+            ownIncome: toOptionalNumber(form.ownIncome),
+            spouseIncome: form.hasSpouse ? toOptionalNumber(form.spouseIncome) : undefined,
+            ownLoanPayment: toOptionalNumber(form.ownLoanPayment),
+            spouseLoanPayment: form.hasSpouse ? toOptionalNumber(form.spouseLoanPayment) : undefined,
+            downPayment: toOptionalNumber(form.downPayment),
+            wishMonthlyPayment: toOptionalNumber(form.wishMonthlyPayment),
+            wishPaymentYears: toOptionalNumber(form.wishPaymentYears),
+            usesBonus: form.usesBonus,
+            bonusPayment: normalizeBonusPayment(),
+            hasLand: form.hasLand,
+            usesTechnostructure: form.usesTechnostructure,
+            webCompleted: form.webCompleted,
+            inPersonCompleted: form.inPersonCompleted,
+        };
+    };
 
     const handleEditSubmit = async () => {
         if (!editForm) return;
@@ -235,7 +254,9 @@ export function AdminCustomerTable({ initialCustomers }: AdminCustomerTableProps
                         email: editForm.email || prev.email,
                         phone: editForm.phone || prev.phone,
                         postalCode: editForm.postalCode || prev.postalCode,
-                        address: editForm.address || prev.address,
+                        baseAddress: editForm.baseAddress || prev.baseAddress,
+                        detailAddress: editForm.detailAddress || prev.detailAddress,
+                        address: `${editForm.baseAddress || ""}${editForm.detailAddress || ""}`.trim() || prev.address || "",
                         age: toOptionalNumber(editForm.age) ?? prev.age,
                         hasSpouse: editForm.hasSpouse,
                         spouseName: editForm.hasSpouse ? (editForm.spouseName || prev.spouseName || "") : null,
@@ -247,6 +268,7 @@ export function AdminCustomerTable({ initialCustomers }: AdminCustomerTableProps
                         wishMonthlyPayment: toOptionalNumber(editForm.wishMonthlyPayment) ?? prev.wishMonthlyPayment,
                         wishPaymentYears: toOptionalNumber(editForm.wishPaymentYears) ?? prev.wishPaymentYears,
                         usesBonus: editForm.usesBonus,
+                        bonusPayment: editForm.usesBonus ? (toOptionalNumber(editForm.bonusPayment) ?? prev.bonusPayment ?? 0) : 0,
                         hasLand: editForm.hasLand,
                         usesTechnostructure: editForm.usesTechnostructure,
                         webCompleted: editForm.webCompleted,
@@ -348,9 +370,11 @@ export function AdminCustomerTable({ initialCustomers }: AdminCustomerTableProps
                         <p>{detail.phone || "-"}</p>
                     </div>
                 </div>
-                <div>
+                <div className="space-y-1">
                     <p className="text-xs text-muted-foreground">住所</p>
-                    <p>{detail.address || "-"}</p>
+                    <p className="text-sm">基本：{detail.baseAddress || "-"}</p>
+                    <p className="text-sm">詳細：{detail.detailAddress || "-"}</p>
+                    <p className="text-sm font-medium">結合：{detail.address || `${detail.baseAddress ?? ""}${detail.detailAddress ?? ""}` || "-"}</p>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                     <div>
@@ -507,9 +531,13 @@ export function AdminCustomerTable({ initialCustomers }: AdminCustomerTableProps
                                     <Label className="text-xs">郵便番号</Label>
                                     <Input value={editForm.postalCode} onChange={e => handleEditFieldChange("postalCode", e.target.value)} />
                                 </div>
-                                <div>
-                                    <Label className="text-xs">住所</Label>
-                                    <Input value={editForm.address} onChange={e => handleEditFieldChange("address", e.target.value)} />
+                                <div className="col-span-2">
+                                    <Label className="text-xs">基本住所</Label>
+                                    <Input value={editForm.baseAddress} onChange={e => handleEditFieldChange("baseAddress", e.target.value)} />
+                                </div>
+                                <div className="col-span-2">
+                                    <Label className="text-xs">詳細住所</Label>
+                                    <Input value={editForm.detailAddress} onChange={e => handleEditFieldChange("detailAddress", e.target.value)} />
                                 </div>
                             </div>
 
@@ -563,6 +591,12 @@ export function AdminCustomerTable({ initialCustomers }: AdminCustomerTableProps
                                     <span className="text-sm">ボーナス返済</span>
                                     <Switch checked={editForm.usesBonus} onCheckedChange={checked => handleEditFieldChange("usesBonus", checked)} />
                                 </div>
+                                {editForm.usesBonus && (
+                                    <div>
+                                        <Label className="text-xs">ボーナス支払い額（1回分）</Label>
+                                        <Input value={editForm.bonusPayment} onChange={e => handleEditFieldChange("bonusPayment", e.target.value)} />
+                                    </div>
+                                )}
                                 <div className="flex items-center justify_between border rounded-md px-3 py-2">
                                     <span className="text-sm">土地所有</span>
                                     <Switch checked={editForm.hasLand} onCheckedChange={checked => handleEditFieldChange("hasLand", checked)} />

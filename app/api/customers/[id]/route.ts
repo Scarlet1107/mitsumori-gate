@@ -13,7 +13,14 @@ export async function GET(
             return NextResponse.json({ error: "Customer not found" }, { status: 404 });
         }
 
-        return NextResponse.json(customer);
+        const baseAddress = customer.baseAddress ?? "";
+        const detailAddress = customer.detailAddress ?? "";
+        const combinedAddress = `${baseAddress}${detailAddress}`.trim();
+
+        return NextResponse.json({
+            ...customer,
+            address: combinedAddress,
+        });
     } catch (error) {
         console.error("GET /api/customers/[id] failed:", error);
         return NextResponse.json(

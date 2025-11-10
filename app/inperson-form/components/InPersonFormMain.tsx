@@ -68,14 +68,21 @@ export default function InPersonForm() {
             return Number.isFinite(num) ? num : undefined;
         };
 
-        const fullAddress = (formData.address || `${formData.baseAddress || ""}${formData.detailAddress || ""}`).trim();
+        const normalizeBonusPayment = () => {
+            const parsed = toNumber(formData.bonusPayment ?? "");
+            if (formData.usesBonus === false) {
+                return 0;
+            }
+            return parsed ?? 0;
+        };
 
         return {
             name: formData.name || undefined,
             email: formData.email || undefined,
             phone: formData.phone || undefined,
             postalCode: formData.postalCode || undefined,
-            address: fullAddress || undefined,
+            baseAddress: formData.baseAddress || undefined,
+            detailAddress: formData.detailAddress || undefined,
             age: toNumber(formData.age),
             hasSpouse: formData.hasSpouse ?? undefined,
             spouseName: formData.hasSpouse ? (formData.spouseName || undefined) : undefined,
@@ -87,6 +94,7 @@ export default function InPersonForm() {
             wishMonthlyPayment: toNumber(formData.wishMonthlyPayment),
             wishPaymentYears: toNumber(formData.wishPaymentYears),
             usesBonus: formData.usesBonus ?? undefined,
+            bonusPayment: normalizeBonusPayment(),
             hasLand: formData.hasLand ?? undefined,
             usesTechnostructure: formData.usesTechnostructure ?? undefined,
             inPersonCompleted: true,
@@ -137,13 +145,15 @@ export default function InPersonForm() {
         updateField("phone", customer.phone || "");
         updateField("age", toStringValue(customer.age));
         updateField("postalCode", customer.postalCode || "");
-        const baseAddress = customer.baseAddress || customer.address || "";
-        const detailAddress = customer.detailAddress || "";
+        const combinedAddress = customer.address || "";
+        const baseAddress = customer.baseAddress || combinedAddress;
+        const detailAddress = customer.baseAddress ? (customer.detailAddress || "") : "";
         updateField("baseAddress", baseAddress);
         updateField("detailAddress", detailAddress);
 
         // 住所が取得できている場合は結合
-        updateField("address", `${baseAddress}${detailAddress}`.trim());
+        const fullAddress = `${baseAddress}${detailAddress}`.trim() || combinedAddress;
+        updateField("address", fullAddress);
 
         // 数値系
         updateField("ownIncome", toStringValue(customer.ownIncome));

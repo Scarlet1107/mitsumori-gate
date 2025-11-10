@@ -145,13 +145,24 @@ async function persistWebFormSubmission(
     const name = getRequiredString(formPayload["name"], "name");
 
     const hasSpouse = getOptionalBoolean(formPayload["hasSpouse"]);
+    const usesBonus = getOptionalBoolean(formPayload["usesBonus"]);
+    const baseAddress = getOptionalString(formPayload["baseAddress"]) ?? getOptionalString(formPayload["address"]);
+    const detailAddress = getOptionalString(formPayload["detailAddress"]);
+    const bonusPaymentValue = (() => {
+        const parsed = getOptionalInteger(formPayload["bonusPayment"]);
+        if (usesBonus === false) {
+            return 0;
+        }
+        return parsed ?? 0;
+    })();
 
     const customerInput: CustomerCreateInput = {
         name,
         email: getOptionalString(formPayload["email"]),
         phone: getOptionalString(formPayload["phone"]),
         postalCode: getOptionalString(formPayload["postalCode"]),
-        address: getOptionalString(formPayload["address"]),
+        baseAddress,
+        detailAddress,
         age: getOptionalInteger(formPayload["age"]),
         hasSpouse,
         ownIncome: getOptionalInteger(formPayload["ownIncome"]),
@@ -161,7 +172,8 @@ async function persistWebFormSubmission(
         downPayment: getOptionalInteger(formPayload["downPayment"]),
         wishMonthlyPayment: getOptionalInteger(formPayload["wishMonthlyPayment"]),
         wishPaymentYears: getOptionalInteger(formPayload["wishPaymentYears"]),
-        usesBonus: getOptionalBoolean(formPayload["usesBonus"]),
+        usesBonus,
+        bonusPayment: bonusPaymentValue,
         hasLand: getOptionalBoolean(formPayload["hasLand"]),
         usesTechnostructure: getOptionalBoolean(formPayload["usesTechnostructure"]),
         inputMode: "web",
