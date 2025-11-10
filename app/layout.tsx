@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Mitsumori Gate",
-  description: "プレミアム住宅のための事前ヒアリングフォーム",
+  title: "簡単家づくりシミュレーション",
+  description: "住宅ローンとプランニングの事前シミュレーション",
 };
 
 export default function RootLayout({

@@ -21,12 +21,14 @@ model Customer {
   name       String
   email      String?
   phone      String?
-  postalCode String? @map("postal_code")
-  address    String?
+  postalCode    String? @map("postal_code")
+  baseAddress   String? @map("base_address")
+  detailAddress String? @map("detail_address")
   age        Int?
 
   // 配偶者情報
   hasSpouse Boolean? @map("has_spouse")
+  spouseName String?  @map("spouse_name")
 
   // 収入情報
   ownIncome    Int? @map("own_income")
@@ -43,6 +45,7 @@ model Customer {
 
   // その他条件
   usesBonus           Boolean? @map("uses_bonus")
+  bonusPayment        Int?     @map("bonus_payment")
   hasLand             Boolean? @map("has_land")
   usesTechnostructure Boolean? @map("uses_technostructure")
 

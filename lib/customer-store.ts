@@ -6,9 +6,11 @@ export interface CustomerCreateInput {
     email?: string;
     phone?: string;
     postalCode?: string;
-    address?: string;
+    baseAddress?: string;
+    detailAddress?: string;
     age?: number;
     hasSpouse?: boolean;
+    spouseName?: string;
     ownIncome?: number;
     spouseIncome?: number;
     ownLoanPayment?: number;
@@ -17,9 +19,12 @@ export interface CustomerCreateInput {
     wishMonthlyPayment?: number;
     wishPaymentYears?: number;
     usesBonus?: boolean;
+    bonusPayment?: number;
     hasLand?: boolean;
     usesTechnostructure?: boolean;
     inputMode?: "web" | "inperson";
+    webCompleted?: boolean;
+    inPersonCompleted?: boolean;
 }
 
 export interface CustomerUpdateInput {
@@ -27,9 +32,11 @@ export interface CustomerUpdateInput {
     email?: string;
     phone?: string;
     postalCode?: string;
-    address?: string;
+    baseAddress?: string;
+    detailAddress?: string;
     age?: number;
     hasSpouse?: boolean;
+    spouseName?: string;
     ownIncome?: number;
     spouseIncome?: number;
     ownLoanPayment?: number;
@@ -38,6 +45,7 @@ export interface CustomerUpdateInput {
     wishMonthlyPayment?: number;
     wishPaymentYears?: number;
     usesBonus?: boolean;
+    bonusPayment?: number;
     hasLand?: boolean;
     usesTechnostructure?: boolean;
     webCompleted?: boolean;
@@ -52,9 +60,11 @@ export async function createCustomer(input: CustomerCreateInput): Promise<Custom
             email: input.email,
             phone: input.phone,
             postalCode: input.postalCode,
-            address: input.address,
+            baseAddress: input.baseAddress,
+            detailAddress: input.detailAddress,
             age: input.age,
             hasSpouse: input.hasSpouse,
+            spouseName: input.spouseName,
             ownIncome: input.ownIncome,
             spouseIncome: input.spouseIncome,
             ownLoanPayment: input.ownLoanPayment,
@@ -63,9 +73,12 @@ export async function createCustomer(input: CustomerCreateInput): Promise<Custom
             wishMonthlyPayment: input.wishMonthlyPayment,
             wishPaymentYears: input.wishPaymentYears,
             usesBonus: input.usesBonus,
+            bonusPayment: input.bonusPayment ?? 0,
             hasLand: input.hasLand,
             usesTechnostructure: input.usesTechnostructure,
             inputMode: input.inputMode || "web",
+            webCompleted: input.webCompleted ?? (input.inputMode === "web"),
+            inPersonCompleted: input.inPersonCompleted ?? false,
         },
     });
 }
@@ -109,9 +122,10 @@ export async function findCustomersByName(name: string): Promise<Customer[]> {
 }
 
 // 名前・メールアドレスで顧客検索（対面入力用）
-export async function findCustomersByNameOrEmail(query: string): Promise<Customer[]> {
+export async function findCustomersByNameOrEmail(query: string, limit = 5): Promise<Customer[]> {
     return await prisma.customer.findMany({
         where: {
+            inPersonCompleted: false,
             OR: [
                 {
                     name: {
@@ -128,13 +142,16 @@ export async function findCustomersByNameOrEmail(query: string): Promise<Custome
             ],
         },
         orderBy: { createdAt: "desc" },
-        take: 10,
+        take: limit,
     });
 }
 
 // 最新の顧客を取得（デフォルト表示用）
 export async function getRecentCustomers(limit: number = 5): Promise<Customer[]> {
     return await prisma.customer.findMany({
+        where: {
+            inPersonCompleted: false,
+        },
         orderBy: { createdAt: "desc" },
         take: limit,
     });

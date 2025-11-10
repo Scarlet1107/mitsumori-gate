@@ -1,0 +1,102 @@
+import { NextResponse } from "next/server";
+import { getCustomerById } from "@/lib/customer-store";
+import { getTypedConfigs } from "@/lib/config-store";
+import { calculateSimulation, type SimulationInput } from "@/lib/calculation";
+import { generatePDFBuffer, type SimulationData } from "@/lib/pdf/simulation-pdf";
+
+const toNumber = (value?: number | null): number => {
+    if (typeof value === "number" && Number.isFinite(value)) {
+        return value;
+    }
+    return 0;
+};
+
+const toBoolean = (value?: boolean | null, fallback = false): boolean => {
+    if (typeof value === "boolean") {
+        return value;
+    }
+    return fallback;
+};
+
+export async function GET(
+    request: Request,
+    { params }: { params: Promise<{ id: string }> }
+) {
+    try {
+        const { id } = await params;
+        const customer = await getCustomerById(id);
+
+        if (!customer) {
+            return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+        }
+
+        const config = await getTypedConfigs();
+
+        const simulationInput: SimulationInput = {
+            age: toNumber(customer.age),
+            ownIncome: toNumber(customer.ownIncome),
+            spouseIncome: toNumber(customer.spouseIncome),
+            ownLoanPayment: toNumber(customer.ownLoanPayment),
+            spouseLoanPayment: toNumber(customer.spouseLoanPayment),
+            downPayment: toNumber(customer.downPayment),
+            wishMonthlyPayment: toNumber(customer.wishMonthlyPayment),
+            wishPaymentYears: toNumber(customer.wishPaymentYears) || 35,
+            hasSpouse: toBoolean(customer.hasSpouse, false),
+            usesBonus: toBoolean(customer.usesBonus, false),
+            hasLand: toBoolean(customer.hasLand, false),
+            usesTechnostructure: toBoolean(customer.usesTechnostructure, false),
+        };
+
+        const simulationResult = await calculateSimulation(simulationInput, config);
+
+        const simulationData: SimulationData = {
+            customerName: customer.name,
+            email: customer.email || "",
+            age: simulationInput.age,
+            ownIncome: simulationInput.ownIncome,
+            spouseIncome: simulationInput.spouseIncome,
+            ownLoanPayment: simulationInput.ownLoanPayment,
+            spouseLoanPayment: simulationInput.spouseLoanPayment,
+            downPayment: simulationInput.downPayment,
+            wishMonthlyPayment: simulationInput.wishMonthlyPayment,
+            wishPaymentYears: simulationInput.wishPaymentYears,
+            hasSpouse: simulationInput.hasSpouse ?? false,
+            usesBonus: simulationInput.usesBonus ?? false,
+            hasLand: simulationInput.hasLand ?? false,
+            usesTechnostructure: simulationInput.usesTechnostructure ?? false,
+            result: {
+                maxLoanAmount: simulationResult.maxLoanAmount,
+                wishLoanAmount: simulationResult.wishLoanAmount,
+                totalBudget: simulationResult.totalBudget,
+                buildingBudget: simulationResult.buildingBudget,
+                estimatedTsubo: simulationResult.estimatedTsubo,
+                estimatedSquareMeters: simulationResult.estimatedSquareMeters,
+                monthlyPaymentCapacity: simulationResult.monthlyPaymentCapacity,
+                dtiRatio: simulationResult.dtiRatio,
+                loanRatio: simulationResult.loanRatio,
+                totalPayment: simulationResult.totalPayment,
+                totalInterest: simulationResult.totalInterest,
+                interestRate: simulationResult.interestRate,
+                loanTerm: simulationResult.loanTerm,
+            }
+        };
+
+        const pdfBuffer = await generatePDFBuffer(simulationData);
+        const fileName = `simulation_${customer.name.replace(/\s+/g, "")}.pdf`;
+
+        const response = new NextResponse(pdfBuffer as unknown as ReadableStream<Uint8Array>, {
+            status: 200,
+            headers: {
+                "Content-Type": "application/pdf",
+                "Content-Disposition": `attachment; filename="${fileName}"`,
+            }
+        });
+        return response;
+    } catch (error) {
+        console.error("GET /api/customers/[id]/pdf failed:", error);
+        return NextResponse.json(
+            { error: "PDFの生成に失敗しました" },
+            { status: 500 }
+        );
+    }
+}

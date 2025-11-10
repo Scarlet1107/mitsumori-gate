@@ -2,9 +2,9 @@ import { MetadataRoute } from 'next'
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: '見積りゲート',
-    short_name: '見積りゲート',
-    description: '新築見積りが簡単にできるアプリ',
+    name: '簡単家づくりシミュレーション',
+    short_name: '家づくりシミュレーション',
+    description: '住宅ローンとプランニングの事前シミュレーション',
     start_url: '/',
     display: 'standalone',
     background_color: '#ffffff',

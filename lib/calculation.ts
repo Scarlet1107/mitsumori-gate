@@ -24,6 +24,7 @@ async function getConfigFromAPI(): Promise<ConfigData> {
 }
 
 export interface SimulationInput {
+    // 基本計算フィールド
     age: number;
     ownIncome: number;
     spouseIncome?: number;
@@ -35,6 +36,11 @@ export interface SimulationInput {
     usesBonus?: boolean;
     hasLand?: boolean;
     usesTechnostructure?: boolean;
+
+    // WebForm用追加フィールド
+    name?: string;
+    email?: string;
+    hasSpouse?: boolean;
 }
 
 export interface SimulationResult {
@@ -47,6 +53,11 @@ export interface SimulationResult {
     monthlyPaymentCapacity: number;
     dtiRatio: number;
     loanRatio: number; // wishLoan / maxLoan
+    // 追加情報
+    totalPayment: number; // 総返済額
+    totalInterest: number; // 利息総額
+    interestRate: number; // 適用金利
+    loanTerm: number; // 返済期間（年）
 }
 
 export async function calculateSimulation(
@@ -102,6 +113,10 @@ export async function calculateSimulation(
         const estimatedTsubo = buildingBudget / configData.unitPricePerTsubo;
         const estimatedSquareMeters = estimatedTsubo * 3.3;
 
+        // 追加計算
+        const totalPayment = input.wishMonthlyPayment * 12 * input.wishPaymentYears;
+        const totalInterest = totalPayment - wishLoanAmount;
+
         return {
             maxLoanAmount,
             wishLoanAmount,
@@ -112,6 +127,11 @@ export async function calculateSimulation(
             monthlyPaymentCapacity,
             dtiRatio: (totalExistingPayment * 12 + input.wishMonthlyPayment * 12) / totalIncome * 100,
             loanRatio: wishLoanAmount / maxLoanAmount,
+            // 追加情報
+            totalPayment,
+            totalInterest,
+            interestRate: configData.annualInterestRate,
+            loanTerm: input.wishPaymentYears,
         };
     } catch (error) {
         console.error("Configuration or calculation error:", error);
