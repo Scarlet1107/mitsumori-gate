@@ -9,7 +9,8 @@ export default function DynamicBackground() {
         src="/background.jpg"
         alt="Background"
         fill
-        className="object-cover"
+        className="select-none object-cover"
+        draggable={false}
         priority
         quality={75}
       />
