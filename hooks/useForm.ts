@@ -278,6 +278,11 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
     // キーボードイベント処理
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
+            // IME変換中のキー入力では進行しない
+            if (e.isComposing || e.keyCode === 229) {
+                return;
+            }
+
             // Enterキーで次に進む
             if (e.key === "Enter" && !e.shiftKey && !e.ctrlKey && !e.altKey) {
                 e.preventDefault();
