@@ -8,11 +8,12 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 interface WebFormPageProps {
-    searchParams?: { [key: string]: string | string[] | undefined };
+    searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }
 
-export default function WebFormPage({ searchParams }: WebFormPageProps) {
-    const consent = searchParams?.consent === "true";
+export default async function WebFormPage({ searchParams }: WebFormPageProps) {
+    const params = await searchParams;
+    const consent = params?.consent === "true";
 
     if (!consent) {
         redirect("/consent?mode=web");

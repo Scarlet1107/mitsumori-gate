@@ -3,7 +3,7 @@
  */
 
 // 共通のステップタイプ
-export type BaseStepType = "text" | "number" | "email" | "tel" | "display" | "question";
+export type BaseStepType = "text" | "number" | "email" | "tel" | "display" | "question" | "consent";
 export type WebStepType = BaseStepType;
 export type InPersonStepType = BaseStepType | "search" | "detail_address";
 
@@ -77,6 +77,7 @@ export interface BaseFormData {
     hasLand: boolean | null;
     usesTechnostructure: boolean | null;
     adjustment: string;
+    consentAccepted: boolean;
 }
 
 // Web用フォームデータ（BaseFormDataと同じ構造）

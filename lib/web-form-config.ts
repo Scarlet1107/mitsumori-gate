@@ -200,5 +200,6 @@ export const initialWebFormData: WebFormData = {
     bonusPayment: "0",
     hasLand: null,
     usesTechnostructure: null,
-    adjustment: ""
+    adjustment: "",
+    consentAccepted: false
 };

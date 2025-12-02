@@ -35,13 +35,12 @@ export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProp
                 }
 
                 // 部分シミュレーションAPI呼び出し（最大借入額のみ計算）
-                const response = await fetch("/api/simulation", {
+                const response = await fetch("/api/simulation/partial", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({
                         ...form,
                         formType: "web",
-                        partialCalculation: true // 部分計算フラグ
                     }),
                 });
 

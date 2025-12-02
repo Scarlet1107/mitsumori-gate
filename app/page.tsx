@@ -35,7 +35,7 @@ export default function Home() {
               variant="outline"
               className="rounded-full px-8"
             >
-              <Link href="/consent?mode=inperson">対面シミュレーション</Link>
+              <Link href="/inperson-form">対面シミュレーション</Link>
             </Button>
           </div>
           <div className="pt-4 border-t">

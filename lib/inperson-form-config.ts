@@ -25,6 +25,12 @@ export const inPersonFormSteps: InPersonFormStep[] = [
         required: true,
     },
     {
+        id: "consent",
+        type: "consent",
+        title: "個人情報の取り扱いについて",
+        description: "入力内容の取り扱いに同意いただいた上で進めてください。",
+    },
+    {
         id: "name",
         type: "text",
         title: "お名前を確認してください",
@@ -253,5 +259,6 @@ export const initialInPersonFormData: InPersonFormData = {
     bonusPayment: "0",
     hasLand: null,
     usesTechnostructure: null,
-    adjustment: ""
+    adjustment: "",
+    consentAccepted: false
 };
