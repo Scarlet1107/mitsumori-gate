@@ -82,13 +82,16 @@ export async function GET(
         };
 
         const pdfBuffer = await generatePDFBuffer(simulationData);
-        const fileName = `simulation_${customer.name.replace(/\s+/g, "")}.pdf`;
+        const rawFileName = `simulation_${customer.name.replace(/\s+/g, "")}.pdf`;
+        const encodedFileName = encodeURIComponent(rawFileName);
+        // ASCII フォールバックと UTF-8 の両方を付与して日本語名でもヘッダーが壊れないようにする
+        const contentDisposition = `attachment; filename="simulation.pdf"; filename*=UTF-8''${encodedFileName}`;
 
         const response = new NextResponse(pdfBuffer as unknown as ReadableStream<Uint8Array>, {
             status: 200,
             headers: {
                 "Content-Type": "application/pdf",
-                "Content-Disposition": `attachment; filename="${fileName}"`,
+                "Content-Disposition": contentDisposition,
             }
         });
         return response;

@@ -8,6 +8,15 @@ import { Button } from "@/components/ui/button";
 import { formatPostalCode, isValidPostalCode } from "@/lib/postal-address";
 import { isCurrencyField, isAgeField, getCurrencyUnit } from "@/lib/form-types";
 
+// 全角数字を半角に揃える
+function normalizeNumberInput(value: string): string {
+    return value
+        .replace(/[０-９]/g, (d) => String.fromCharCode(d.charCodeAt(0) - 0xFEE0))
+        .replace(/．/g, ".")
+        .replace(/，/g, ",")
+        .replace(/－/g, "-");
+}
+
 // 基本入力フィールドの props
 interface BaseFieldProps {
     value: string;
@@ -21,6 +30,9 @@ export const StandardField = forwardRef<HTMLInputElement, BaseFieldProps & {
     type: "text" | "number" | "email" | "tel";
     stepId: string;
 }>(({ value, onChange, placeholder, type, stepId, className }, ref) => {
+    const isNumberInput = type === "number";
+    const inputType = isNumberInput ? "text" : type;
+    const inputMode = isNumberInput ? "decimal" : undefined;
     const showCurrencyUnit = type === "number" && (isCurrencyField(stepId) || isAgeField(stepId));
 
     if (showCurrencyUnit) {
@@ -28,10 +40,14 @@ export const StandardField = forwardRef<HTMLInputElement, BaseFieldProps & {
             <div className="flex items-stretch overflow-hidden rounded-xl border bg-background shadow-sm focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">
                 <Input
                     ref={ref}
-                    type="number"
+                    type={inputType}
                     value={value}
-                    onChange={(e) => onChange(e.target.value)}
+                    onChange={(e) => {
+                        const newValue = isNumberInput ? normalizeNumberInput(e.target.value) : e.target.value;
+                        onChange(newValue);
+                    }}
                     placeholder={placeholder}
+                    inputMode={inputMode}
                     className="border-0 text-base sm:text-lg h-12 sm:h-14 focus-visible:ring-0"
                 />
                 <span className="flex items-center bg-muted px-3 sm:px-4 text-sm font-medium text-muted-foreground">
@@ -44,10 +60,14 @@ export const StandardField = forwardRef<HTMLInputElement, BaseFieldProps & {
     return (
         <Input
             ref={ref}
-            type={type}
+            type={inputType}
             value={value}
-            onChange={(e) => onChange(e.target.value)}
+            onChange={(e) => {
+                const newValue = isNumberInput ? normalizeNumberInput(e.target.value) : e.target.value;
+                onChange(newValue);
+            }}
             placeholder={placeholder}
+            inputMode={inputMode}
             className={className || "text-base sm:text-lg h-12 sm:h-14 rounded-xl"}
         />
     );
