@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useState, Suspense } from "react";
+import { useCallback, useMemo, useState, Suspense } from "react";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -19,16 +19,25 @@ function ConsentPageContent() {
     const searchParams = useSearchParams();
     const [agreed, setAgreed] = useState(false);
 
-    const from = searchParams.get("from") ?? undefined;
+    const mode = useMemo(() => {
+        const param = searchParams.get("mode");
+        return param === "inperson" ? "inperson" : "web";
+    }, [searchParams]);
+
+    const nextPath = useMemo(() => {
+        const from = searchParams.get("from");
+        if (from === "web-form" || from === "inperson-form") {
+            return `/${from}`;
+        }
+        return mode === "inperson" ? "/inperson-form" : "/web-form";
+    }, [mode, searchParams]);
 
     const handleContinue = useCallback(() => {
         const params = new URLSearchParams();
         params.set("consent", "true");
-        if (from) {
-            params.set("from", from);
-        }
-        router.push(`/intake?${params.toString()}`);
-    }, [router, from]);
+        params.set("mode", mode);
+        router.push(`${nextPath}?${params.toString()}`);
+    }, [router, mode, nextPath]);
 
     return (
         <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-6 py-12 text-foreground">
@@ -37,6 +46,9 @@ function ConsentPageContent() {
                     Step 1 / 15
                 </p>
                 <h1 className="text-3xl font-semibold">ご利用前のお願い</h1>
+                <p className="text-xs text-muted-foreground">
+                    モード: {mode === "inperson" ? "対面入力" : "Web入力"}
+                </p>
                 <p className="text-base text-muted-foreground">
                     シミュレーションを開始する前に、以下の前提に同意をお願いします。
                 </p>

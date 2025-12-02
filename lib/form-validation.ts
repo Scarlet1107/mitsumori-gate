@@ -147,6 +147,7 @@ export const stepValidators: Record<string, ValidatorFunction> = {
     },
     hasLand: validators.booleanRequired("土地の有無を選択してください"),
     usesTechnostructure: validators.booleanRequired("テクノストラクチャーの利用を選択してください"),
+    consent: validators.booleanRequired("個人情報保護への同意が必要です"),
 
     // 対面専用
     search_name: validators.required("お名前を入力してください"),
@@ -181,6 +182,7 @@ function getFieldKeyFromStepId(stepId: string): string | null {
 
         // 共通フィールド（既にキャメルケースの場合はそのまま使用）
         spouse_question: "hasSpouse",
+        consent: "consentAccepted",
     };
 
     // マッピングにない場合はそのまま返す（多くのフィールドは既に正しいキャメルケース）

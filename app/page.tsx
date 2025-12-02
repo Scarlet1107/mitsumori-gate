@@ -27,7 +27,7 @@ export default function Home() {
         <CardContent className="space-y-6">
           <div className="flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             <Button asChild size="lg" className="rounded-full px-8">
-              <Link href="/web-form">Webシミュレーション</Link>
+              <Link href="/consent?mode=web">Webシミュレーション</Link>
             </Button>
             <Button
               asChild

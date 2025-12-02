@@ -20,7 +20,11 @@ import type { CustomerSearchResult } from "@/lib/inperson-form-config";
  * 対面相談用の住宅ローン試算フォーム
  * 顧客検索機能とより詳細な住所入力を含む
  */
-export default function InPersonForm() {
+interface InPersonFormProps {
+    prefillConsent?: boolean;
+}
+
+export default function InPersonForm({ prefillConsent = false }: InPersonFormProps) {
     // フォーム共通フック
     const {
         form,
@@ -42,7 +46,7 @@ export default function InPersonForm() {
         canProceed,
     } = useForm({
         steps: inPersonFormSteps,
-        initialFormData: initialInPersonFormData,
+        initialFormData: { ...initialInPersonFormData, consentAccepted: prefillConsent },
         formType: "inperson",
         onComplete: handleFormComplete,
     });
@@ -103,7 +107,7 @@ export default function InPersonForm() {
 
     async function handleFormComplete(formData: InPersonFormData) {
         try {
-            const response = await fetch("/api/simulation", {
+            const response = await fetch("/api/simulation/inperson", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({

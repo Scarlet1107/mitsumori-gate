@@ -48,13 +48,12 @@ export default function WebForm() {
     // フォーム送信処理
     async function handleFormComplete(formData: WebFormData) {
         try {
-            const response = await fetch("/api/simulation", {
+            const response = await fetch("/api/simulation/web", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({
                     ...formData,
                     formType: "web",
-                    sendEmail: true // メール送信フラグ
                 }),
             });
 

@@ -12,6 +12,8 @@ import { InPersonFormLoanAdjustment } from "./InPersonFormLoanAdjustment";
 import { InPersonFormFloorPlanDisplay } from "./InPersonFormFloorPlanDisplay";
 import type { InPersonFormStep, CustomerSearchResult } from "@/lib/inperson-form-config";
 import type { InPersonFormData } from "@/lib/form-types";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
 
 interface InPersonFormStepRendererProps {
     step: InPersonFormStep;
@@ -63,6 +65,41 @@ export function InPersonFormStepRenderer({
     onSearch,
     onCustomerSelect,
 }: InPersonFormStepRendererProps) {
+    // 個人情報同意ステップ
+    if (step.id === "consent") {
+        return (
+            <div className="space-y-4">
+                <div className="space-y-2">
+                    <h2 className="text-xl font-semibold">{step.title}</h2>
+                    <p className="text-sm text-muted-foreground">
+                        入力いただいた個人情報は社内でのシミュレーションと提案検討のみに利用します。表示される金額は目安であり、審査・金利条件・諸費用により実際と異なる場合があります。
+                    </p>
+                </div>
+                <Label
+                    htmlFor="consentCheckbox"
+                    className="flex cursor-pointer items-start gap-4 rounded-xl bg-muted/40 px-5 py-4 transition hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                    <Checkbox
+                        id="consentCheckbox"
+                        checked={form.consentAccepted}
+                        onCheckedChange={(value) => onFieldUpdate("consentAccepted", Boolean(value))}
+                        className="mt-1 size-6"
+                    />
+                    <span className="space-y-1">
+                        <span className="text-base font-semibold text-foreground">同意します</span>
+                        <span className="block text-sm text-muted-foreground space-y-2">
+                            <p>提案資料・見積内容を外部に公開しないことを確認しました。</p>
+                            <p>表示される金額はすべて目安であることを理解しています。</p>
+                        </span>
+                    </span>
+                </Label>
+                {errors && (
+                    <p className="text-sm text-red-600">{errors}</p>
+                )}
+            </div>
+        );
+    }
+
 
     // 表示タイプのステップ
     if (step.type === "display") {

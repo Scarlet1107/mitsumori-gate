@@ -4,12 +4,8 @@
 
 import { Resend } from 'resend';
 
-// Resend API キーの確認
-if (!process.env.RESEND_API_KEY) {
-    throw new Error('RESEND_API_KEY environment variable is required');
-}
-
-export const resend = new Resend(process.env.RESEND_API_KEY);
+const resendApiKey = process.env.RESEND_API_KEY;
+export const resend = resendApiKey ? new Resend(resendApiKey) : null;
 
 // メール送信の型定義
 export interface EmailAttachment {
@@ -31,6 +27,12 @@ export interface SendEmailOptions {
  * メール送信のラッパー関数
  */
 export async function sendEmail(options: SendEmailOptions) {
+    if (!resend) {
+        const message = 'RESEND_API_KEY is not configured; email sending is disabled.';
+        console.error(message);
+        return { success: false, error: message };
+    }
+
     try {
         const result = await resend.emails.send({
             from: options.from,
