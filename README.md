@@ -1,82 +1,72 @@
-# 簡単家づくりシミュレーション
+# Mitsumori Gate – 家づくりシミュレーター
 
-住宅ローンとプランニングの事前シミュレーション機能を提供します。顧客が来店前／来店時に必要情報を入力すると、借入可能上限額・希望条件での借入額・参考延床面積を算出し、結果をPDF付きメールで送信できます。
+顧客自身の事前入力（Web）と来店時の聞き取り（対面）を同じシミュレーションロジックで扱うアプリです。年収や既存ローン、頭金、希望返済額から借入可能額と建築予算の目安を算出し、Web入力完了時はPDFを添付したメールを自動送信します。
+
+## 何ができるか
+- Web自己入力フロー（`/consent?mode=web` → `/web-form`）  
+  1問1画面で18ステップ。配偶者有無やボーナス払いの有無によってステップをスキップし、途中経過をLocalStorageに保存します。完了時に顧客・シミュレーション結果をDBへ保存し、メールアドレスがある場合はPDFを添付して送信します。
+- 対面入力フロー（`/inperson-form` か `/consent?mode=inperson`）  
+  既存顧客を検索して呼び出し、足りない情報を追加入力してシミュレーション。既存レコードが選択されている場合は入力内容を上書きし、対面完了フラグを付けます（新規作成は行わない想定）。
+- 管理画面（`/admin`、Basic認証）  
+  最近の顧客一覧と完了状況を確認し、`/admin/config` で利率・DTI・坪単価を編集できます（DBが空なら初回アクセス時にデフォルトを投入）。
+- PDF／メール  
+  jsPDFで日本語フォント入りPDFを生成し、Resendで送信します。メール送信は環境変数が未設定でもスキップされるだけで動作は続行します。
+
+## 技術スタック
+- Next.js 15 (App Router) / React 19 / TypeScript
+- UI: Tailwind CSS + shadcn/ui + framer-motion
+- DB: Neon(PostgreSQL) + Prisma（`lib/generated/prisma` にクライアント出力）
+- その他: jsPDF（PDF生成）、Resend（メール）
+
+## ディレクトリ
+- `app/` … ルートページ、Webフォーム、対面フォーム、管理画面、API Route Handlers
+- `lib/` … 計算・バリデーション・PDF・メール・DBアクセスなどのドメインロジック
+- `components/` … フォームUIやshadcnベースの共通コンポーネント
+- `prisma/schema.prisma` … `Customer` / `Simulation` / `AppConfig` のスキーマ
+- `public/fonts/NotoSansJP-Regular.ttf` … PDF用フォント（差し替え可）
 
 ## セットアップ
+1) 前提  
+   - Node.js 20系推奨  
+   - PostgreSQL（ローカル or Neon など）  
+2) 依存関係  
+   ```bash
+   npm install
+   ```
+3) 環境変数  
+   `.env.example` をコピーして `.env` を作成し、最低限以下を設定します。
+   - `DATABASE_URL` … Postgres接続文字列
+   - `BASIC_AUTH_USER` / `BASIC_AUTH_PASS` … `/admin` と `/api/admin/*` 用のBasic認証
+   - `RESEND_API_KEY` / `RESEND_FROM_EMAIL` … PDFメール送信用（未設定なら送信スキップ）
+   - `CONTACT_PHONE` / `CONTACT_EMAIL` … メール本文の連絡先表示
+   - `PDF_JP_FONT_PATH` … 日本語フォントのパス（デフォルトで同梱フォントを参照）
+4) DBマイグレーション  
+   ```bash
+   npx prisma migrate dev --name init
+   ```
+   初回アクセス時に設定値が空なら `AppConfig` にデフォルト値が自動投入されます。
+5) 開発サーバー  
+   ```bash
+   npm run dev   # Turbopack
+   ```
+   - Web自己入力: http://localhost:3000/consent?mode=web  
+   - 対面入力: http://localhost:3000/inperson-form  
+   - 管理画面: http://localhost:3000/admin （Basic認証）
 
-1. 依存関係をインストール
-    ```bash
-    npm install
-    ```
-2. `.env.example` を参考に `.env` ファイルを作成し、必要な環境変数を設定
-   - `DATABASE_URL`: データベース接続情報
-   - `RESEND_API_KEY`: Resend APIキー（メール送信用）
-   - `RESEND_FROM_EMAIL`: 送信者メールアドレス
-3. Prisma のマイグレーションを適用（初回は任意の名前で OK）
-    ```bash
-    npx prisma migrate dev --name init-simulations
-    ```
-4. 開発サーバーを起動
-    ```bash
-    npm run dev
-    ```
+## 開発時のコマンド
+- Lint: `npm run lint`
+- テスト（計算ロジック／スキーマ）: `npm test`
+- 型生成: `npx prisma generate`（`npm install` 時に自動実行）
 
-ブラウザで [http://localhost:3000/consent](http://localhost:3000/consent) にアクセスし、同意後に表示されるステップフローでシミュレーターを利用できます。（既存の intake フローを拡張しています。）
+## データと動作の要点
+- `Customer` に顧客入力を保存し、Web完了時は `webCompleted=true`、対面で既存顧客を上書きすると `inPersonCompleted=true` を付与します。
+- `Simulation` に試算結果を保存します（Webフローで自動作成、`unit_price_per_tsubo` などの係数もスナップショット保存）。
+- `AppConfig` に利率・DTI・坪単価を保持し、管理画面で編集可能です。
+- 郵便番号検索は zipcloud API を利用します。ネットワークが遮断されている場合は手入力で進行してください。
 
-## テストと品質確認
-
-- 型／Lint: `npm run lint`
-- ユニットテスト（バリデーションと試算ロジック）: `npm test`
-
-※ 実行環境によっては Vitest がワーカースレッドを利用できずエラーになる場合があります。その場合は Node.js のワーカースレッドを許可するか、CI 上で実行してください。
-
-## 設定値の一元管理
-
-金利・返済比率・坪単価などの係数は `lib/simulation/config.ts` の `defaultSimulationConfig` でまとめて管理しています。必要に応じて環境変数や管理画面から上書きできるように `createSimulationConfig` を用意しています。
-
-## 保存データ
-
-`prisma/schema.prisma` の `Simulation` モデルに入力値と算出結果を保存します。WebFormの場合は、シミュレーション完了時に自動的にPDF付きメールが顧客に送信されます。メール送信にはResend APIを使用し、PDFはjsPDFライブラリで生成されます。
-
-## 画面フロー概要
-
-1. 同意と前提条件の確認
-2. 基礎情報（年齢・郵便番号）
-3. 年収・他借入・自己資金のヒアリング（1問ずつ）
-4. 土地の有無を確認
-5. 借入可能上限（MaxLoan）の提示
-6. 希望返済額・返済期間・ボーナス返済の入力
-7. スライダーで微調整し WishLoan と延床目安を更新
-8. 結果保存と完了画面（WebForm完了時にPDF付きメール自動送信）
-
-各画面に注意文言を掲示し、金額はすべて「万円」単位で入力します（1を入力すると1万円として保存・計算されます）。結果表示時は円記号＋3桁区切りでフォーマットされ、微調整画面では MaxLoan と WishLoan の比率をプログレスバーで表示し、坪数・平米数の目安も同時に更新します。
-
-## メール機能とPDF生成
-
-### 技術スタック
-- **メール送信**: Resend API
-- **PDF生成**: jsPDF（軽量、画像・テーブル対応）
-- **自動化**: WebFormの完了時に自動実行
-
-### 機能概要
-- シミュレーション結果を美しくレイアウトしたPDFレポートを自動生成
-- 顧客のメールアドレスにPDF添付で結果を送信
-- PDFには以下の内容を含む：
-  - 顧客情報
-  - 借入条件と試算結果
-  - 詳細な返済プラン
-  - リスク評価
-  - 建築計画の参考数値
-
-### 必要な環境変数
-```bash
-# Resend API（メール送信）
-RESEND_API_KEY="re_xxxxxxxxxxxxxxxxxx"
-RESEND_FROM_EMAIL="noreply@yourdomain.com"
-```
-
-### Resend API設定手順
-1. [Resend](https://resend.com/)でアカウント作成
-2. ドメインを追加・認証（DNSレコード設定が必要）
-3. API Keysページで新しいAPIキーを生成
-4. 環境変数に設定
+## ページの流れ（参考）
+- `/` … Web/対面どちらで始めるかのランディング
+- `/consent` … 同意確認（`mode=web|inperson` を付与）
+- `/web-form` … 自己入力ウィザード（完了で `/done?mode=web` へ）
+- `/inperson-form` … 対面ウィザード。検索で既存顧客を選択すると各値を自動入力
+- `/done` … 完了メッセージ。戻り導線のみ
