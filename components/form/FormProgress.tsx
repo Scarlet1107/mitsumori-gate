@@ -4,6 +4,7 @@
 
 import { memo } from "react";
 import { Progress } from "@/components/ui/progress";
+import Image from "next/image";
 
 interface FormProgressProps {
     progress: number;
@@ -36,6 +37,14 @@ export const FormProgress = memo<FormProgressProps>(({
 
     return (
         <div className={`space-y-2 ${className}`}>
+            <Image
+                src={"/logo1.png"}
+                alt="Logo"
+                width={200}
+                height={100}
+                draggable={false}
+                className="pointer-events-none select-none"
+            />
             {showStepInfo && (
                 <div className="flex justify-between items-center text-sm text-muted-foreground">
                     <span>{formTypeText}</span>

@@ -58,6 +58,7 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         searchLoading,
         recentCustomers,
         isSearching,
+        isLoadingRecent,
         handleSearch,
         handleCustomerSelect,
         clearSearch,
@@ -263,6 +264,7 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
                 searchLoading={searchLoading}
                 recentCustomers={recentCustomers}
                 isSearching={isSearching}
+                isLoadingRecent={isLoadingRecent}
                 onSearch={handleSearch}
                 onCustomerSelect={handleCustomerSelect}
             />

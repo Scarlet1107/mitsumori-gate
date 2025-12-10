@@ -34,6 +34,7 @@ interface InPersonFormStepRendererProps {
     searchLoading: boolean;
     recentCustomers: CustomerSearchResult[];
     isSearching: boolean;
+    isLoadingRecent: boolean;
     onSearch: (query: string) => void;
     onCustomerSelect: (customer: CustomerSearchResult) => void;
 }
@@ -62,6 +63,7 @@ export function InPersonFormStepRenderer({
     searchLoading,
     recentCustomers,
     isSearching,
+    isLoadingRecent,
     onSearch,
     onCustomerSelect,
 }: InPersonFormStepRendererProps) {
@@ -154,6 +156,7 @@ export function InPersonFormStepRenderer({
                 searchLoading={searchLoading}
                 recentCustomers={recentCustomers}
                 isSearching={isSearching}
+                isLoadingRecent={isLoadingRecent}
                 onSearch={onSearch}
                 onCustomerSelect={onCustomerSelect}
                 placeholder={step.placeholder}
