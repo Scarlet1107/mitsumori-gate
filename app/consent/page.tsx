@@ -43,7 +43,7 @@ function ConsentPageContent() {
         <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-6 py-12 text-foreground">
             <header className="space-y-2 pt-8 text-center">
                 <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                    Step 1 / 15
+                    Step 1 / 18
                 </p>
                 <h1 className="text-3xl font-semibold">ご利用前のお願い</h1>
                 <p className="text-xs text-muted-foreground">

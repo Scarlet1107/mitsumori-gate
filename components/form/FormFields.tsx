@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatPostalCode, isValidPostalCode } from "@/lib/postal-address";
 import { isCurrencyField, isAgeField, getCurrencyUnit } from "@/lib/form-types";
+import { Spinner } from "../ui/spinner";
 
 // 全角数字を半角に揃える
 function normalizeNumberInput(value: string): string {
@@ -234,10 +235,10 @@ interface SearchResultsProps {
 }
 
 export function SearchResults({ results, onSelect, loading, emptyQuery }: SearchResultsProps) {
-    if (loading) {
+    if (loading || loading === undefined) {
         return (
-            <div className="text-center text-sm text-muted-foreground">
-                検索中...
+            <div className="text-center text-md items-center text-muted-foreground space-x-2 flex justify-center">
+                <Spinner /><span>検索中... </span>
             </div>
         );
     }

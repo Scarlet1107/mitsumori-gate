@@ -13,6 +13,7 @@ interface CustomerSearchFieldProps {
     searchLoading: boolean;
     recentCustomers: CustomerSearchResult[];
     isSearching: boolean;
+    isLoadingRecent: boolean;
     onSearch: (query: string) => void;
     onCustomerSelect: (customer: CustomerSearchResult) => void;
     placeholder?: string;
@@ -32,6 +33,7 @@ export function CustomerSearchField({
     searchLoading,
     recentCustomers,
     isSearching,
+    isLoadingRecent,
     onSearch,
     onCustomerSelect,
     placeholder,
@@ -91,7 +93,7 @@ export function CustomerSearchField({
                         onCustomerSelect(fullCustomer);
                     }
                 }}
-                loading={searchLoading}
+                loading={searchLoading || (isLoadingRecent && !isSearching)}
                 emptyQuery={!isSearching && recentCustomers.length === 0}
             />
 

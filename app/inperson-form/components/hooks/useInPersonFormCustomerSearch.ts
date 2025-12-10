@@ -17,6 +17,7 @@ export function useInPersonFormCustomerSearch({
     const [searchLoading, setSearchLoading] = useState(false);
     const [recentCustomers, setRecentCustomers] = useState<CustomerSearchResult[]>([]);
     const [isSearching, setIsSearching] = useState(false);
+    const [isLoadingRecent, setIsLoadingRecent] = useState(true);
 
     // 最近の顧客を取得
     useEffect(() => {
@@ -29,6 +30,8 @@ export function useInPersonFormCustomerSearch({
                 }
             } catch (error) {
                 console.warn("Failed to fetch recent customers:", error);
+            } finally {
+                setIsLoadingRecent(false);
             }
         }
 
@@ -84,6 +87,7 @@ export function useInPersonFormCustomerSearch({
         searchLoading,
         recentCustomers,
         isSearching,
+        isLoadingRecent,
         handleSearch,
         handleCustomerSelect,
         clearSearch,
