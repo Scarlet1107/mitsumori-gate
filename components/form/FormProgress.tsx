@@ -43,7 +43,7 @@ export const FormProgress = memo<FormProgressProps>(({
                 width={200}
                 height={33.6}
                 draggable={false}
-            // className="pointer-events-none select-none"
+                className="pointer-events-none select-none"
             />
             {showStepInfo && (
                 <div className="flex justify-between items-center text-sm text-muted-foreground">
