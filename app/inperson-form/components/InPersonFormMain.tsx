@@ -5,7 +5,7 @@
 
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { FormLayout } from "@/components/form/FormLayout";
 import { useForm } from "@/hooks/useForm";
 import { useInPersonFormCustomerSearch } from "./hooks/useInPersonFormCustomerSearch";
@@ -13,6 +13,16 @@ import { inPersonFormSteps, initialInPersonFormData } from "@/lib/inperson-form-
 import { InPersonFormStepRenderer } from "./InPersonFormStepRenderer";
 import type { InPersonFormData } from "@/lib/form-types";
 import type { CustomerSearchResult } from "@/lib/inperson-form-config";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 /**
  * InPersonFormメインコンポーネント
@@ -49,7 +59,10 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         initialFormData: { ...initialInPersonFormData, consentAccepted: prefillConsent },
         formType: "inperson",
         onComplete: handleFormComplete,
+        disablePersistence: true, // 対面は毎回新規入力を想定するため復元しない
     });
+    const [showNewEntryDialog, setShowNewEntryDialog] = useState(false);
+    const [advanceAfterNewEntry, setAdvanceAfterNewEntry] = useState(false);
 
     // 顧客検索フック
     const {
@@ -65,6 +78,12 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
     } = useInPersonFormCustomerSearch({
         onCustomerSelected: handleCustomerSelected,
     });
+
+    // 検索欄の入力変更時に新規フラグをリセット
+    const handleDraftNameChange = (value: string) => {
+        handleFieldUpdate("name", value);
+        handleFieldUpdate("allowNewEntry", false);
+    };
 
     // フォーム送信処理
     const buildCustomerUpdatePayload = (formData: InPersonFormData) => {
@@ -144,6 +163,7 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
 
     function handleCustomerSelected(customer: CustomerSearchResult) {
         // 顧客データをフォームに反映
+        updateField("allowNewEntry", false);
         updateField("customerId", customer.id);
         updateField("name", customer.name || "");
         updateField("email", customer.email || "");
@@ -219,6 +239,29 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         // 自動進行はQuestionButtonsコンポーネント内で処理するため、ここでは呼ばない
     }, [handleFieldUpdate]);
 
+    // 検索ステップで検索・選択なしに進む場合の確認
+    const handleNextAttempt = () => {
+        if (activeStep.id === "search_name" && !form.customerId && !form.name.trim()) {
+            setShowNewEntryDialog(true);
+            return;
+        }
+        handleNext();
+    };
+
+    const proceedAsNewEntry = () => {
+        handleFieldUpdate("allowNewEntry", true);
+        setShowNewEntryDialog(false);
+        setAdvanceAfterNewEntry(true);
+    };
+
+    // allowNewEntry をセットした上で次に進む。state更新を待ってから進めるためのフック。
+    useEffect(() => {
+        if (advanceAfterNewEntry && form.allowNewEntry) {
+            setAdvanceAfterNewEntry(false);
+            handleNext();
+        }
+    }, [advanceAfterNewEntry, form.allowNewEntry, handleNext]);
+
     return (
         <FormLayout
             // 進捗情報
@@ -234,10 +277,10 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
             // ナビゲーション
             isFirstStep={isFirstStep}
             isLastStep={isLastStep}
-            canProceed={canProceed}
+            canProceed={activeStep.id === "search_name" ? true : canProceed}
             loading={loading}
             onPrevious={handlePrevious}
-            onNext={handleNext}
+            onNext={handleNextAttempt}
             onComplete={handleComplete}
 
             // タイトル・説明
@@ -267,7 +310,23 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
                 isLoadingRecent={isLoadingRecent}
                 onSearch={handleSearch}
                 onCustomerSelect={handleCustomerSelect}
+                onDraftNameChange={handleDraftNameChange}
             />
+            {/* 新規受付で進める確認ダイアログ */}
+            <AlertDialog open={showNewEntryDialog} onOpenChange={setShowNewEntryDialog}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>新規のお客様として進みますか？</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            検索結果から顧客を選択せずに進むと、新規受付としてヒアリングを開始します。
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setShowNewEntryDialog(false)}>戻る</AlertDialogCancel>
+                        <AlertDialogAction onClick={proceedAsNewEntry}>新規で進める</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </FormLayout>
     );
 }

@@ -78,6 +78,7 @@ export interface BaseFormData {
     usesTechnostructure: boolean | null;
     adjustment: string;
     consentAccepted: boolean;
+    allowNewEntry?: boolean;
 }
 
 // Web用フォームデータ（BaseFormDataと同じ構造）

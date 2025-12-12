@@ -16,6 +16,7 @@ interface CustomerSearchFieldProps {
     isLoadingRecent: boolean;
     onSearch: (query: string) => void;
     onCustomerSelect: (customer: CustomerSearchResult) => void;
+    onDraftNameChange: (name: string) => void;
     placeholder?: string;
     error: string | null;
     inputRef: RefObject<HTMLInputElement>;
@@ -36,6 +37,7 @@ export function CustomerSearchField({
     isLoadingRecent,
     onSearch,
     onCustomerSelect,
+    onDraftNameChange,
     placeholder,
     error,
     inputRef,
@@ -53,6 +55,7 @@ export function CustomerSearchField({
 
     const handleInputChange = (value: string) => {
         onSearch(value);
+        onDraftNameChange(value);
     };
 
     // 表示する検索結果を決定
@@ -105,9 +108,14 @@ export function CustomerSearchField({
             )}
 
             {isSearching && searchQuery.trim() && searchResults.length === 0 && !searchLoading && (
-                <p className="text-sm text-gray-500">
-                    該当する顧客が見つかりませんでした。新規で入力してください。
-                </p>
+                <div className="space-y-2 rounded-lg border border-dashed border-gray-200 bg-gray-50 px-4 py-3">
+                    <p className="text-sm text-gray-700">
+                        該当する顧客が見つかりませんでした。入力した名前で新規のお客様として進められます。
+                    </p>
+                    <p className="text-xs text-gray-500">
+                        「次へ」を押すと、このまま新規のヒアリングを開始します。
+                    </p>
+                </div>
             )}
         </div>
     );

@@ -17,11 +17,12 @@ interface UseFormOptions<TFormData extends BaseFormData, TStepConfig> {
     initialFormData: TFormData;
     formType: "web" | "inperson";
     onComplete?: (formData: TFormData) => Promise<void>;
+    disablePersistence?: boolean;
 }
 export function useForm<TFormData extends BaseFormData, TStepConfig extends { id: string; type?: string }>(
     options: UseFormOptions<TFormData, TStepConfig>
 ) {
-    const { steps, initialFormData, formType, onComplete } = options;
+    const { steps, initialFormData, formType, onComplete, disablePersistence = false } = options;
     const router = useRouter();
     const inputRef = useRef<HTMLInputElement>(null);
 
@@ -46,6 +47,7 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
 
     // 進捗復元
     useEffect(() => {
+        if (disablePersistence) return;
         try {
             const savedProgress = localStorage.getItem(getProgressKey(formType));
             const savedForm = localStorage.getItem(getDataKey(formType));
@@ -68,12 +70,14 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
 
     // 進捗保存
     useEffect(() => {
+        if (disablePersistence) return;
         localStorage.setItem(getDataKey(formType), JSON.stringify(form));
-    }, [form, formType]);
+    }, [form, formType, disablePersistence]);
 
     useEffect(() => {
+        if (disablePersistence) return;
         localStorage.setItem(getProgressKey(formType), currentStepIndex.toString());
-    }, [currentStepIndex, formType]);
+    }, [currentStepIndex, formType, disablePersistence]);
 
     // 現在のステップ情報
     const activeStep = steps[currentStepIndex];
