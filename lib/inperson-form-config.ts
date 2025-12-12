@@ -224,6 +224,7 @@ export interface CustomerSearchResult {
     usesBonus?: boolean | null;
     hasLand?: boolean | null;
     usesTechnostructure?: boolean | null;
+    allowNewEntry?: boolean;
 }
 
 // 初期フォームデータ
@@ -260,5 +261,6 @@ export const initialInPersonFormData: InPersonFormData = {
     hasLand: null,
     usesTechnostructure: null,
     adjustment: "",
-    consentAccepted: false
+    consentAccepted: false,
+    allowNewEntry: false,
 };

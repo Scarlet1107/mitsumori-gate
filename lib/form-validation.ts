@@ -150,7 +150,13 @@ export const stepValidators: Record<string, ValidatorFunction> = {
     consent: validators.booleanRequired("個人情報保護への同意が必要です"),
 
     // 対面専用
-    search_name: validators.required("お名前を入力してください"),
+    search_name: (value: unknown, form?: BaseFormData) => {
+        const inPerson = form as (BaseFormData & { allowNewEntry?: boolean });
+        if (inPerson?.allowNewEntry) {
+            return { isValid: true };
+        }
+        return validators.required("お名前を入力してください")(value, form);
+    },
 };
 
 // フォーム全体のバリデーション

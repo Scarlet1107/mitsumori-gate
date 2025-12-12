@@ -37,6 +37,7 @@ interface InPersonFormStepRendererProps {
     isLoadingRecent: boolean;
     onSearch: (query: string) => void;
     onCustomerSelect: (customer: CustomerSearchResult) => void;
+    onDraftNameChange: (name: string) => void;
 }
 
 /**
@@ -66,6 +67,7 @@ export function InPersonFormStepRenderer({
     isLoadingRecent,
     onSearch,
     onCustomerSelect,
+    onDraftNameChange,
 }: InPersonFormStepRendererProps) {
     // 個人情報同意ステップ
     if (step.id === "consent") {
@@ -159,6 +161,7 @@ export function InPersonFormStepRenderer({
                 isLoadingRecent={isLoadingRecent}
                 onSearch={onSearch}
                 onCustomerSelect={onCustomerSelect}
+                onDraftNameChange={onDraftNameChange}
                 placeholder={step.placeholder}
                 error={errors}
                 inputRef={inputRef}
