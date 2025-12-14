@@ -11,6 +11,12 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+generator erd {
+  provider = "prisma-erd-generator"
+  format   = "mermaid" // ← テキスト出力（Puppeteer不要）
+  output   = "../lib/generated/ERD.md" // ← .mmd など拡張子必須
+}
+
 // 顧客のヒアリング情報を管理するメインテーブル
 model Customer {
   id        String   @id @default(uuid()) @db.Uuid
@@ -18,16 +24,16 @@ model Customer {
   updatedAt DateTime @updatedAt @map("updated_at")
 
   // 基本情報
-  name       String
-  email      String?
-  phone      String?
+  name          String
+  email         String?
+  phone         String?
   postalCode    String? @map("postal_code")
   baseAddress   String? @map("base_address")
   detailAddress String? @map("detail_address")
-  age        Int?
+  age           Int?
 
   // 配偶者情報
-  hasSpouse Boolean? @map("has_spouse")
+  hasSpouse  Boolean? @map("has_spouse")
   spouseName String?  @map("spouse_name")
 
   // 収入情報

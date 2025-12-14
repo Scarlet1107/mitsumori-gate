@@ -64,6 +64,8 @@
 - `AppConfig` に利率・DTI・坪単価を保持し、管理画面で編集可能です。
 - 郵便番号検索は zipcloud API を利用します。ネットワークが遮断されている場合は手入力で進行してください。
 
+ER図はこちら (/lib/generated/ERD.md)
+
 ## ページの流れ（参考）
 - `/` … Web/対面どちらで始めるかのランディング
 - `/consent` … 同意確認（`mode=web|inperson` を付与）
