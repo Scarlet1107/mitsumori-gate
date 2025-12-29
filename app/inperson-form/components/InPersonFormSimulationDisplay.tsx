@@ -7,10 +7,11 @@
 import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { formatManWithOku } from "@/lib/format";
 import type { InPersonFormData } from "@/lib/form-types";
 import { useSimulationConfig } from "@/hooks/useSimulationConfig";
-import { calculateClientSimulation, type ClientSimulationResult } from "@/lib/client-simulation";
-import { buildSimulationInput } from "@/app/inperson-form/lib/simulation-input";
+import { calculateSimulation, type SimulationResult } from "@/lib/simulation/engine";
+import { buildSimulationInputFromForm } from "@/lib/simulation/form-input";
 
 interface InPersonFormSimulationDisplayProps {
     form: InPersonFormData;
@@ -22,7 +23,7 @@ interface InPersonFormSimulationDisplayProps {
  * WebFormの試算表示をベースに、より詳細な情報を表示
  */
 export function InPersonFormSimulationDisplay({ form, onError }: InPersonFormSimulationDisplayProps) {
-    const [simulationResult, setSimulationResult] = useState<ClientSimulationResult | null>(null);
+    const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
     const { config, loading: configLoading, error: configError } = useSimulationConfig();
     const [calculating, setCalculating] = useState(true);
 
@@ -31,8 +32,8 @@ export function InPersonFormSimulationDisplay({ form, onError }: InPersonFormSim
 
         try {
             setCalculating(true);
-            const input = buildSimulationInput(form);
-            const result = calculateClientSimulation(input, config);
+            const input = buildSimulationInputFromForm(form);
+            const result = calculateSimulation(input, config);
             setSimulationResult(result);
             onError(null);
         } catch (error) {
@@ -47,7 +48,7 @@ export function InPersonFormSimulationDisplay({ form, onError }: InPersonFormSim
         return (
             <div className="flex items-center justify-center py-8">
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
                     <p className="mt-2 text-sm text-gray-600">試算中...</p>
                 </div>
             </div>
@@ -70,16 +71,22 @@ export function InPersonFormSimulationDisplay({ form, onError }: InPersonFormSim
         );
     }
 
-    const formatCurrency = (amount: number) => `${Math.round(amount).toLocaleString()}万円`;
+    const formatCurrency = (amount: number) => formatManWithOku(amount);
 
     const monthlyPaymentDisplay = Number(form.wishMonthlyPayment || 0);
+    const showWarning = simulationResult.warnings.exceedsMaxLoan || simulationResult.warnings.exceedsMaxTerm;
+    const specLabel = form.usesTechnostructure === null
+        ? "未選択"
+        : form.usesTechnostructure
+            ? "テクノストラクチャー + 長期優良住宅"
+            : "長期優良住宅仕様";
 
     return (
         <div className="space-y-6">
             {/* 顧客情報表示 */}
             {form.customerId && (
-                <Card className="p-4 bg-blue-50 border-blue-200">
-                    <h4 className="text-sm font-semibold text-blue-800 mb-2">顧客情報</h4>
+                <Card className="p-4 bg-emerald-50 border-emerald-200">
+                    <h4 className="text-sm font-semibold text-emerald-800 mb-2">顧客情報</h4>
                     <div className="text-sm space-y-1">
                         <p><span className="font-medium">お名前:</span> {form.name}</p>
                         {form.email && <p><span className="font-medium">メール:</span> {form.email}</p>}
@@ -92,16 +99,33 @@ export function InPersonFormSimulationDisplay({ form, onError }: InPersonFormSim
             <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">住宅ローン試算結果</h3>
 
+                {showWarning && (
+                    <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                        {simulationResult.warnings.exceedsMaxLoan && (
+                            <p>※ 上限借入額を超えています。条件の見直しが必要です。</p>
+                        )}
+                        {simulationResult.warnings.exceedsMaxTerm && (
+                            <p>※ 年齢上限を超える返済年数になっています。</p>
+                        )}
+                    </div>
+                )}
+
                 <div className="grid grid-cols-2 gap-4">
                     <div>
                         <p className="text-sm text-gray-600">借入金額</p>
-                        <p className="text-xl font-bold text-blue-600">
+                        <p className="text-xl font-bold text-emerald-700">
                             {formatCurrency(simulationResult.wishLoanAmount)}
                         </p>
                     </div>
                     <div>
+                        <p className="text-sm text-gray-600">最大借入可能額</p>
+                        <p className="text-xl font-bold text-emerald-700">
+                            {formatCurrency(simulationResult.maxLoanAmount)}
+                        </p>
+                    </div>
+                    <div>
                         <p className="text-sm text-gray-600">月々の返済額</p>
-                        <p className="text-xl font-bold text-green-600">
+                        <p className="text-xl font-bold text-emerald-600">
                             {formatCurrency(monthlyPaymentDisplay)}
                         </p>
                     </div>
@@ -117,6 +141,10 @@ export function InPersonFormSimulationDisplay({ form, onError }: InPersonFormSim
                     <div className="flex justify-between">
                         <span className="text-sm text-gray-600">返済期間</span>
                         <span>{simulationResult.loanTerm}年</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-sm text-gray-600">年齢上限（最大）</span>
+                        <span>{Math.floor(simulationResult.maxTermYears)}年</span>
                     </div>
                     <div className="flex justify-between">
                         <span className="text-sm text-gray-600">総返済額</span>
@@ -135,12 +163,28 @@ export function InPersonFormSimulationDisplay({ form, onError }: InPersonFormSim
                 <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                         <p className="text-gray-600">頭金</p>
-                        <p className="font-medium">{Number(form.downPayment || 0).toLocaleString()}万円</p>
+                        <p className="font-medium">{formatCurrency(Number(form.downPayment || 0))}</p>
+                    </div>
+                    <div>
+                        <p className="text-gray-600">建築費用</p>
+                        <p className="font-medium">{formatCurrency(simulationResult.buildingBudget)}</p>
+                    </div>
+                    <div>
+                        <p className="text-gray-600">土地代</p>
+                        <p className="font-medium">{formatCurrency(simulationResult.landCost)}</p>
+                    </div>
+                    <div>
+                        <p className="text-gray-600">解体費用</p>
+                        <p className="font-medium">{formatCurrency(simulationResult.demolitionCost)}</p>
+                    </div>
+                    <div>
+                        <p className="text-gray-600">諸経費</p>
+                        <p className="font-medium">{formatCurrency(simulationResult.miscCost)}</p>
                     </div>
                     <div>
                         <p className="text-gray-600">年収合計</p>
                         <p className="font-medium">
-                            {(Number(form.ownIncome || 0) + Number(form.spouseIncome || 0)).toLocaleString()}万円
+                            {formatCurrency(Number(form.ownIncome || 0) + Number(form.spouseIncome || 0))}
                         </p>
                     </div>
                     <div>
@@ -153,7 +197,7 @@ export function InPersonFormSimulationDisplay({ form, onError }: InPersonFormSim
                     </div>
                     <div>
                         <p className="text-gray-600">テクノストラクチャー</p>
-                        <p className="font-medium">{form.usesTechnostructure ? "希望する" : "希望しない"}</p>
+                        <p className="font-medium">{specLabel}</p>
                     </div>
                 </div>
             </Card>

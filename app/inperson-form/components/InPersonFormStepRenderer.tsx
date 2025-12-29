@@ -10,13 +10,14 @@ import { CustomerSearchField } from "./CustomerSearchField";
 import { InPersonFormBudgetDisplay } from "./InPersonFormBudgetDisplay";
 import { InPersonFormLoanAdjustment } from "./InPersonFormLoanAdjustment";
 import { InPersonFormFloorPlanDisplay } from "./InPersonFormFloorPlanDisplay";
-import type { InPersonFormStep, CustomerSearchResult } from "@/lib/inperson-form-config";
+import type { FormStep } from "@/lib/form-steps";
+import type { CustomerSearchResult } from "@/lib/form-types";
 import type { InPersonFormData } from "@/lib/form-types";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 interface InPersonFormStepRendererProps {
-    step: InPersonFormStep;
+    step: FormStep;
     form: InPersonFormData;
     errors: string | null;
 
@@ -171,18 +172,7 @@ export function InPersonFormStepRenderer({
 
     // 質問タイプのステップ
     if (step.type === "question") {
-        const questionFieldMap: Record<string, keyof InPersonFormData> = {
-            "spouse_question": "hasSpouse",
-            "usesBonus": "usesBonus",
-            "hasLand": "hasLand",
-            "usesTechnostructure": "usesTechnostructure"
-        };
-
-        const fieldName = questionFieldMap[step.id];
-        if (!fieldName) {
-            return <div>未対応の質問です</div>;
-        }
-
+        const fieldName = (step.field ?? step.id) as keyof InPersonFormData;
         const currentValue = form[fieldName] as boolean | null;
 
         return (
@@ -248,7 +238,7 @@ export function InPersonFormStepRenderer({
     }
 
     // 通常の入力フィールド
-    const fieldName = step.id as keyof InPersonFormData;
+    const fieldName = (step.field ?? step.id) as keyof InPersonFormData;
 
     // フィールドが存在しない場合のハンドリング
     if (!(fieldName in form)) {
@@ -266,13 +256,13 @@ export function InPersonFormStepRenderer({
             <StandardField
                 ref={inputRef}
                 type={validType}
-                stepId={step.id}
                 value={getFieldValue(fieldName)}
                 onChange={(value) => {
                     // 型安全な値の設定
                     onFieldUpdate(fieldName, value as InPersonFormData[typeof fieldName]);
                 }}
                 placeholder={step.placeholder}
+                unit={step.unit}
             />
             {errors && (
                 <p className="text-sm text-red-600">{errors}</p>

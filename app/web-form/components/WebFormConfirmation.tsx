@@ -4,6 +4,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { formatManWithOku } from "@/lib/format";
 import type { WebFormData } from "@/lib/form-types";
 
 interface WebFormConfirmationProps {
@@ -20,10 +21,9 @@ export function WebFormConfirmation({ form }: WebFormConfirmationProps) {
     };
 
     const formatCurrency = (value: string) => {
-        if (!value || value === "0") return "0円";
-        const num = Number(value);
-        if (isNaN(num)) return value;
-        return `${num.toLocaleString()}万円`;
+        const num = Number(value || 0);
+        if (!Number.isFinite(num)) return value;
+        return formatManWithOku(num);
     };
 
     return (
@@ -69,6 +69,10 @@ export function WebFormConfirmation({ form }: WebFormConfirmationProps) {
                     {form.hasSpouse && (
                         <>
                             <div className="flex justify-between">
+                                <span className="text-gray-600">配偶者の年齢</span>
+                                <span>{form.spouseAge ? `${form.spouseAge}歳` : "未入力"}</span>
+                            </div>
+                            <div className="flex justify-between">
                                 <span className="text-gray-600">配偶者の年収</span>
                                 <span>{formatCurrency(form.spouseIncome)}</span>
                             </div>
@@ -90,7 +94,7 @@ export function WebFormConfirmation({ form }: WebFormConfirmationProps) {
                         <span>{formatCurrency(form.downPayment)}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-600">希望月返済額</span>
+                        <span className="text-gray-600">希望返済月額</span>
                         <span>{formatCurrency(form.wishMonthlyPayment)}</span>
                     </div>
                     <div className="flex justify-between">
@@ -108,6 +112,26 @@ export function WebFormConfirmation({ form }: WebFormConfirmationProps) {
                         <span className="text-gray-600">土地の所有</span>
                         <span>{formatYesNo(form.hasLand)}</span>
                     </div>
+                    {form.hasLand === true && (
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">既存建築物</span>
+                            <span>{formatYesNo(form.hasExistingBuilding)}</span>
+                        </div>
+                    )}
+                    {form.hasLand === false && (
+                        <>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">土地予算の有無</span>
+                                <span>{formatYesNo(form.hasLandBudget)}</span>
+                            </div>
+                            {form.hasLandBudget && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">土地予算</span>
+                                    <span>{formatCurrency(form.landBudget)}</span>
+                                </div>
+                            )}
+                        </>
+                    )}
                     <div className="flex justify-between">
                         <span className="text-gray-600">テクノストラクチャー工法</span>
                         <span>{formatYesNo(form.usesTechnostructure)}</span>

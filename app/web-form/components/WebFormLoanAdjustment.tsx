@@ -7,7 +7,9 @@ import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
 import { SimulationResultDisplay } from "./SimulationResultDisplay";
 import { useSimulationConfig } from "@/hooks/useSimulationConfig";
-import { calculateClientSimulation, type ClientSimulationResult } from "@/lib/client-simulation";
+import { formatManWithOku } from "@/lib/format";
+import { calculateSimulation, type SimulationResult } from "@/lib/simulation/engine";
+import { buildSimulationInputFromForm } from "@/lib/simulation/form-input";
 import type { WebFormData } from "@/lib/form-types";
 
 
@@ -26,7 +28,7 @@ export function WebFormLoanAdjustment({ form, onFieldUpdate, onError }: WebFormL
     const { config, loading: configLoading, error: configError } = useSimulationConfig();
 
     // 試算結果
-    const [simulationResult, setSimulationResult] = useState<ClientSimulationResult | null>(null);
+    const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
 
     // 現在の希望返済条件
     const [currentMonthlyPayment, setCurrentMonthlyPayment] = useState(
@@ -39,21 +41,11 @@ export function WebFormLoanAdjustment({ form, onFieldUpdate, onError }: WebFormL
         if (!config) return;
 
         try {
-            const result = calculateClientSimulation({
-                age: parseInt(form.age) || 35,
-                ownIncome: parseFloat(form.ownIncome) || 0,
-                spouseIncome: form.hasSpouse ? parseFloat(form.spouseIncome) || 0 : 0,
-                ownLoanPayment: parseFloat(form.ownLoanPayment) || 0,
-                spouseLoanPayment: form.hasSpouse ? parseFloat(form.spouseLoanPayment) || 0 : 0,
-                downPayment: parseFloat(form.downPayment) || 0,
+            const input = buildSimulationInputFromForm(form, {
                 wishMonthlyPayment: currentMonthlyPayment,
                 wishPaymentYears: currentPaymentYears,
-                hasSpouse: form.hasSpouse || undefined,
-                usesBonus: form.usesBonus || undefined,
-                bonusPayment: form.usesBonus ? parseFloat(form.bonusPayment) || 0 : 0,
-                hasLand: form.hasLand || undefined,
-                usesTechnostructure: form.usesTechnostructure || undefined,
-            }, config);
+            });
+            const result = calculateSimulation(input, config);
 
             setSimulationResult(result);
             onError(null);
@@ -90,7 +82,7 @@ export function WebFormLoanAdjustment({ form, onFieldUpdate, onError }: WebFormL
         return (
             <div className="flex items-center justify-center py-8">
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
                     <p className="mt-2 text-sm text-gray-600">設定読み込み中...</p>
                 </div>
             </div>
@@ -126,10 +118,10 @@ export function WebFormLoanAdjustment({ form, onFieldUpdate, onError }: WebFormL
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <label className="text-sm font-medium text-gray-700">
-                                希望月額返済額
+                                希望返済月額
                             </label>
-                            <span className="text-lg font-bold text-blue-600">
-                                {currentMonthlyPayment.toLocaleString()}万円
+                            <span className="text-lg font-bold text-emerald-700">
+                                {formatManWithOku(currentMonthlyPayment)}
                             </span>
                         </div>
                         <Slider
@@ -144,7 +136,7 @@ export function WebFormLoanAdjustment({ form, onFieldUpdate, onError }: WebFormL
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
                             <span>5万円</span>
-                            <span>上限: {Math.round(simulationResult.monthlyPaymentCapacity).toLocaleString()}万円</span>
+                            <span>上限: {formatManWithOku(simulationResult.monthlyPaymentCapacity)}</span>
                         </div>
                     </div>
 
@@ -154,14 +146,14 @@ export function WebFormLoanAdjustment({ form, onFieldUpdate, onError }: WebFormL
                             <label className="text-sm font-medium text-gray-700">
                                 希望返済期間
                             </label>
-                            <span className="text-lg font-bold text-green-600">
+                            <span className="text-lg font-bold text-emerald-600">
                                 {currentPaymentYears}年
                             </span>
                         </div>
                         <Slider
                             value={[currentPaymentYears]}
                             onValueChange={(values: number[]) => handleSliderChange('years', values[0])}
-                            max={35}
+                            max={50}
                             min={10}
                             step={1}
                             className="w-full"
@@ -170,7 +162,7 @@ export function WebFormLoanAdjustment({ form, onFieldUpdate, onError }: WebFormL
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
                             <span>10年</span>
-                            <span>35年</span>
+                            <span>50年</span>
                         </div>
                     </div>
                 </div>
@@ -180,6 +172,7 @@ export function WebFormLoanAdjustment({ form, onFieldUpdate, onError }: WebFormL
             <SimulationResultDisplay
                 simulationResult={simulationResult}
                 loading={false}
+                usesTechnostructure={form.usesTechnostructure}
             />
 
             {/* 注意事項 */}

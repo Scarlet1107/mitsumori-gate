@@ -9,10 +9,10 @@ import { useCallback, useEffect, useState } from "react";
 import { FormLayout } from "@/components/form/FormLayout";
 import { useForm } from "@/hooks/useForm";
 import { useInPersonFormCustomerSearch } from "./hooks/useInPersonFormCustomerSearch";
-import { inPersonFormSteps, initialInPersonFormData } from "@/lib/inperson-form-config";
+import { formSteps, initialInPersonFormData } from "@/lib/form-steps";
 import { InPersonFormStepRenderer } from "./InPersonFormStepRenderer";
 import type { InPersonFormData } from "@/lib/form-types";
-import type { CustomerSearchResult } from "@/lib/inperson-form-config";
+import type { CustomerSearchResult } from "@/lib/form-types";
 import {
     AlertDialog,
     AlertDialogAction,
@@ -44,6 +44,7 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         loading,
         activeStep,
         progress,
+        totalSteps,
         updateField,
         handleNext,
         handlePrevious,
@@ -55,7 +56,7 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         isFirstStep,
         canProceed,
     } = useForm({
-        steps: inPersonFormSteps,
+        steps: formSteps,
         initialFormData: { ...initialInPersonFormData, consentAccepted: prefillConsent },
         formType: "inperson",
         onComplete: handleFormComplete,
@@ -110,6 +111,7 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
             age: toNumber(formData.age),
             hasSpouse: formData.hasSpouse ?? undefined,
             spouseName: formData.hasSpouse ? (formData.spouseName || undefined) : undefined,
+            spouseAge: formData.hasSpouse ? toNumber(formData.spouseAge) : undefined,
             ownIncome: toNumber(formData.ownIncome),
             ownLoanPayment: toNumber(formData.ownLoanPayment),
             spouseIncome: formData.hasSpouse ? toNumber(formData.spouseIncome) : undefined,
@@ -120,6 +122,9 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
             usesBonus: formData.usesBonus ?? undefined,
             bonusPayment: normalizeBonusPayment(),
             hasLand: formData.hasLand ?? undefined,
+            hasExistingBuilding: formData.hasLand ? formData.hasExistingBuilding ?? undefined : undefined,
+            hasLandBudget: formData.hasLand === false ? formData.hasLandBudget ?? undefined : undefined,
+            landBudget: formData.hasLand === false ? toNumber(formData.landBudget) : undefined,
             usesTechnostructure: formData.usesTechnostructure ?? undefined,
             inPersonCompleted: true,
         };
@@ -169,6 +174,7 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         updateField("email", customer.email || "");
         updateField("phone", customer.phone || "");
         updateField("age", toStringValue(customer.age));
+        updateField("spouseAge", toStringValue(customer.spouseAge));
         updateField("postalCode", customer.postalCode || "");
         const combinedAddress = customer.address || "";
         const baseAddress = customer.baseAddress || combinedAddress;
@@ -195,8 +201,10 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         updateField("hasSpouse", hasSpouse);
         if (hasSpouse) {
             updateField("spouseName", customer.spouseName || "");
+            updateField("spouseAge", toStringValue(customer.spouseAge));
         } else {
             updateField("spouseName", "");
+            updateField("spouseAge", "");
             updateField("spouseIncome", "0");
             updateField("spouseLoanPayment", "0");
         }
@@ -204,6 +212,9 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         // フラグ系
         updateField("usesBonus", typeof customer.usesBonus === "boolean" ? customer.usesBonus : null);
         updateField("hasLand", typeof customer.hasLand === "boolean" ? customer.hasLand : null);
+        updateField("hasExistingBuilding", typeof customer.hasExistingBuilding === "boolean" ? customer.hasExistingBuilding : null);
+        updateField("hasLandBudget", typeof customer.hasLandBudget === "boolean" ? customer.hasLandBudget : null);
+        updateField("landBudget", toStringValue(customer.landBudget));
         updateField("usesTechnostructure", typeof customer.usesTechnostructure === "boolean" ? customer.usesTechnostructure : null);
 
         // 検索をクリア
@@ -267,7 +278,7 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
             // 進捗情報
             progress={progress}
             currentStepIndex={currentStepIndex}
-            totalSteps={inPersonFormSteps.length}
+            totalSteps={totalSteps}
             formType="inperson"
 
             // アニメーション

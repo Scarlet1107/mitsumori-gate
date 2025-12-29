@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { getCustomerById } from "@/lib/customer-store";
 import { getTypedConfigs } from "@/lib/config-store";
-import { calculateSimulation, type SimulationInput } from "@/lib/calculation";
+import { calculateSimulation, type SimulationInput } from "@/lib/simulation/engine";
 import { generatePDFBuffer, type SimulationData } from "@/lib/pdf/simulation-pdf";
 
 const toNumber = (value?: number | null): number => {
@@ -34,6 +34,7 @@ export async function GET(
 
         const simulationInput: SimulationInput = {
             age: toNumber(customer.age),
+            spouseAge: toNumber(customer.spouseAge),
             ownIncome: toNumber(customer.ownIncome),
             spouseIncome: toNumber(customer.spouseIncome),
             ownLoanPayment: toNumber(customer.ownLoanPayment),
@@ -41,9 +42,11 @@ export async function GET(
             downPayment: toNumber(customer.downPayment),
             wishMonthlyPayment: toNumber(customer.wishMonthlyPayment),
             wishPaymentYears: toNumber(customer.wishPaymentYears) || 35,
-            hasSpouse: toBoolean(customer.hasSpouse, false),
             usesBonus: toBoolean(customer.usesBonus, false),
             hasLand: toBoolean(customer.hasLand, false),
+            hasExistingBuilding: toBoolean(customer.hasExistingBuilding, false),
+            hasLandBudget: toBoolean(customer.hasLandBudget, false),
+            landBudget: toNumber(customer.landBudget),
             usesTechnostructure: toBoolean(customer.usesTechnostructure, false),
         };
 
@@ -60,7 +63,7 @@ export async function GET(
             downPayment: simulationInput.downPayment,
             wishMonthlyPayment: simulationInput.wishMonthlyPayment,
             wishPaymentYears: simulationInput.wishPaymentYears,
-            hasSpouse: simulationInput.hasSpouse ?? false,
+            hasSpouse: toBoolean(customer.hasSpouse, false),
             usesBonus: simulationInput.usesBonus ?? false,
             hasLand: simulationInput.hasLand ?? false,
             usesTechnostructure: simulationInput.usesTechnostructure ?? false,

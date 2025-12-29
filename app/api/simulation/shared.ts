@@ -1,4 +1,4 @@
-import { calculateSimulation, type SimulationInput, type SimulationResult } from "@/lib/calculation";
+import { calculateSimulation, type SimulationInput, type SimulationResult } from "@/lib/simulation/engine";
 import { getTypedConfigs } from "@/lib/config-store";
 import { createCustomer, type CustomerCreateInput } from "@/lib/customer-store";
 import { prisma } from "@/lib/prisma";
@@ -14,6 +14,8 @@ export function normalizeSimulationInput(input: SimulationInputPayload): Simulat
     return {
         ...input,
         age: toRequiredNumber(input.age, "age"),
+        spouseAge: toOptionalNumber(input.spouseAge),
+        hasSpouse: toOptionalBoolean(input.hasSpouse),
         ownIncome: toRequiredNumber(input.ownIncome, "ownIncome"),
         spouseIncome: toOptionalNumber(input.spouseIncome),
         ownLoanPayment: toRequiredNumber(input.ownLoanPayment, "ownLoanPayment"),
@@ -21,6 +23,13 @@ export function normalizeSimulationInput(input: SimulationInputPayload): Simulat
         downPayment: toRequiredNumber(input.downPayment, "downPayment"),
         wishMonthlyPayment: toRequiredNumber(input.wishMonthlyPayment, "wishMonthlyPayment"),
         wishPaymentYears: toRequiredNumber(input.wishPaymentYears, "wishPaymentYears"),
+        usesBonus: toOptionalBoolean(input.usesBonus),
+        bonusPayment: toOptionalNumber(input.bonusPayment),
+        hasLand: toOptionalBoolean(input.hasLand),
+        hasExistingBuilding: toOptionalBoolean(input.hasExistingBuilding),
+        hasLandBudget: toOptionalBoolean(input.hasLandBudget),
+        landBudget: toOptionalNumber(input.landBudget),
+        usesTechnostructure: toOptionalBoolean(input.usesTechnostructure),
     };
 }
 
@@ -40,6 +49,10 @@ export function toOptionalNumber(value: unknown): number | undefined {
     return (typeof parsed === "number" && Number.isFinite(parsed)) ? parsed : undefined;
 }
 
+export function toOptionalBoolean(value: unknown): boolean | undefined {
+    return typeof value === "boolean" ? value : undefined;
+}
+
 export async function calculateFullSimulation(input: SimulationInputPayload) {
     const config = await loadConfig();
     const normalizedInput = normalizeSimulationInput(input);
@@ -56,6 +69,8 @@ export async function persistWebFormSubmission(
 
     const hasSpouse = getOptionalBoolean(formPayload["hasSpouse"]);
     const usesBonus = getOptionalBoolean(formPayload["usesBonus"]);
+    const hasLand = getOptionalBoolean(formPayload["hasLand"]);
+    const hasLandBudget = getOptionalBoolean(formPayload["hasLandBudget"]);
     const baseAddress = getOptionalString(formPayload["baseAddress"]) ?? getOptionalString(formPayload["address"]);
     const detailAddress = getOptionalString(formPayload["detailAddress"]);
     const bonusPaymentValue = (() => {
@@ -79,12 +94,16 @@ export async function persistWebFormSubmission(
         spouseIncome: hasSpouse ? getOptionalInteger(formPayload["spouseIncome"]) : undefined,
         ownLoanPayment: getOptionalInteger(formPayload["ownLoanPayment"]),
         spouseLoanPayment: hasSpouse ? getOptionalInteger(formPayload["spouseLoanPayment"]) : undefined,
+        spouseAge: hasSpouse ? getOptionalInteger(formPayload["spouseAge"]) : undefined,
         downPayment: getOptionalInteger(formPayload["downPayment"]),
         wishMonthlyPayment: getOptionalInteger(formPayload["wishMonthlyPayment"]),
         wishPaymentYears: getOptionalInteger(formPayload["wishPaymentYears"]),
         usesBonus,
         bonusPayment: bonusPaymentValue,
-        hasLand: getOptionalBoolean(formPayload["hasLand"]),
+        hasLand,
+        hasExistingBuilding: hasLand ? getOptionalBoolean(formPayload["hasExistingBuilding"]) : undefined,
+        hasLandBudget,
+        landBudget: hasLand ? undefined : getOptionalInteger(formPayload["landBudget"]),
         usesTechnostructure: getOptionalBoolean(formPayload["usesTechnostructure"]),
         inputMode: "web",
         spouseName: getOptionalString(formPayload["spouseName"]),

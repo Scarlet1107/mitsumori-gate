@@ -2,6 +2,7 @@
 
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useMemo, useState, Suspense } from "react";
+import Image from "next/image";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -13,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
+import { getFormSteps, initialInPersonFormData, initialWebFormData } from "@/lib/form-steps";
 
 function ConsentPageContent() {
     const router = useRouter();
@@ -32,6 +34,12 @@ function ConsentPageContent() {
         return mode === "inperson" ? "/inperson-form" : "/web-form";
     }, [mode, searchParams]);
 
+    const totalSteps = useMemo(() => {
+        return mode === "inperson"
+            ? getFormSteps("inperson", initialInPersonFormData).length
+            : getFormSteps("web", initialWebFormData).length;
+    }, [mode]);
+
     const handleContinue = useCallback(() => {
         const params = new URLSearchParams();
         params.set("consent", "true");
@@ -42,9 +50,20 @@ function ConsentPageContent() {
     return (
         <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-6 py-12 text-foreground">
             <header className="space-y-2 pt-8 text-center">
-                <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                    Step 1 / 18
-                </p>
+                <div className="flex flex-col items-center gap-3">
+                    <Image
+                        src="/logo1.png"
+                        alt="Logo"
+                        width={180}
+                        height={30}
+                        draggable={false}
+                        className="pointer-events-none select-none"
+                    />
+                    <p className="text-sm font-semibold text-emerald-700">サンワイデア株式会社</p>
+                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
+                        Step 1 / {totalSteps}
+                    </p>
+                </div>
                 <h1 className="text-3xl font-semibold">ご利用前のお願い</h1>
                 <p className="text-xs text-muted-foreground">
                     モード: {mode === "inperson" ? "対面入力" : "Web入力"}

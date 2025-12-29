@@ -35,6 +35,7 @@ model Customer {
   // 配偶者情報
   hasSpouse  Boolean? @map("has_spouse")
   spouseName String?  @map("spouse_name")
+  spouseAge  Int?     @map("spouse_age")
 
   // 収入情報
   ownIncome    Int? @map("own_income")
@@ -53,6 +54,9 @@ model Customer {
   usesBonus           Boolean? @map("uses_bonus")
   bonusPayment        Int?     @map("bonus_payment")
   hasLand             Boolean? @map("has_land")
+  hasExistingBuilding Boolean? @map("has_existing_building")
+  hasLandBudget       Boolean? @map("has_land_budget")
+  landBudget          Int?     @map("land_budget")
   usesTechnostructure Boolean? @map("uses_technostructure")
 
   // 入力方式（web/inperson）

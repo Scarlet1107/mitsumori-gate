@@ -1,14 +1,14 @@
 import { NextResponse } from "next/server";
 import { findCustomersByNameOrEmail, getRecentCustomers } from "@/lib/customer-store";
-import type { Customer } from "@/lib/generated/prisma";
-import type { CustomerSearchResult } from "@/lib/inperson-form-config";
+import type { CustomerRecord } from "@/lib/customer-store";
+import type { CustomerSearchResult } from "@/lib/form-types";
 
 const toStringValue = (value?: number | null) => {
     if (value === null || value === undefined) return "";
     return String(value);
 };
 
-function serializeCustomers(customers: Customer[]): CustomerSearchResult[] {
+function serializeCustomers(customers: CustomerRecord[]): CustomerSearchResult[] {
     return customers.map(customer => {
         const baseAddress = customer.baseAddress ?? "";
         const detailAddress = customer.detailAddress ?? "";
@@ -20,6 +20,7 @@ function serializeCustomers(customers: Customer[]): CustomerSearchResult[] {
             email: customer.email ?? "",
             phone: customer.phone ?? "",
             age: toStringValue(customer.age),
+            spouseAge: toStringValue(customer.spouseAge),
             postalCode: customer.postalCode ?? "",
             baseAddress,
             detailAddress,
@@ -35,6 +36,9 @@ function serializeCustomers(customers: Customer[]): CustomerSearchResult[] {
             wishPaymentYears: toStringValue(customer.wishPaymentYears),
             usesBonus: customer.usesBonus ?? null,
             hasLand: customer.hasLand ?? null,
+            hasExistingBuilding: customer.hasExistingBuilding ?? null,
+            hasLandBudget: customer.hasLandBudget ?? null,
+            landBudget: toStringValue(customer.landBudget),
             usesTechnostructure: customer.usesTechnostructure ?? null,
             bonusPayment: toStringValue(customer.bonusPayment),
             createdAt: customer.createdAt instanceof Date

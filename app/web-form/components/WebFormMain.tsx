@@ -8,7 +8,7 @@
 import { useCallback } from "react";
 import { FormLayout } from "@/components/form/FormLayout";
 import { useForm } from "@/hooks/useForm";
-import { webFormSteps, initialWebFormData } from "@/lib/web-form-config";
+import { formSteps, initialWebFormData } from "@/lib/form-steps";
 import { WebFormStepRenderer } from "./WebFormStepRenderer";
 import type { WebFormData } from "@/lib/form-types";
 
@@ -28,6 +28,7 @@ export default function WebForm() {
         loading,
         activeStep,
         progress,
+        totalSteps,
         updateField,
         handleNext,
         handlePrevious,
@@ -39,7 +40,7 @@ export default function WebForm() {
         isFirstStep,
         canProceed,
     } = useForm({
-        steps: webFormSteps,
+        steps: formSteps,
         initialFormData: initialWebFormData,
         formType: "web",
         onComplete: handleFormComplete,
@@ -99,7 +100,7 @@ export default function WebForm() {
             // 進捗情報
             progress={progress}
             currentStepIndex={currentStepIndex}
-            totalSteps={webFormSteps.length}
+            totalSteps={totalSteps}
             formType="web"
 
             // アニメーション

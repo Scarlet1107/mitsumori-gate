@@ -10,8 +10,9 @@ import { Slider } from "@/components/ui/slider";
 import { InPersonSimulationResultDisplay } from "./InPersonSimulationResultDisplay";
 import type { InPersonFormData } from "@/lib/form-types";
 import { useSimulationConfig } from "@/hooks/useSimulationConfig";
-import { calculateClientSimulation, type ClientSimulationResult } from "@/lib/client-simulation";
-import { buildSimulationInput } from "@/app/inperson-form/lib/simulation-input";
+import { formatManWithOku } from "@/lib/format";
+import { calculateSimulation, type SimulationResult } from "@/lib/simulation/engine";
+import { buildSimulationInputFromForm } from "@/lib/simulation/form-input";
 
 interface InPersonFormLoanAdjustmentProps {
     form: InPersonFormData;
@@ -21,7 +22,7 @@ interface InPersonFormLoanAdjustmentProps {
 
 export function InPersonFormLoanAdjustment({ form, onFieldUpdate, onError }: InPersonFormLoanAdjustmentProps) {
     const { config, loading: configLoading, error: configError } = useSimulationConfig();
-    const [simulationResult, setSimulationResult] = useState<ClientSimulationResult | null>(null);
+    const [simulationResult, setSimulationResult] = useState<SimulationResult | null>(null);
     const [currentMonthlyPayment, setCurrentMonthlyPayment] = useState(
         parseFloat(form.wishMonthlyPayment) || 10
     );
@@ -34,11 +35,11 @@ export function InPersonFormLoanAdjustment({ form, onFieldUpdate, onError }: InP
         if (!config) return;
         try {
             setCalculating(true);
-            const input = buildSimulationInput(form, {
+            const input = buildSimulationInputFromForm(form, {
                 wishMonthlyPayment: currentMonthlyPayment,
                 wishPaymentYears: currentPaymentYears,
             });
-            const result = calculateClientSimulation(input, config);
+            const result = calculateSimulation(input, config);
             setSimulationResult(result);
             onError(null);
         } catch (error) {
@@ -67,7 +68,7 @@ export function InPersonFormLoanAdjustment({ form, onFieldUpdate, onError }: InP
         return (
             <div className="flex items-center justify-center py-8">
                 <div className="text-center">
-                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-emerald-600"></div>
                     <p className="mt-2 text-sm text-gray-600">試算中...</p>
                 </div>
             </div>
@@ -101,10 +102,10 @@ export function InPersonFormLoanAdjustment({ form, onFieldUpdate, onError }: InP
                     <div>
                         <div className="flex justify-between items-center mb-2">
                             <label className="text-sm font-medium text-gray-700">
-                                希望月額返済額
+                                希望返済月額
                             </label>
-                            <span className="text-lg font-bold text-blue-600">
-                                {currentMonthlyPayment.toLocaleString()}万円
+                            <span className="text-lg font-bold text-emerald-700">
+                                {formatManWithOku(currentMonthlyPayment)}
                             </span>
                         </div>
                         <Slider
@@ -119,7 +120,7 @@ export function InPersonFormLoanAdjustment({ form, onFieldUpdate, onError }: InP
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
                             <span>5万円</span>
-                            <span>上限: {Math.round(simulationResult.monthlyPaymentCapacity).toLocaleString()}万円</span>
+                            <span>上限: {formatManWithOku(simulationResult.monthlyPaymentCapacity)}</span>
                         </div>
                     </div>
 
@@ -129,14 +130,14 @@ export function InPersonFormLoanAdjustment({ form, onFieldUpdate, onError }: InP
                             <label className="text-sm font-medium text-gray-700">
                                 希望返済期間
                             </label>
-                            <span className="text-lg font-bold text-green-600">
+                            <span className="text-lg font-bold text-emerald-600">
                                 {currentPaymentYears}年
                             </span>
                         </div>
                         <Slider
                             value={[currentPaymentYears]}
                             onValueChange={(values: number[]) => handleSliderChange('years', values[0])}
-                            max={35}
+                            max={50}
                             min={10}
                             step={1}
                             className="w-full"
@@ -145,7 +146,7 @@ export function InPersonFormLoanAdjustment({ form, onFieldUpdate, onError }: InP
                         />
                         <div className="flex justify-between text-xs text-gray-500 mt-1">
                             <span>10年</span>
-                            <span>35年</span>
+                            <span>50年</span>
                         </div>
                     </div>
                 </div>
@@ -155,6 +156,7 @@ export function InPersonFormLoanAdjustment({ form, onFieldUpdate, onError }: InP
             <InPersonSimulationResultDisplay
                 simulationResult={simulationResult}
                 loading={configLoading || calculating}
+                usesTechnostructure={form.usesTechnostructure}
             />
             {/* 注意事項 */}
             <div className="text-xs text-gray-500 space-y-1">

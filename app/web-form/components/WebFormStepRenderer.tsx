@@ -7,11 +7,11 @@ import { StandardField, QuestionButtons } from "@/components/form/FormFields";
 import { WebFormBudgetDisplay } from "./WebFormBudgetDisplay";
 import { WebFormLoanAdjustment } from "./WebFormLoanAdjustment";
 import { WebFormConfirmation } from "./WebFormConfirmation";
-import type { WebFormStep } from "@/lib/web-form-config";
+import type { FormStep } from "@/lib/form-steps";
 import type { WebFormData } from "@/lib/form-types";
 
 interface WebFormStepRendererProps {
-    step: WebFormStep;
+    step: FormStep;
     form: WebFormData;
     errors: string | null;
     getFieldValue: (fieldName: keyof WebFormData) => string;
@@ -61,7 +61,7 @@ export function WebFormStepRenderer({
                 return (
                     <div className="space-y-4">
                         <h2 className="text-xl font-semibold">{step.title}</h2>
-                        <div className="p-4 bg-green-50 rounded-lg">
+                        <div className="p-4 bg-emerald-50 rounded-lg">
                             <p className="text-lg">おすすめ間取りプランを表示中...</p>
                         </div>
                     </div>
@@ -70,7 +70,7 @@ export function WebFormStepRenderer({
                 return (
                     <div className="space-y-4">
                         <h2 className="text-xl font-semibold">{step.title}</h2>
-                        <div className="p-4 bg-yellow-50 rounded-lg">
+                        <div className="p-4 bg-emerald-50 rounded-lg">
                             <p className="text-lg">調整後のプランを表示中...</p>
                         </div>
                     </div>
@@ -88,18 +88,7 @@ export function WebFormStepRenderer({
 
     // 質問タイプのステップ
     if (step.type === "question") {
-        const questionFieldMap: Record<string, keyof WebFormData> = {
-            "spouse_question": "hasSpouse",
-            "usesBonus": "usesBonus",
-            "hasLand": "hasLand",
-            "usesTechnostructure": "usesTechnostructure"
-        };
-
-        const fieldName = questionFieldMap[step.id];
-        if (!fieldName) {
-            return <div>未対応の質問です</div>;
-        }
-
+        const fieldName = (step.field ?? step.id) as keyof WebFormData;
         const currentValue = form[fieldName] as boolean | null;
 
         return (
@@ -114,7 +103,7 @@ export function WebFormStepRenderer({
     }
 
     // 通常の入力フィールド
-    const fieldName = step.id as keyof WebFormData;
+    const fieldName = (step.field ?? step.id) as keyof WebFormData;
 
     // フィールドが存在しない場合のハンドリング
     if (!(fieldName in form)) {
@@ -132,13 +121,13 @@ export function WebFormStepRenderer({
             <StandardField
                 ref={inputRef}
                 type={validType}
-                stepId={step.id}
                 value={getFieldValue(fieldName)}
                 onChange={(value) => {
                     // 数値フィールドの場合は文字列として保存
                     onFieldUpdate(fieldName, value as WebFormData[typeof fieldName]);
                 }}
                 placeholder={step.placeholder}
+                unit={step.unit}
             />
             {errors && (
                 <p className="text-sm text-red-600">{errors}</p>

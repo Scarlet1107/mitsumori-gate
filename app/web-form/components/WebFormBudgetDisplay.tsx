@@ -4,6 +4,10 @@
 
 import { useState, useEffect } from "react";
 import type { WebFormData } from "@/lib/form-types";
+import { useSimulationConfig } from "@/hooks/useSimulationConfig";
+import { formatManWithOku } from "@/lib/format";
+import { buildSimulationInputFromForm } from "@/lib/simulation/form-input";
+import { calculateSimulation } from "@/lib/simulation/engine";
 
 interface BudgetResult {
     maxLoanAmount: number;
@@ -21,6 +25,7 @@ interface WebFormBudgetDisplayProps {
  */
 export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProps) {
     const [budgetResult, setBudgetResult] = useState<BudgetResult | null>(null);
+    const { config, loading: configLoading, error: configError } = useSimulationConfig();
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
@@ -29,29 +34,15 @@ export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProp
                 setLoading(true);
 
                 // 必要なデータが揃っているかチェック
-                if (!form.ownIncome || !form.downPayment) {
+                if (!config || !form.ownIncome || !form.downPayment) {
                     setLoading(false);
                     return;
                 }
 
-                // 部分シミュレーションAPI呼び出し（最大借入額のみ計算）
-                const response = await fetch("/api/simulation/partial", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        ...form,
-                        formType: "web",
-                    }),
-                });
-
-                if (!response.ok) {
-                    throw new Error("予算計算に失敗しました");
-                }
-
-                const result = await response.json();
-
-                const downPayment = parseFloat(form.downPayment);
-                const maxLoan = result.simulation?.maxLoan || 0;
+                const input = buildSimulationInputFromForm(form);
+                const result = calculateSimulation(input, config);
+                const downPayment = Number(form.downPayment) || 0;
+                const maxLoan = result.maxLoanAmount || 0;
 
                 setBudgetResult({
                     maxLoanAmount: maxLoan,
@@ -69,9 +60,20 @@ export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProp
         }
 
         calculateBudget();
-    }, [form, onError]);
+    }, [
+        form.ownIncome,
+        form.downPayment,
+        form.age,
+        form.spouseAge,
+        form.spouseIncome,
+        form.ownLoanPayment,
+        form.spouseLoanPayment,
+        form.hasSpouse,
+        config,
+        onError,
+    ]);
 
-    if (loading) {
+    if (configLoading || loading) {
         return (
             <div className="space-y-4 text-center">
                 <div className="animate-pulse">
@@ -79,6 +81,14 @@ export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProp
                     <div className="h-4 bg-gray-200 rounded w-1/2 mx-auto"></div>
                 </div>
                 <p className="text-lg text-gray-600">予算計算中...</p>
+            </div>
+        );
+    }
+
+    if (configError) {
+        return (
+            <div className="text-center space-y-4">
+                <p className="text-lg text-red-600">設定の取得に失敗しました</p>
             </div>
         );
     }
@@ -97,8 +107,8 @@ export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProp
             {/* メインの予算表示 */}
             <div className="space-y-2">
                 <h3 className="text-lg font-semibold text-gray-700">あなたの上限予算</h3>
-                <div className="text-4xl font-bold text-blue-600">
-                    {Math.round(budgetResult.totalBudget).toLocaleString()}万円
+                <div className="text-4xl font-bold text-emerald-700">
+                    {formatManWithOku(budgetResult.totalBudget)}
                 </div>
             </div>
 
@@ -106,16 +116,16 @@ export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProp
             <div className="space-y-3 text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
                 <div className="flex justify-between">
                     <span>借入上限額</span>
-                    <span className="font-medium">{Math.round(budgetResult.maxLoanAmount).toLocaleString()}万円</span>
+                    <span className="font-medium">{formatManWithOku(budgetResult.maxLoanAmount)}</span>
                 </div>
                 <div className="flex justify-between">
                     <span>頭金</span>
-                    <span className="font-medium">{budgetResult.downPayment.toLocaleString()}万円</span>
+                    <span className="font-medium">{formatManWithOku(budgetResult.downPayment)}</span>
                 </div>
                 <hr className="border-gray-300" />
                 <div className="flex justify-between font-semibold text-base">
                     <span>合計予算</span>
-                    <span className="text-blue-600">{Math.round(budgetResult.totalBudget).toLocaleString()}万円</span>
+                    <span className="text-emerald-700">{formatManWithOku(budgetResult.totalBudget)}</span>
                 </div>
             </div>
 

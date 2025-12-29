@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { formatManWithOku } from "@/lib/format";
 import { Loader2 } from "lucide-react";
 interface CustomerRow {
     id: string;
@@ -394,8 +395,8 @@ export function AdminCustomerTable({ initialCustomers }: AdminCustomerTableProps
                             {detail.simulations.map(sim => (
                                 <div key={sim.id} className="rounded border p-2">
                                     <p className="text-xs text-muted-foreground">{formatDateTime(sim.createdAt)}</p>
-                                    <p className="text-sm">借入金額: {sim.wishLoanAmount ? `${Math.round(sim.wishLoanAmount).toLocaleString()}万円` : "-"}</p>
-                                    <p className="text-sm">総予算: {sim.totalBudget ? `${Math.round(sim.totalBudget).toLocaleString()}万円` : "-"}</p>
+                                    <p className="text-sm">借入金額: {sim.wishLoanAmount ? formatManWithOku(sim.wishLoanAmount) : "-"}</p>
+                                    <p className="text-sm">総予算: {sim.totalBudget ? formatManWithOku(sim.totalBudget) : "-"}</p>
                                 </div>
                             ))}
                         </div>

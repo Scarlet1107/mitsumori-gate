@@ -4,8 +4,9 @@ import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import type { InPersonFormData } from "@/lib/form-types";
 import { useSimulationConfig } from "@/hooks/useSimulationConfig";
-import { calculateClientSimulation } from "@/lib/client-simulation";
-import { buildSimulationInput } from "@/app/inperson-form/lib/simulation-input";
+import { formatManWithOku } from "@/lib/format";
+import { calculateSimulation } from "@/lib/simulation/engine";
+import { buildSimulationInputFromForm } from "@/lib/simulation/form-input";
 
 interface BudgetResult {
     maxLoanAmount: number;
@@ -35,8 +36,8 @@ export function InPersonFormBudgetDisplay({ form, onError }: InPersonFormBudgetD
                 return;
             }
 
-            const simulationInput = buildSimulationInput(form);
-            const result = calculateClientSimulation(simulationInput, config);
+            const simulationInput = buildSimulationInputFromForm(form);
+            const result = calculateSimulation(simulationInput, config);
             const downPayment = Number(form.downPayment) || 0;
 
             setBudgetResult({
@@ -51,9 +52,21 @@ export function InPersonFormBudgetDisplay({ form, onError }: InPersonFormBudgetD
         } finally {
             setCalculating(false);
         }
-    }, [config, form, onError]);
+    }, [
+        config,
+        form.age,
+        form.spouseAge,
+        form.ownIncome,
+        form.spouseIncome,
+        form.ownLoanPayment,
+        form.spouseLoanPayment,
+        form.downPayment,
+        form.hasSpouse,
+        onError,
+        form
+    ]);
 
-    const formatCurrency = (value: number) => `${Math.round(value).toLocaleString()}万円`;
+    const formatCurrency = (value: number) => formatManWithOku(value);
 
     if (configLoading || calculating) {
         return (
@@ -87,16 +100,16 @@ export function InPersonFormBudgetDisplay({ form, onError }: InPersonFormBudgetD
         <Card className="p-6 space-y-6">
             <div className="space-y-2 text-center">
                 <p className="text-sm text-gray-600">あなたの上限予算</p>
-                <p className="text-4xl font-bold text-blue-600">{formatCurrency(budgetResult.totalBudget)}</p>
+                <p className="text-4xl font-bold text-emerald-700">{formatCurrency(budgetResult.totalBudget)}</p>
             </div>
             <div className="grid grid-cols-2 gap-4 text-sm text-gray-600">
                 <div className="p-3 bg-gray-50 rounded-lg">
                     <p className="text-xs">借入上限額</p>
-                    <p className="text-xl font-semibold text-blue-600">{formatCurrency(budgetResult.maxLoanAmount)}</p>
+                    <p className="text-xl font-semibold text-emerald-700">{formatCurrency(budgetResult.maxLoanAmount)}</p>
                 </div>
                 <div className="p-3 bg-gray-50 rounded-lg">
                     <p className="text-xs">頭金</p>
-                    <p className="text-xl font-semibold text-green-600">{formatCurrency(budgetResult.downPayment)}</p>
+                    <p className="text-xl font-semibold text-emerald-600">{formatCurrency(budgetResult.downPayment)}</p>
                 </div>
             </div>
             <p className="text-xs text-gray-500 text-center">
