@@ -5,8 +5,9 @@ import { AdminCustomerDetail } from "./CustomerDetailClient";
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
-export default async function AdminCustomerDetailPage({ params }: { params: { id: string } }) {
-    const customer = await getCustomerById(params.id, { includeDeleted: true });
+export default async function AdminCustomerDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = await params;
+    const customer = await getCustomerById(id, { includeDeleted: true });
 
     if (!customer) {
         notFound();
