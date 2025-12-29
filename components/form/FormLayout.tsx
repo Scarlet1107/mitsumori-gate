@@ -91,7 +91,7 @@ export const FormLayout = memo<FormLayoutProps>(({
     navigationDisabled = false,
 }) => {
     return (
-        <div className={`min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 ${className}`}>
+        <div className={`min-h-screen bg-transparent ${className}`}>
             <div className="container mx-auto px-4 py-8">
                 <Card className="max-w-2xl mx-auto">
                     {showProgress && (
@@ -116,12 +116,12 @@ export const FormLayout = memo<FormLayoutProps>(({
                                 {(title || description) && (
                                     <div className="space-y-2 text-center">
                                         {title && (
-                                            <div className="text-xl font-semibold text-gray-900">
+                                            <div className="text-xl font-semibold text-foreground">
                                                 {title}
                                             </div>
                                         )}
                                         {description && (
-                                            <div className="text-sm text-gray-600">
+                                            <div className="text-sm text-muted-foreground">
                                                 {description}
                                             </div>
                                         )}

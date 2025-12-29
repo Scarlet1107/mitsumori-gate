@@ -3,12 +3,7 @@
  */
 
 import { useState, useEffect } from 'react';
-
-export interface SimulationConfig {
-    annualInterestRate: number;  // 年利率（%）
-    dtiRatio: number;           // DTI比率（%）
-    unitPricePerTsubo: number;  // 坪単価（万円）
-}
+import type { SimulationConfig } from '@/lib/simulation/engine';
 
 interface UseSimulationConfigResult {
     config: SimulationConfig | null;
@@ -21,6 +16,9 @@ const DEFAULT_CONFIG: SimulationConfig = {
     annualInterestRate: 1.5,
     dtiRatio: 35,
     unitPricePerTsubo: 70,
+    demolitionCost: 250,
+    defaultLandCost: 1000,
+    miscCost: 100,
 };
 
 export function useSimulationConfig(): UseSimulationConfigResult {

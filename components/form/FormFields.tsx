@@ -6,7 +6,6 @@ import { forwardRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatPostalCode, isValidPostalCode } from "@/lib/postal-address";
-import { isCurrencyField, isAgeField, getCurrencyUnit } from "@/lib/form-types";
 import { Spinner } from "../ui/spinner";
 
 // 全角数字を半角に揃える
@@ -29,14 +28,14 @@ interface BaseFieldProps {
 // テキスト/数値入力フィールド
 export const StandardField = forwardRef<HTMLInputElement, BaseFieldProps & {
     type: "text" | "number" | "email" | "tel";
-    stepId: string;
-}>(({ value, onChange, placeholder, type, stepId, className }, ref) => {
+    unit?: string;
+}>(({ value, onChange, placeholder, type, unit, className }, ref) => {
     const isNumberInput = type === "number";
     const inputType = isNumberInput ? "text" : type;
     const inputMode = isNumberInput ? "decimal" : undefined;
-    const showCurrencyUnit = type === "number" && (isCurrencyField(stepId) || isAgeField(stepId));
+    const showUnit = type === "number" && Boolean(unit);
 
-    if (showCurrencyUnit) {
+    if (showUnit) {
         return (
             <div className="flex items-stretch overflow-hidden rounded-xl border bg-background shadow-sm focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">
                 <Input
@@ -52,7 +51,7 @@ export const StandardField = forwardRef<HTMLInputElement, BaseFieldProps & {
                     className="border-0 text-base sm:text-lg h-12 sm:h-14 focus-visible:ring-0"
                 />
                 <span className="flex items-center bg-muted px-3 sm:px-4 text-sm font-medium text-muted-foreground">
-                    {getCurrencyUnit(stepId)}
+                    {unit}
                 </span>
             </div>
         );

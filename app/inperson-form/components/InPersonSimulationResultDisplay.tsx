@@ -7,37 +7,73 @@
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { LoadingNumber } from "@/components/ui/skeleton";
-import type { ClientSimulationResult } from "@/lib/client-simulation";
+import { formatManWithOku } from "@/lib/format";
+import type { SimulationResult } from "@/lib/simulation/engine";
 
 interface SimulationResultDisplayProps {
-    simulationResult: ClientSimulationResult | null;
+    simulationResult: SimulationResult | null;
     loading?: boolean;
+    usesTechnostructure?: boolean | null;
 }
 
-export function InPersonSimulationResultDisplay({ simulationResult, loading = false }: SimulationResultDisplayProps) {
+export function InPersonSimulationResultDisplay({
+    simulationResult,
+    loading = false,
+    usesTechnostructure,
+}: SimulationResultDisplayProps) {
+    const showWarning = !loading && simulationResult?.warnings &&
+        (simulationResult.warnings.exceedsMaxLoan || simulationResult.warnings.exceedsMaxTerm);
+    const specLabel = usesTechnostructure === null || usesTechnostructure === undefined
+        ? "未選択"
+        : usesTechnostructure
+            ? "テクノストラクチャー + 長期優良住宅"
+            : "長期優良住宅仕様";
+
     return (
         <Card className="p-6">
             <h3 className="text-lg font-semibold mb-4">更新された試算結果</h3>
 
+            {showWarning && (
+                <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+                    {simulationResult?.warnings.exceedsMaxLoan && (
+                        <p>※ 上限借入額を超えています。条件の見直しが必要です。</p>
+                    )}
+                    {simulationResult?.warnings.exceedsMaxTerm && (
+                        <p>※ 年齢上限を超える返済年数になっています。</p>
+                    )}
+                </div>
+            )}
+
             {/* メイン指標 */}
             <div className="grid grid-cols-2 gap-4 mb-4">
-                <div className="text-center p-4 bg-blue-50 rounded-lg">
+                <div className="text-center p-4 bg-emerald-50 rounded-lg">
                     <p className="text-sm text-gray-600">借入金額</p>
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className="text-2xl font-bold text-emerald-700">
                         <LoadingNumber
                             loading={loading}
-                            value={simulationResult ? `${Math.round(simulationResult.wishLoanAmount).toLocaleString()}万円` : "---万円"}
+                            value={simulationResult ? formatManWithOku(simulationResult.wishLoanAmount) : "---"}
                             skeletonWidth="w-24"
                             skeletonHeight="h-8"
                         />
                     </p>
                 </div>
-                <div className="text-center p-4 bg-green-50 rounded-lg">
+                <div className="text-center p-4 bg-emerald-50 rounded-lg">
                     <p className="text-sm text-gray-600">総予算</p>
-                    <p className="text-2xl font-bold text-green-600">
+                    <p className="text-2xl font-bold text-emerald-600">
                         <LoadingNumber
                             loading={loading}
-                            value={simulationResult ? `${Math.round(simulationResult.totalBudget).toLocaleString()}万円` : "---万円"}
+                            value={simulationResult ? formatManWithOku(simulationResult.totalBudget) : "---"}
+                            skeletonWidth="w-24"
+                            skeletonHeight="h-8"
+                        />
+                    </p>
+                </div>
+                <div className="text-center p-4 bg-emerald-50 rounded-lg">
+                    <p className="text-sm text-gray-600">最大借入可能額</p>
+                    <p className="text-2xl font-bold text-emerald-700">
+                        <LoadingNumber
+                            loading={loading}
+                            value={simulationResult ? formatManWithOku(simulationResult.maxLoanAmount) : "---"}
                             skeletonWidth="w-24"
                             skeletonHeight="h-8"
                         />
@@ -50,13 +86,13 @@ export function InPersonSimulationResultDisplay({ simulationResult, loading = fa
             {/* 建築プラン */}
             <div className="space-y-2">
                 <h4 className="font-semibold text-gray-800">建築プラン目安</h4>
-                <div className="grid grid-cols-3 gap-4 text-center">
+                <div className="grid grid-cols-2 gap-4 text-center">
                     <div>
-                        <p className="text-sm text-gray-600">建築予算</p>
+                        <p className="text-sm text-gray-600">建築費用</p>
                         <p className="font-bold">
                             <LoadingNumber
                                 loading={loading}
-                                value={simulationResult ? `${Math.round(simulationResult.buildingBudget).toLocaleString()}万円` : "---万円"}
+                                value={simulationResult ? formatManWithOku(simulationResult.buildingBudget) : "---"}
                                 skeletonWidth="w-16"
                                 skeletonHeight="h-5"
                             />
@@ -73,6 +109,43 @@ export function InPersonSimulationResultDisplay({ simulationResult, loading = fa
                             />
                         </p>
                     </div>
+                </div>
+                <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p className="text-sm text-gray-600">土地代</p>
+                        <p className="font-bold">
+                            <LoadingNumber
+                                loading={loading}
+                                value={simulationResult ? formatManWithOku(simulationResult.landCost) : "---"}
+                                skeletonWidth="w-16"
+                                skeletonHeight="h-5"
+                            />
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-gray-600">解体費用</p>
+                        <p className="font-bold">
+                            <LoadingNumber
+                                loading={loading}
+                                value={simulationResult ? formatManWithOku(simulationResult.demolitionCost) : "---"}
+                                skeletonWidth="w-16"
+                                skeletonHeight="h-5"
+                            />
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-gray-600">諸経費</p>
+                        <p className="font-bold">
+                            <LoadingNumber
+                                loading={loading}
+                                value={simulationResult ? formatManWithOku(simulationResult.miscCost) : "---"}
+                                skeletonWidth="w-16"
+                                skeletonHeight="h-5"
+                            />
+                        </p>
+                    </div>
+                </div>
+                <div className="grid grid-cols-2 gap-4 text-center">
                     <div>
                         <p className="text-sm text-gray-600">推定床面積</p>
                         <p className="font-bold">
@@ -82,6 +155,12 @@ export function InPersonSimulationResultDisplay({ simulationResult, loading = fa
                                 skeletonWidth="w-12"
                                 skeletonHeight="h-5"
                             />
+                        </p>
+                    </div>
+                    <div>
+                        <p className="text-sm text-gray-600">仕様</p>
+                        <p className="font-bold text-emerald-700">
+                            {specLabel}
                         </p>
                     </div>
                 </div>
@@ -98,7 +177,7 @@ export function InPersonSimulationResultDisplay({ simulationResult, loading = fa
                         <span>
                             <LoadingNumber
                                 loading={loading}
-                                value={simulationResult ? `${Math.round(simulationResult.totalPayment).toLocaleString()}万円` : "---万円"}
+                                value={simulationResult ? formatManWithOku(simulationResult.totalPayment) : "---"}
                                 skeletonWidth="w-16"
                                 skeletonHeight="h-4"
                             />
@@ -109,7 +188,7 @@ export function InPersonSimulationResultDisplay({ simulationResult, loading = fa
                         <span>
                             <LoadingNumber
                                 loading={loading}
-                                value={simulationResult ? `${Math.round(simulationResult.totalInterest).toLocaleString()}万円` : "---万円"}
+                                value={simulationResult ? formatManWithOku(simulationResult.totalInterest) : "---"}
                                 skeletonWidth="w-16"
                                 skeletonHeight="h-4"
                             />
@@ -117,7 +196,7 @@ export function InPersonSimulationResultDisplay({ simulationResult, loading = fa
                     </div>
                     <div className="flex justify-between">
                         <span>返済負担率</span>
-                        <span className={!loading && simulationResult && simulationResult.dtiRatio > 30 ? 'text-red-600' : 'text-green-600'}>
+                        <span className={!loading && simulationResult && simulationResult.dtiRatio > 30 ? 'text-red-600' : 'text-emerald-600'}>
                             <LoadingNumber
                                 loading={loading}
                                 value={simulationResult ? `${simulationResult.dtiRatio.toFixed(1)}%` : "---%"}

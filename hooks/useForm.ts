@@ -4,7 +4,7 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
-import { validateStep } from "@/lib/form-validation";
+import { getFormSteps, isStepAvailable, validateStep, type FormStep } from "@/lib/form-steps";
 import { getProgressKey, getDataKey, calculateProgress } from "@/lib/form-types";
 import type {
     BaseFormData,
@@ -12,15 +12,15 @@ import type {
     ValidationResult
 } from "@/lib/form-types";
 
-interface UseFormOptions<TFormData extends BaseFormData, TStepConfig> {
-    steps: TStepConfig[];
+interface UseFormOptions<TFormData extends BaseFormData> {
+    steps: FormStep[];
     initialFormData: TFormData;
     formType: "web" | "inperson";
     onComplete?: (formData: TFormData) => Promise<void>;
     disablePersistence?: boolean;
 }
-export function useForm<TFormData extends BaseFormData, TStepConfig extends { id: string; type?: string }>(
-    options: UseFormOptions<TFormData, TStepConfig>
+export function useForm<TFormData extends BaseFormData>(
+    options: UseFormOptions<TFormData>
 ) {
     const { steps, initialFormData, formType, onComplete, disablePersistence = false } = options;
     const router = useRouter();
@@ -28,22 +28,31 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
 
     // 基本状態
     const [form, setForm] = useState<TFormData>(initialFormData);
-    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+    const [currentStepId, setCurrentStepId] = useState(steps[0]?.id ?? "");
     const [direction, setDirection] = useState<NavigationDirection>(1);
     const [errors, setErrors] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
+    const [history, setHistory] = useState<string[]>([]);
+
+    const stepMap = useRef(new Map<string, FormStep>());
+    useEffect(() => {
+        stepMap.current = new Map(steps.map((step) => [step.id, step]));
+    }, [steps]);
 
     // タイマー管理
     const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
-    const [autoProgressTimer, setAutoProgressTimer] = useState<NodeJS.Timeout | null>(null);
+    const autoProgressTimerRef = useRef<NodeJS.Timeout | null>(null);
+    const autoProgressValueRef = useRef<boolean | undefined>(undefined);
 
     // タイマーのクリーンアップ
     useEffect(() => {
         return () => {
-            if (autoProgressTimer) clearTimeout(autoProgressTimer);
+            if (autoProgressTimerRef.current) {
+                clearTimeout(autoProgressTimerRef.current);
+            }
             if (debounceTimer) clearTimeout(debounceTimer);
         };
-    }, [autoProgressTimer, debounceTimer]);
+    }, [debounceTimer]);
 
     // 進捗復元
     useEffect(() => {
@@ -53,10 +62,7 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
             const savedForm = localStorage.getItem(getDataKey(formType));
 
             if (savedProgress) {
-                const stepIndex = parseInt(savedProgress, 10);
-                if (!isNaN(stepIndex) && stepIndex >= 0 && stepIndex < steps.length) {
-                    setCurrentStepIndex(stepIndex);
-                }
+                setCurrentStepId(savedProgress);
             }
 
             if (savedForm) {
@@ -76,12 +82,26 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
 
     useEffect(() => {
         if (disablePersistence) return;
-        localStorage.setItem(getProgressKey(formType), currentStepIndex.toString());
-    }, [currentStepIndex, formType, disablePersistence]);
+        localStorage.setItem(getProgressKey(formType), currentStepId);
+    }, [currentStepId, formType, disablePersistence]);
 
     // 現在のステップ情報
-    const activeStep = steps[currentStepIndex];
-    const progress = calculateProgress(currentStepIndex, steps.length);
+    const visibleSteps = getFormSteps(formType, form, steps);
+    const activeStep = stepMap.current.get(currentStepId) ?? visibleSteps[0];
+    const currentStepIndex = Math.max(
+        0,
+        visibleSteps.findIndex((step) => step.id === (activeStep?.id ?? ""))
+    );
+    const progress = calculateProgress(currentStepIndex, Math.max(visibleSteps.length, 1));
+
+    useEffect(() => {
+        const currentStep = stepMap.current.get(currentStepId);
+        if (!currentStep || !isStepAvailable(formType, form, currentStep)) {
+            if (visibleSteps[0]) {
+                setCurrentStepId(visibleSteps[0].id);
+            }
+        }
+    }, [currentStepId, form, formType, visibleSteps]);
 
     // 現在のステップが入力可能かどうか
     const canProceed = useCallback(() => {
@@ -90,36 +110,19 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
             return true;
         }
 
-        // 質問タイプは明示的にチェック
-        if (activeStep.type === "question") {
-            const questionFieldMap: Record<string, keyof TFormData> = {
-                "spouse_question": "hasSpouse" as keyof TFormData,
-                "usesBonus": "usesBonus" as keyof TFormData,
-                "hasLand": "hasLand" as keyof TFormData,
-                "usesTechnostructure": "usesTechnostructure" as keyof TFormData
-            };
-
-            const fieldName = questionFieldMap[activeStep.id];
-            if (fieldName) {
-                const value = form[fieldName] as boolean | null;
-                return value !== null; // nullでなければ有効
-            }
-        }
-
-        // その他のステップはバリデーション結果で判定
-        const validationResult = validateStep(activeStep.id, form);
+        const validationResult = validateStep(activeStep, form);
 
         // デバッグログ（開発時のみ）
         if (process.env.NODE_ENV === 'development') {
             console.log(`Validation for step ${activeStep.id}:`, {
                 isValid: validationResult.isValid,
                 error: validationResult.error,
-                value: form[activeStep.id as keyof TFormData]
+                value: activeStep.field ? form[activeStep.field as keyof TFormData] : undefined
             });
         }
 
         return validationResult.isValid;
-    }, [activeStep.id, activeStep.type, form]);    // フィールド更新
+    }, [activeStep, form]);    // フィールド更新
     const updateField = useCallback(<K extends keyof TFormData>(
         field: K,
         value: TFormData[K]
@@ -130,7 +133,7 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
 
     // バリデーション
     const validateCurrentStep = useCallback((): ValidationResult => {
-        const result = validateStep(activeStep.id, form);
+        const result = validateStep(activeStep, form);
         if (!result.isValid && result.error) {
             setErrors(result.error);
         } else {
@@ -140,112 +143,110 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
     }, [activeStep.id, form]);
 
     // 次へ進む
-    const handleNext = useCallback(() => {
-        // displayステップ以外はバリデーション
-        if (activeStep.type !== "display" && !validateCurrentStep().isValid) {
+    const resolveNextStep = useCallback((selectedValue?: boolean) => {
+        const field = activeStep.field as keyof TFormData | undefined;
+        const answerValue = selectedValue ?? (field ? form[field] : undefined);
+        let nextForm = form;
+
+        if (field && typeof selectedValue === "boolean" && form[field] !== selectedValue) {
+            nextForm = { ...nextForm, [field]: selectedValue } as TFormData;
+        }
+
+        if (activeStep.type === "question" && typeof answerValue === "boolean" && activeStep.onAnswer) {
+            const updates = activeStep.onAnswer(nextForm, answerValue);
+            nextForm = { ...nextForm, ...updates };
+        }
+
+        const availableSteps = steps.filter((step) => isStepAvailable(formType, nextForm, step));
+        const currentIndex = availableSteps.findIndex((step) => step.id === activeStep.id);
+        const fallbackStep = availableSteps[currentIndex + 1];
+
+        let nextStepId: string | undefined;
+        if (activeStep.nextByAnswer && typeof answerValue === "boolean") {
+            nextStepId = answerValue
+                ? activeStep.nextByAnswer.true
+                : activeStep.nextByAnswer.false;
+        }
+
+        const targetStep = nextStepId
+            ? availableSteps.find((step) => step.id === nextStepId) ?? fallbackStep
+            : fallbackStep;
+
+        return { targetStep, nextForm };
+    }, [activeStep, form, formType, steps]);
+
+    const handleNext = useCallback((selectedValue?: boolean) => {
+        const skipValidation = activeStep.type === "question" && typeof selectedValue === "boolean";
+        if (activeStep.type !== "display" && !skipValidation && !validateCurrentStep().isValid) {
             return;
         }
 
-        // 配偶者関連の条件分岐（共通ロジック）
-        if (activeStep.id === "spouse_question" && form.hasSpouse === false) {
-            setForm(prev => ({
-                ...prev,
-                spouseName: "",
-                spouseIncome: "0",
-                spouseLoanPayment: "0",
-            }));
-            setDirection(1);
-            // ステップ順: 質問 → 配偶者年収 → 配偶者返済額 → 頭金
-            setCurrentStepIndex(prev => Math.min(prev + 3, steps.length - 1)); // 配偶者関連ステップのみスキップ
+        const { targetStep, nextForm } = resolveNextStep(selectedValue);
+        if (!targetStep) {
             return;
         }
 
-        // ボーナス払い関連の条件分岐
-        if (activeStep.id === "usesBonus" && form.usesBonus === false) {
-            setForm(prev => ({
-                ...prev,
-                bonusPayment: "0",
-            }));
-            setDirection(1);
-            setCurrentStepIndex(prev => Math.min(prev + 2, steps.length - 1)); // bonusPaymentステップをスキップ
-            return;
+        if (nextForm !== form) {
+            setForm(nextForm);
         }
 
         setDirection(1);
-        setCurrentStepIndex(prev => Math.min(prev + 1, steps.length - 1));
-    }, [activeStep.id, activeStep.type, form.hasSpouse, form.usesBonus, validateCurrentStep, steps.length]);
+        setCurrentStepId(targetStep.id);
+        setHistory((prev) => {
+            if (prev[prev.length - 1] === activeStep.id) {
+                return prev;
+            }
+            return [...prev, activeStep.id];
+        });
+    }, [activeStep, form, resolveNextStep, validateCurrentStep]);
 
     // 前に戻る
     const handlePrevious = useCallback(() => {
-        // 配偶者関連の条件分岐（戻る時）
-        if (activeStep.id === "downPayment" && form.hasSpouse === false) {
-            setDirection(-1);
-            setCurrentStepIndex(prev => Math.max(prev - 3, 0)); // 配偶者関連ステップ分戻る
-            return;
-        }
+        setHistory((prev) => {
+            const nextHistory = [...prev];
+            let candidateId: string | undefined;
+            while (nextHistory.length > 0) {
+                const lastId = nextHistory.pop();
+                if (!lastId) continue;
+                const step = stepMap.current.get(lastId);
+                if (step && isStepAvailable(formType, form, step)) {
+                    candidateId = lastId;
+                    break;
+                }
+            }
 
-        // ボーナス払い関連の条件分岐（戻る時）
-        if (activeStep.id === "hasLand" && form.usesBonus === false) {
-            setDirection(-1);
-            setCurrentStepIndex(prev => Math.max(prev - 2, 0)); // bonusPaymentステップをスキップして戻る
-            return;
-        }
+            if (candidateId) {
+                setDirection(-1);
+                setCurrentStepId(candidateId);
+                return nextHistory;
+            }
 
-        setDirection(-1);
-        setCurrentStepIndex(prev => Math.max(prev - 1, 0));
-    }, [activeStep.id, form.hasSpouse, form.usesBonus]);
+            const fallback = visibleSteps[0];
+            if (fallback) {
+                setDirection(-1);
+                setCurrentStepId(fallback.id);
+            }
+            return nextHistory;
+        });
+    }, [form, formType, visibleSteps]);
 
     // 自動進行（はい/いいえボタン用）
     const handleAutoProgress = useCallback((selectedValue?: boolean) => {
         // 既存タイマーをクリア
-        if (autoProgressTimer) {
-            clearTimeout(autoProgressTimer);
-            setAutoProgressTimer(null);
+        if (autoProgressTimerRef.current) {
+            clearTimeout(autoProgressTimerRef.current);
         }
+
+        autoProgressValueRef.current = selectedValue;
 
         // 新しいタイマーをセット
         const timer = setTimeout(() => {
-            // 配偶者関連の条件分岐（自動進行時も適用）
-        if (activeStep.id === "spouse_question") {
-            // selectedValueが提供されている場合はそれを使用、そうでなければformの値を使用
-            const hasSpouse = selectedValue !== undefined ? selectedValue : form.hasSpouse;
-
-            if (hasSpouse === false) {
-                setForm(prev => ({
-                    ...prev,
-                    spouseName: "",
-                    spouseIncome: "0",
-                    spouseLoanPayment: "0",
-                }));
-                setDirection(1);
-                setCurrentStepIndex(prev => Math.min(prev + 3, steps.length - 1));
-                return;
-            }
-        }
-
-            // ボーナス払い関連の条件分岐（自動進行時も適用）
-            if (activeStep.id === "usesBonus") {
-                // selectedValueが提供されている場合はそれを使用、そうでなければformの値を使用
-                const usesBonus = selectedValue !== undefined ? selectedValue : form.usesBonus;
-
-                if (usesBonus === false) {
-                    setForm(prev => ({
-                        ...prev,
-                        bonusPayment: "0",
-                    }));
-                    setDirection(1);
-                    setCurrentStepIndex(prev => Math.min(prev + 2, steps.length - 1)); // bonusPaymentステップをスキップ
-                    return;
-                }
-            }
-
-            // 通常の1ステップ進行
-            setDirection(1);
-            setCurrentStepIndex(prev => Math.min(prev + 1, steps.length - 1));
-            setAutoProgressTimer(null);
+            handleNext(autoProgressValueRef.current);
+            autoProgressValueRef.current = undefined;
+            autoProgressTimerRef.current = null;
         }, 300);
-        setAutoProgressTimer(timer);
-    }, [autoProgressTimer, steps.length, activeStep.id, form.hasSpouse, form.usesBonus]);
+        autoProgressTimerRef.current = timer;
+    }, [handleNext]);
 
     // 完了処理
     const handleComplete = useCallback(async () => {
@@ -277,7 +278,7 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
         }, 300); // アニメーション完了後
 
         return () => clearTimeout(timer);
-    }, [currentStepIndex, activeStep.type]);
+    }, [currentStepId, activeStep.type]);
 
     // キーボードイベント処理
     useEffect(() => {
@@ -326,6 +327,7 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
         // 計算値
         activeStep,
         progress,
+        totalSteps: visibleSteps.length,
 
         // アクション
         updateField,
@@ -341,7 +343,7 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
         inputRef,
 
         // ユーティリティ
-        isLastStep: currentStepIndex === steps.length - 1,
+        isLastStep: currentStepIndex === visibleSteps.length - 1,
         isFirstStep: currentStepIndex === 0,
         canProceed: canProceed(),
     };
@@ -349,7 +351,7 @@ export function useForm<TFormData extends BaseFormData, TStepConfig extends { id
 
 // 自動フォーカスが必要な入力タイプかどうか
 function shouldAutoFocus(stepType?: string): boolean {
-    return ["text", "email", "number", "tel", "search", "detail_address"].includes(stepType || "");
+    return ["text", "email", "number", "tel", "search", "detail_address", "postal_code"].includes(stepType || "");
 }
 
-export type UseFormReturn<TFormData extends BaseFormData, TStepConfig extends { id: string; type?: string }> = ReturnType<typeof useForm<TFormData, TStepConfig>>;
+export type UseFormReturn<TFormData extends BaseFormData> = ReturnType<typeof useForm<TFormData>>;

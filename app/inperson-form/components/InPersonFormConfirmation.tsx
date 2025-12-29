@@ -4,6 +4,7 @@
 
 import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
+import { formatManWithOku } from "@/lib/format";
 import type { InPersonFormData } from "@/lib/form-types";
 
 interface InPersonFormConfirmationProps {
@@ -21,24 +22,23 @@ export function InPersonFormConfirmation({ form }: InPersonFormConfirmationProps
     };
 
     const formatCurrency = (value: string) => {
-        if (!value || value === "0") return "0円";
-        const num = Number(value);
-        if (isNaN(num)) return value;
-        return `${num.toLocaleString()}万円`;
+        const num = Number(value || 0);
+        if (!Number.isFinite(num)) return value;
+        return formatManWithOku(num);
     };
 
     return (
         <div className="space-y-6">
             {/* 顧客情報 */}
             {form.customerId && (
-                <Card className="p-6 bg-blue-50 border-blue-200">
-                    <h3 className="text-lg font-semibold mb-4 text-blue-800">顧客情報</h3>
+                <Card className="p-6 bg-emerald-50 border-emerald-200">
+                    <h3 className="text-lg font-semibold mb-4 text-emerald-800">顧客情報</h3>
                     <div className="space-y-2 text-sm">
                         <div className="flex justify-between">
                             <span className="text-gray-600">顧客ID</span>
                             <span className="font-mono">{form.customerId}</span>
                         </div>
-                        <p className="text-blue-600">※ 既存顧客として登録されます</p>
+                        <p className="text-emerald-700">※ 既存顧客として登録されます</p>
                     </div>
                 </Card>
             )}
@@ -116,6 +116,10 @@ export function InPersonFormConfirmation({ form }: InPersonFormConfirmationProps
                                 <span>{form.spouseName || "未入力"}</span>
                             </div>
                             <div className="flex justify-between">
+                                <span className="text-gray-600">配偶者の年齢</span>
+                                <span>{form.spouseAge ? `${form.spouseAge}歳` : "未入力"}</span>
+                            </div>
+                            <div className="flex justify-between">
                                 <span className="text-gray-600">配偶者の年収</span>
                                 <span>{formatCurrency(form.spouseIncome)}</span>
                             </div>
@@ -130,7 +134,7 @@ export function InPersonFormConfirmation({ form }: InPersonFormConfirmationProps
 
                     <div className="flex justify-between font-medium">
                         <span className="text-gray-700">世帯年収合計</span>
-                        <span className="text-blue-600">
+                        <span className="text-emerald-700">
                             {formatCurrency(String(
                                 Number(form.ownIncome || 0) + Number(form.spouseIncome || 0)
                             ))}
@@ -148,7 +152,7 @@ export function InPersonFormConfirmation({ form }: InPersonFormConfirmationProps
                         <span>{formatCurrency(form.downPayment)}</span>
                     </div>
                     <div className="flex justify-between">
-                        <span className="text-gray-600">希望月返済額</span>
+                        <span className="text-gray-600">希望返済月額</span>
                         <span>{formatCurrency(form.wishMonthlyPayment)}</span>
                     </div>
                     <div className="flex justify-between">
@@ -166,6 +170,26 @@ export function InPersonFormConfirmation({ form }: InPersonFormConfirmationProps
                         <span className="text-gray-600">土地の所有</span>
                         <span>{formatYesNo(form.hasLand)}</span>
                     </div>
+                    {form.hasLand === true && (
+                        <div className="flex justify-between">
+                            <span className="text-gray-600">既存建築物</span>
+                            <span>{formatYesNo(form.hasExistingBuilding)}</span>
+                        </div>
+                    )}
+                    {form.hasLand === false && (
+                        <>
+                            <div className="flex justify-between">
+                                <span className="text-gray-600">土地予算の有無</span>
+                                <span>{formatYesNo(form.hasLandBudget)}</span>
+                            </div>
+                            {form.hasLandBudget && (
+                                <div className="flex justify-between">
+                                    <span className="text-gray-600">土地予算</span>
+                                    <span>{formatCurrency(form.landBudget)}</span>
+                                </div>
+                            )}
+                        </>
+                    )}
                     <div className="flex justify-between">
                         <span className="text-gray-600">テクノストラクチャー工法</span>
                         <span>{formatYesNo(form.usesTechnostructure)}</span>

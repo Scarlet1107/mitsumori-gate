@@ -6,6 +6,7 @@
 import jsPDF from "jspdf";
 import "jspdf-autotable";
 import { addJapaneseFonts, drawJapaneseText, getJapaneseFontFamily } from "./japanese-font";
+import { formatManWithOku } from "@/lib/format";
 
 export interface SimulationData {
     // 顧客情報
@@ -47,11 +48,6 @@ export interface SimulationData {
         loanTerm: number;
     };
 }
-
-// ヘルパー関数
-const formatNumber = (value: number): string => {
-    return Math.round(value).toLocaleString();
-};
 
 /**
  * PDFバッファを生成する関数
@@ -121,7 +117,7 @@ export async function generatePDFBuffer(data: SimulationData): Promise<Buffer> {
     drawJapaneseText(doc, '希望借入金額', pageWidth / 2, yPosition + 5, { align: 'center' });
     doc.setFontSize(16);
     doc.setTextColor(44, 62, 80);
-    drawJapaneseText(doc, `${formatNumber(data.result.wishLoanAmount)}万円`, pageWidth / 2, yPosition + 11, { align: 'center' });
+    drawJapaneseText(doc, formatManWithOku(data.result.wishLoanAmount), pageWidth / 2, yPosition + 11, { align: 'center' });
     doc.setTextColor(0, 0, 0);
     yPosition += 20;
 
@@ -136,7 +132,7 @@ export async function generatePDFBuffer(data: SimulationData): Promise<Buffer> {
     const monthlyPaymentValue = Number.isFinite(data.wishMonthlyPayment)
         ? data.wishMonthlyPayment
         : (data.result?.monthlyPaymentCapacity ?? 0);
-    drawJapaneseText(doc, `${formatNumber(monthlyPaymentValue)}万円`, pageWidth / 2, yPosition + 11, { align: 'center' });
+    drawJapaneseText(doc, formatManWithOku(monthlyPaymentValue), pageWidth / 2, yPosition + 11, { align: 'center' });
     doc.setTextColor(0, 0, 0);
     yPosition += 25;
 
@@ -147,9 +143,9 @@ export async function generatePDFBuffer(data: SimulationData): Promise<Buffer> {
     yPosition += 8;
 
     const tableData = [
-        ['最大借入可能額', `${formatNumber(data.result.maxLoanAmount)}万円`],
-        ['総予算', `${formatNumber(data.result.totalBudget)}万円`],
-        ['建築予算', `${formatNumber(data.result.buildingBudget)}万円`],
+        ['最大借入可能額', formatManWithOku(data.result.maxLoanAmount)],
+        ['総予算', formatManWithOku(data.result.totalBudget)],
+        ['建築予算', formatManWithOku(data.result.buildingBudget)],
         ['推定坪数', `${data.result.estimatedTsubo.toFixed(1)}坪`],
         ['推定床面積', `${data.result.estimatedSquareMeters.toFixed(1)}㎡`],
     ];

@@ -1,6 +1,13 @@
 import { prisma } from "@/lib/prisma";
 import { Customer } from "./generated/prisma";
 
+export type CustomerRecord = Customer & {
+    spouseAge?: number | null;
+    hasExistingBuilding?: boolean | null;
+    hasLandBudget?: boolean | null;
+    landBudget?: number | null;
+};
+
 export interface CustomerCreateInput {
     name: string;
     email?: string;
@@ -11,6 +18,7 @@ export interface CustomerCreateInput {
     age?: number;
     hasSpouse?: boolean;
     spouseName?: string;
+    spouseAge?: number;
     ownIncome?: number;
     spouseIncome?: number;
     ownLoanPayment?: number;
@@ -21,6 +29,9 @@ export interface CustomerCreateInput {
     usesBonus?: boolean;
     bonusPayment?: number;
     hasLand?: boolean;
+    hasExistingBuilding?: boolean;
+    hasLandBudget?: boolean;
+    landBudget?: number;
     usesTechnostructure?: boolean;
     inputMode?: "web" | "inperson";
     webCompleted?: boolean;
@@ -37,6 +48,7 @@ export interface CustomerUpdateInput {
     age?: number;
     hasSpouse?: boolean;
     spouseName?: string;
+    spouseAge?: number;
     ownIncome?: number;
     spouseIncome?: number;
     ownLoanPayment?: number;
@@ -47,13 +59,16 @@ export interface CustomerUpdateInput {
     usesBonus?: boolean;
     bonusPayment?: number;
     hasLand?: boolean;
+    hasExistingBuilding?: boolean;
+    hasLandBudget?: boolean;
+    landBudget?: number;
     usesTechnostructure?: boolean;
     webCompleted?: boolean;
     inPersonCompleted?: boolean;
 }
 
 // 顧客作成
-export async function createCustomer(input: CustomerCreateInput): Promise<Customer> {
+export async function createCustomer(input: CustomerCreateInput): Promise<CustomerRecord> {
     return await prisma.customer.create({
         data: {
             name: input.name,
@@ -65,6 +80,7 @@ export async function createCustomer(input: CustomerCreateInput): Promise<Custom
             age: input.age,
             hasSpouse: input.hasSpouse,
             spouseName: input.spouseName,
+            spouseAge: input.spouseAge,
             ownIncome: input.ownIncome,
             spouseIncome: input.spouseIncome,
             ownLoanPayment: input.ownLoanPayment,
@@ -75,6 +91,9 @@ export async function createCustomer(input: CustomerCreateInput): Promise<Custom
             usesBonus: input.usesBonus,
             bonusPayment: input.bonusPayment ?? 0,
             hasLand: input.hasLand,
+            hasExistingBuilding: input.hasExistingBuilding,
+            hasLandBudget: input.hasLandBudget,
+            landBudget: input.landBudget,
             usesTechnostructure: input.usesTechnostructure,
             inputMode: input.inputMode || "web",
             webCompleted: input.webCompleted ?? (input.inputMode === "web"),
@@ -87,7 +106,7 @@ export async function createCustomer(input: CustomerCreateInput): Promise<Custom
 export async function updateCustomer(
     id: string,
     input: CustomerUpdateInput
-): Promise<Customer> {
+): Promise<CustomerRecord> {
     return await prisma.customer.update({
         where: { id },
         data: input,
@@ -95,7 +114,7 @@ export async function updateCustomer(
 }
 
 // ID で顧客取得
-export async function getCustomerById(id: string): Promise<Customer | null> {
+export async function getCustomerById(id: string): Promise<CustomerRecord | null> {
     return await prisma.customer.findUnique({
         where: { id },
         include: {
@@ -108,7 +127,7 @@ export async function getCustomerById(id: string): Promise<Customer | null> {
 }
 
 // 名前で顧客検索（対面入力用）
-export async function findCustomersByName(name: string): Promise<Customer[]> {
+export async function findCustomersByName(name: string): Promise<CustomerRecord[]> {
     return await prisma.customer.findMany({
         where: {
             name: {
@@ -122,7 +141,7 @@ export async function findCustomersByName(name: string): Promise<Customer[]> {
 }
 
 // 名前・メールアドレスで顧客検索（対面入力用）
-export async function findCustomersByNameOrEmail(query: string, limit = 5): Promise<Customer[]> {
+export async function findCustomersByNameOrEmail(query: string, limit = 5): Promise<CustomerRecord[]> {
     return await prisma.customer.findMany({
         where: {
             inPersonCompleted: false,
@@ -147,7 +166,7 @@ export async function findCustomersByNameOrEmail(query: string, limit = 5): Prom
 }
 
 // 最新の顧客を取得（デフォルト表示用）
-export async function getRecentCustomers(limit: number = 5): Promise<Customer[]> {
+export async function getRecentCustomers(limit: number = 5): Promise<CustomerRecord[]> {
     return await prisma.customer.findMany({
         where: {
             inPersonCompleted: false,
@@ -159,7 +178,7 @@ export async function getRecentCustomers(limit: number = 5): Promise<Customer[]>
 
 // 全顧客一覧取得（管理画面用）
 export async function getAllCustomers(limit = 50, offset = 0): Promise<{
-    customers: Customer[];
+    customers: CustomerRecord[];
     total: number;
 }> {
     const [customers, total] = await Promise.all([

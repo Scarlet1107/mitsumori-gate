@@ -18,3 +18,14 @@ export function formatNumber(value: number, digits = 2): string {
     });
     return formatter.format(value);
 }
+
+export function formatManWithOku(value: number, digits = 2): string {
+    if (!Number.isFinite(value)) {
+        return "---";
+    }
+    const absValue = Math.abs(value);
+    if (absValue >= 10000) {
+        return `${formatNumber(value / 10000, digits)}億円`;
+    }
+    return `${formatNumber(value, 0)}万円`;
+}

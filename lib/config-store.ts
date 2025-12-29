@@ -18,6 +18,21 @@ const DEFAULT_CONFIGS = [
         value: "70",
         description: "坪単価（万円）",
     },
+    {
+        key: "demolition_cost",
+        value: "250",
+        description: "解体費（万円）",
+    },
+    {
+        key: "default_land_cost",
+        value: "1000",
+        description: "土地代デフォルト（万円）",
+    },
+    {
+        key: "misc_cost",
+        value: "100",
+        description: "諸経費（万円）",
+    },
 ] as const;
 
 export interface ConfigValue {
@@ -94,6 +109,9 @@ export async function getTypedConfigs() {
             annualInterestRate: parseFloat(configMap.get("annual_interest_rate") || "1.5"),
             dtiRatio: parseFloat(configMap.get("dti_ratio") || "35"),
             unitPricePerTsubo: parseInt(configMap.get("unit_price_per_tsubo") || "70"),
+            demolitionCost: parseInt(configMap.get("demolition_cost") || "250"),
+            defaultLandCost: parseInt(configMap.get("default_land_cost") || "1000"),
+            miscCost: parseInt(configMap.get("misc_cost") || "100"),
         };
     } catch (error) {
         console.error("Error getting configs:", error);
@@ -102,6 +120,9 @@ export async function getTypedConfigs() {
             annualInterestRate: 1.5,
             dtiRatio: 35,
             unitPricePerTsubo: 70,
+            demolitionCost: 250,
+            defaultLandCost: 1000,
+            miscCost: 100,
         };
     }
 }

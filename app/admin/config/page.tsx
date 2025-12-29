@@ -75,6 +75,20 @@ export default function AdminConfigPage() {
         );
     }
 
+    const getUnitForKey = (key: string) => {
+        if (key === "annual_interest_rate" || key === "dti_ratio") {
+            return "%";
+        }
+        if (key === "unit_price_per_tsubo" || key === "demolition_cost" || key === "default_land_cost" || key === "misc_cost") {
+            return "万円";
+        }
+        return "";
+    };
+
+    const getStepForKey = (key: string) => {
+        return (key === "annual_interest_rate" || key === "dti_ratio") ? "0.1" : "1";
+    };
+
     return (
         <div className="container mx-auto max-w-2xl space-y-8 p-6">
             <div className="flex items-center justify-between">
@@ -111,14 +125,13 @@ export default function AdminConfigPage() {
                                 <Input
                                     id={config.key}
                                     type="number"
-                                    step={config.key === "annual_interest_rate" || config.key === "dti_ratio" ? "0.1" : "1"}
+                                    step={getStepForKey(config.key)}
                                     value={config.value}
                                     onChange={(e) => handleValueChange(config.key, e.target.value)}
                                     className="max-w-xs"
                                 />
                                 <span className="text-sm text-muted-foreground">
-                                    {config.key === "annual_interest_rate" || config.key === "dti_ratio" ? "%" :
-                                        config.key === "unit_price_per_tsubo" ? "万円" : ""}
+                                    {getUnitForKey(config.key)}
                                 </span>
                             </div>
                         </div>

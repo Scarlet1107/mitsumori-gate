@@ -5,7 +5,7 @@
 import { RefObject } from "react";
 import { Input } from "@/components/ui/input";
 import { SearchResults } from "@/components/form/FormFields";
-import type { CustomerSearchResult } from "@/lib/inperson-form-config";
+import type { CustomerSearchResult } from "@/lib/form-types";
 
 interface CustomerSearchFieldProps {
     searchQuery: string;

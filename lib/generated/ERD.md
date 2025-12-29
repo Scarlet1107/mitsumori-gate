@@ -14,6 +14,7 @@ erDiagram
     Int age "❓"
     Boolean has_spouse "❓"
     String spouse_name "❓"
+    Int spouse_age "❓"
     Int own_income "❓"
     Int spouse_income "❓"
     Int own_loan_payment "❓"
@@ -24,6 +25,9 @@ erDiagram
     Boolean uses_bonus "❓"
     Int bonus_payment "❓"
     Boolean has_land "❓"
+    Boolean has_existing_building "❓"
+    Boolean has_land_budget "❓"
+    Int land_budget "❓"
     Boolean uses_technostructure "❓"
     String input_mode 
     Boolean web_completed 

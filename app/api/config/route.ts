@@ -12,6 +12,9 @@ export async function GET() {
             annualInterestRate: 1.5,
             dtiRatio: 35,
             unitPricePerTsubo: 70,
+            demolitionCost: 250,
+            defaultLandCost: 1000,
+            miscCost: 100,
         });
     }
 }

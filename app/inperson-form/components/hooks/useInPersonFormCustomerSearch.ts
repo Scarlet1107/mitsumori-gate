@@ -3,7 +3,7 @@
  */
 
 import { useState, useCallback, useEffect } from "react";
-import type { CustomerSearchResult } from "@/lib/inperson-form-config";
+import type { CustomerSearchResult } from "@/lib/form-types";
 
 interface UseInPersonFormCustomerSearchProps {
     onCustomerSelected: (customer: CustomerSearchResult) => void;
