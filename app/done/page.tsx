@@ -3,6 +3,7 @@
 import { useSearchParams } from "next/navigation";
 import Link from "next/link";
 import { Suspense } from "react";
+import Image from "next/image";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -19,7 +20,7 @@ function DoneContent() {
     const mode = searchParams.get("mode");
 
     const messages = {
-        web: "ご入力ありがとうございました。より詳細については来店いただいた際にお見せできます。",
+        web: "ご入力ありがとうございました。より詳しい資金計画や土地・間取りのご相談は、店舗にて丁寧にご案内いたします。お時間のある際に、ぜひご来店ください。",
         inperson: "ご入力いただきありがとうございました。",
     };
 
@@ -30,6 +31,14 @@ function DoneContent() {
     return (
         <Card className="w-full items-center text-center">
             <CardHeader className="flex flex-col items-center space-y-3 pb-4 w-full">
+                <Image
+                    src="/logo1.png"
+                    alt="Company Logo"
+                    width={220}
+                    height={36}
+                    priority
+                    className="pointer-events-none select-none"
+                />
                 <Badge variant="secondary" className="px-4 py-1 text-sm">
                     完了しました
                 </Badge>
@@ -54,11 +63,19 @@ export default function DonePage() {
         <main className="mx-auto flex min-h-screen w-full max-w-4xl flex-col items-center justify-center px-6 py-12 text-foreground">
             <Suspense fallback={
                 <Card className="w-full items-center text-center">
-                    <CardHeader className="flex flex-col items-center space-y-3 pb-4 w-full">
-                        <Badge variant="secondary" className="px-4 py-1 text-sm">
-                            完了しました
-                        </Badge>
-                        <CardTitle className="text-3xl">
+            <CardHeader className="flex flex-col items-center space-y-3 pb-4 w-full">
+                <Image
+                    src="/logo1.png"
+                    alt="Company Logo"
+                    width={220}
+                    height={36}
+                    priority
+                    className="pointer-events-none select-none"
+                />
+                <Badge variant="secondary" className="px-4 py-1 text-sm">
+                    完了しました
+                </Badge>
+                <CardTitle className="text-3xl">
                             入力が完了しました
                         </CardTitle>
                         <CardDescription className="text-base leading-relaxed">
