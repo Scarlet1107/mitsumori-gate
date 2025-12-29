@@ -66,6 +66,9 @@ model Customer {
   webCompleted      Boolean @default(false) @map("web_completed")
   inPersonCompleted Boolean @default(false) @map("in_person_completed")
 
+  // 論理削除
+  deletedAt DateTime? @map("deleted_at")
+
   // 関連するシミュレーション結果
   simulations Simulation[]
 

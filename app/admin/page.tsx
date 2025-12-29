@@ -4,12 +4,13 @@ export const revalidate = 0;
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getAllCustomers } from "@/lib/customer-store";
+import { getAllCustomers, getDeletedCustomers } from "@/lib/customer-store";
 import { getAllConfigs } from "@/lib/config-store";
 import { AdminCustomerTable } from "./components/AdminCustomerTable";
 
 export default async function AdminPage() {
     const { customers } = await getAllCustomers(20, 0);
+    const { total: deletedTotal } = await getDeletedCustomers(1, 0);
     const configs = await getAllConfigs();
     const serializedCustomers = customers.map(customer => ({
         id: customer.id,
@@ -69,9 +70,12 @@ export default async function AdminPage() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between">
                         <CardTitle>顧客データ</CardTitle>
-                        <span className="text-sm text-muted-foreground">
-                            {customers.length}件の顧客データ
-                        </span>
+                        <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                            <span>{customers.length}件の顧客データ</span>
+                            <Button asChild variant="outline" size="sm">
+                                <Link href="/admin/deleted">削除済み {deletedTotal}件</Link>
+                            </Button>
+                        </div>
                     </CardHeader>
                     <CardContent>
                         <div className="space-y-3">
