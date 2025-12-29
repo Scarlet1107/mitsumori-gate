@@ -86,7 +86,11 @@ export async function upsertConfig(
 
 // 初期設定値をセットアップ
 export async function seedDefaultConfigs(): Promise<void> {
-    for (const config of DEFAULT_CONFIGS) {
+    const existing = await getAllConfigs();
+    const existingKeys = new Set(existing.map((config) => config.key));
+    const missingConfigs = DEFAULT_CONFIGS.filter((config) => !existingKeys.has(config.key));
+
+    for (const config of missingConfigs) {
         await upsertConfig(config.key, config.value, config.description);
     }
 }
@@ -96,9 +100,12 @@ export async function getTypedConfigs() {
     try {
         let configs = await getAllConfigs();
 
-        // 設定が空の場合は初期値をセットアップ
-        if (configs.length === 0) {
-            console.log("No configs found, seeding defaults...");
+        const missingConfigs = DEFAULT_CONFIGS.filter(
+            (config) => !configs.some((existing) => existing.key === config.key)
+        );
+
+        if (missingConfigs.length > 0) {
+            console.log("Missing configs found, seeding defaults...");
             await seedDefaultConfigs();
             configs = await getAllConfigs();
         }

@@ -10,6 +10,9 @@
     "test": "vitest",
     "postinstall": "npx prisma generate"
   },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  },
   "dependencies": {
     "@prisma/client": "^6.17.1",
     "@radix-ui/react-alert-dialog": "^1.1.15",

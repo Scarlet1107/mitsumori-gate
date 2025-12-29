@@ -34,20 +34,19 @@ export async function POST(request: Request) {
             try {
                 const { sendCustomerEmail } = await import("@/lib/simulation/email");
                 const simulationData = buildSimulationData(normalizedInput, result);
+                const emailResult = await sendCustomerEmail(
+                    customerId ?? "",
+                    "simulation_result",
+                    simulationData
+                );
 
-                sendCustomerEmail(customerId ?? "", "simulation_result", simulationData)
-                    .then(emailResult => {
-                        if (emailResult.success) {
-                            console.log(`Simulation result email sent to ${normalizedInput.email}`);
-                        } else {
-                            console.error(`Failed to send email: ${emailResult.error}`);
-                        }
-                    })
-                    .catch(error => {
-                        console.error("Email sending error:", error);
-                    });
+                if (emailResult.success) {
+                    console.log(`Simulation result email sent to ${normalizedInput.email}`);
+                } else {
+                    console.error(`Failed to send email: ${emailResult.error}`);
+                }
             } catch (emailError) {
-                console.error("Email preparation error:", emailError);
+                console.error("Email sending error:", emailError);
             }
         } else {
             console.log("Email skipped (missing name or email)");
