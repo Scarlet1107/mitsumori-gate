@@ -68,6 +68,10 @@ export function getDataKey(formType: "web" | "inperson"): string {
     return `${formType}form-data`;
 }
 
+export function getHistoryKey(formType: "web" | "inperson"): string {
+    return `${formType}form-history`;
+}
+
 export interface CustomerSearchResult {
     id: string;
     name: string;

@@ -5,7 +5,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { getFormSteps, isStepAvailable, validateStep, type FormStep } from "@/lib/form-steps";
-import { getProgressKey, getDataKey, calculateProgress } from "@/lib/form-types";
+import { getProgressKey, getDataKey, getHistoryKey, calculateProgress } from "@/lib/form-types";
 import type {
     BaseFormData,
     NavigationDirection,
@@ -33,6 +33,7 @@ export function useForm<TFormData extends BaseFormData>(
     const [errors, setErrors] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [history, setHistory] = useState<string[]>([]);
+    const [isRestored, setIsRestored] = useState(disablePersistence);
 
     const stepMap = useRef(new Map<string, FormStep>());
     useEffect(() => {
@@ -56,34 +57,53 @@ export function useForm<TFormData extends BaseFormData>(
 
     // 進捗復元
     useEffect(() => {
-        if (disablePersistence) return;
+        if (disablePersistence) {
+            setIsRestored(true);
+            return;
+        }
+
         try {
             const savedProgress = localStorage.getItem(getProgressKey(formType));
             const savedForm = localStorage.getItem(getDataKey(formType));
-
-            if (savedProgress) {
-                setCurrentStepId(savedProgress);
-            }
+            const savedHistory = localStorage.getItem(getHistoryKey(formType));
 
             if (savedForm) {
                 const parsedForm = JSON.parse(savedForm);
                 setForm(parsedForm);
             }
+
+            if (savedProgress) {
+                setCurrentStepId(savedProgress);
+            }
+
+            if (savedHistory) {
+                const parsedHistory = JSON.parse(savedHistory);
+                if (Array.isArray(parsedHistory)) {
+                    setHistory(parsedHistory.filter((entry) => typeof entry === "string"));
+                }
+            }
         } catch (error) {
             console.warn("Failed to restore form progress:", error);
+        } finally {
+            setIsRestored(true);
         }
-    }, [steps.length, formType]);
+    }, [steps.length, formType, disablePersistence]);
 
     // 進捗保存
     useEffect(() => {
-        if (disablePersistence) return;
+        if (disablePersistence || !isRestored) return;
         localStorage.setItem(getDataKey(formType), JSON.stringify(form));
-    }, [form, formType, disablePersistence]);
+    }, [form, formType, disablePersistence, isRestored]);
 
     useEffect(() => {
-        if (disablePersistence) return;
+        if (disablePersistence || !isRestored) return;
         localStorage.setItem(getProgressKey(formType), currentStepId);
-    }, [currentStepId, formType, disablePersistence]);
+    }, [currentStepId, formType, disablePersistence, isRestored]);
+
+    useEffect(() => {
+        if (disablePersistence || !isRestored) return;
+        localStorage.setItem(getHistoryKey(formType), JSON.stringify(history));
+    }, [history, formType, disablePersistence, isRestored]);
 
     // 現在のステップ情報
     const visibleSteps = getFormSteps(formType, form, steps);
@@ -95,16 +115,20 @@ export function useForm<TFormData extends BaseFormData>(
     const progress = calculateProgress(currentStepIndex, Math.max(visibleSteps.length, 1));
 
     useEffect(() => {
+        if (!isRestored) return;
         const currentStep = stepMap.current.get(currentStepId);
         if (!currentStep || !isStepAvailable(formType, form, currentStep)) {
             if (visibleSteps[0]) {
                 setCurrentStepId(visibleSteps[0].id);
             }
         }
-    }, [currentStepId, form, formType, visibleSteps]);
+    }, [currentStepId, form, formType, visibleSteps, isRestored]);
 
     // 現在のステップが入力可能かどうか
     const canProceed = useCallback(() => {
+        if (!isRestored) {
+            return activeStep.type === "display";
+        }
         // displayステップは常に進行可能
         if (activeStep.type === "display") {
             return true;
@@ -113,7 +137,7 @@ export function useForm<TFormData extends BaseFormData>(
         const validationResult = validateStep(activeStep, form);
 
         // デバッグログ（開発時のみ）
-        if (process.env.NODE_ENV === 'development') {
+        if (process.env.NODE_ENV === "development") {
             console.log(`Validation for step ${activeStep.id}:`, {
                 isValid: validationResult.isValid,
                 error: validationResult.error,
@@ -122,7 +146,7 @@ export function useForm<TFormData extends BaseFormData>(
         }
 
         return validationResult.isValid;
-    }, [activeStep, form]);    // フィールド更新
+    }, [activeStep, form, isRestored]);    // フィールド更新
     const updateField = useCallback(<K extends keyof TFormData>(
         field: K,
         value: TFormData[K]
@@ -259,6 +283,7 @@ export function useForm<TFormData extends BaseFormData>(
             // 保存データをクリア
             localStorage.removeItem(getProgressKey(formType));
             localStorage.removeItem(getDataKey(formType));
+            localStorage.removeItem(getHistoryKey(formType));
 
             router.push(`/done?mode=${formType}`);
         } catch (error) {
