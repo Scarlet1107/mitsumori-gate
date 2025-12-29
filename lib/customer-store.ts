@@ -1,11 +1,12 @@
 import { prisma } from "@/lib/prisma";
-import { Customer } from "./generated/prisma";
+import { Customer, Simulation } from "./generated/prisma";
 
 export type CustomerRecord = Customer & {
     spouseAge?: number | null;
     hasExistingBuilding?: boolean | null;
     hasLandBudget?: boolean | null;
     landBudget?: number | null;
+    simulations?: Simulation[];
 };
 
 export interface CustomerCreateInput {
@@ -114,9 +115,16 @@ export async function updateCustomer(
 }
 
 // ID で顧客取得
-export async function getCustomerById(id: string): Promise<CustomerRecord | null> {
-    return await prisma.customer.findUnique({
-        where: { id },
+export async function getCustomerById(
+    id: string,
+    options?: { includeDeleted?: boolean }
+): Promise<CustomerRecord | null> {
+    const includeDeleted = options?.includeDeleted ?? false;
+    return await prisma.customer.findFirst({
+        where: {
+            id,
+            ...(includeDeleted ? {} : { deletedAt: null }),
+        },
         include: {
             simulations: {
                 orderBy: { createdAt: "desc" },
@@ -130,6 +138,7 @@ export async function getCustomerById(id: string): Promise<CustomerRecord | null
 export async function findCustomersByName(name: string): Promise<CustomerRecord[]> {
     return await prisma.customer.findMany({
         where: {
+            deletedAt: null,
             name: {
                 contains: name,
                 mode: "insensitive",
@@ -144,6 +153,7 @@ export async function findCustomersByName(name: string): Promise<CustomerRecord[
 export async function findCustomersByNameOrEmail(query: string, limit = 5): Promise<CustomerRecord[]> {
     return await prisma.customer.findMany({
         where: {
+            deletedAt: null,
             inPersonCompleted: false,
             OR: [
                 {
@@ -169,6 +179,7 @@ export async function findCustomersByNameOrEmail(query: string, limit = 5): Prom
 export async function getRecentCustomers(limit: number = 5): Promise<CustomerRecord[]> {
     return await prisma.customer.findMany({
         where: {
+            deletedAt: null,
             inPersonCompleted: false,
         },
         orderBy: { createdAt: "desc" },
@@ -183,6 +194,7 @@ export async function getAllCustomers(limit = 50, offset = 0): Promise<{
 }> {
     const [customers, total] = await Promise.all([
         prisma.customer.findMany({
+            where: { deletedAt: null },
             orderBy: { createdAt: "desc" },
             take: limit,
             skip: offset,
@@ -193,7 +205,31 @@ export async function getAllCustomers(limit = 50, offset = 0): Promise<{
                 },
             },
         }),
-        prisma.customer.count(),
+        prisma.customer.count({ where: { deletedAt: null } }),
+    ]);
+
+    return { customers, total };
+}
+
+// 削除済み顧客一覧取得（管理画面用）
+export async function getDeletedCustomers(limit = 50, offset = 0): Promise<{
+    customers: CustomerRecord[];
+    total: number;
+}> {
+    const [customers, total] = await Promise.all([
+        prisma.customer.findMany({
+            where: { deletedAt: { not: null } },
+            orderBy: { deletedAt: "desc" },
+            take: limit,
+            skip: offset,
+            include: {
+                simulations: {
+                    orderBy: { createdAt: "desc" },
+                    take: 1,
+                },
+            },
+        }),
+        prisma.customer.count({ where: { deletedAt: { not: null } } }),
     ]);
 
     return { customers, total };
@@ -201,7 +237,8 @@ export async function getAllCustomers(limit = 50, offset = 0): Promise<{
 
 // 顧客削除
 export async function deleteCustomer(id: string): Promise<void> {
-    await prisma.customer.delete({
+    await prisma.customer.update({
         where: { id },
+        data: { deletedAt: new Date() },
     });
 }

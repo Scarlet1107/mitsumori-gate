@@ -61,6 +61,7 @@ export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProp
 
         calculateBudget();
     }, [
+        form,
         form.ownIncome,
         form.downPayment,
         form.age,

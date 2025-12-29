@@ -32,6 +32,7 @@ erDiagram
     String input_mode 
     Boolean web_completed 
     Boolean in_person_completed 
+    DateTime deleted_at "❓"
     }
   
 

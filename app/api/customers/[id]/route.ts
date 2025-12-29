@@ -36,6 +36,10 @@ export async function PUT(
 ) {
     try {
         const { id } = await params;
+        const existing = await getCustomerById(id);
+        if (!existing) {
+            return NextResponse.json({ error: "Customer not found" }, { status: 404 });
+        }
         const body = await request.json() as CustomerUpdateInput;
         const customer = await updateCustomer(id, body);
 
