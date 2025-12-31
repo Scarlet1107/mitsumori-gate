@@ -350,25 +350,7 @@ export const formSteps: FormStep[] = [
         id: "loan_display",
         type: "display",
         title: "ローンシミュレーション結果",
-        description: "希望条件に基づいた試算結果を表示します",
-    },
-    {
-        id: "floor_plan_display",
-        type: "display",
-        title: "希望条件で作れる図面のイメージ",
-        inPersonOnly: true,
-    },
-    {
-        id: "adjustment",
-        type: "display",
-        title: "条件を調整",
-        inPersonOnly: true,
-    },
-    {
-        id: "adjusted_plan_display",
-        type: "display",
-        title: "調整後の図面イメージ",
-        inPersonOnly: true,
+        description: "希望条件の調整ができます",
     },
     {
         id: "confirmation",

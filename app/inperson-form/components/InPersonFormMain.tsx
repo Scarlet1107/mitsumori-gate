@@ -60,7 +60,6 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         initialFormData: { ...initialInPersonFormData, consentAccepted: prefillConsent },
         formType: "inperson",
         onComplete: handleFormComplete,
-        disablePersistence: true, // 対面は毎回新規入力を想定するため復元しない
     });
     const [showNewEntryDialog, setShowNewEntryDialog] = useState(false);
     const [advanceAfterNewEntry, setAdvanceAfterNewEntry] = useState(false);

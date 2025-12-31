@@ -29,20 +29,6 @@ export function InPersonFormConfirmation({ form }: InPersonFormConfirmationProps
 
     return (
         <div className="space-y-6">
-            {/* 顧客情報 */}
-            {form.customerId && (
-                <Card className="p-6 bg-emerald-50 border-emerald-200">
-                    <h3 className="text-lg font-semibold mb-4 text-emerald-800">顧客情報</h3>
-                    <div className="space-y-2 text-sm">
-                        <div className="flex justify-between">
-                            <span className="text-gray-600">顧客ID</span>
-                            <span className="font-mono">{form.customerId}</span>
-                        </div>
-                        <p className="text-emerald-700">※ 既存顧客として登録されます</p>
-                    </div>
-                </Card>
-            )}
-
             {/* 基本情報 */}
             <Card className="p-6">
                 <h3 className="text-lg font-semibold mb-4">基本情報</h3>

@@ -1,0 +1,17 @@
+<svg width="800" height="520" viewBox="0 0 800 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="520" rx="28" fill="#F6F1F7"/>
+  <rect x="34" y="34" width="732" height="452" rx="20" fill="#FFF" stroke="#D7C9DE" stroke-width="4"/>
+  <rect x="60" y="60" width="460" height="280" rx="12" fill="#F0E7F3" stroke="#CDB7D8" stroke-width="3"/>
+  <rect x="540" y="60" width="220" height="140" rx="12" fill="#EEF5E8" stroke="#C1D4B8" stroke-width="3"/>
+  <rect x="540" y="220" width="220" height="140" rx="12" fill="#E6F2F7" stroke="#B7CBD7" stroke-width="3"/>
+  <rect x="540" y="380" width="220" height="100" rx="12" fill="#F7EDE6" stroke="#D7C0AD" stroke-width="3"/>
+  <rect x="60" y="360" width="220" height="120" rx="12" fill="#E7F4E8" stroke="#B8CDBA" stroke-width="3"/>
+  <rect x="300" y="360" width="220" height="120" rx="12" fill="#F8E7E7" stroke="#D6B7B7" stroke-width="3"/>
+  <text x="90" y="170" font-family="Helvetica, Arial, sans-serif" font-size="32" fill="#6B4B7A">LDK 22</text>
+  <text x="560" y="150" font-family="Helvetica, Arial, sans-serif" font-size="24" fill="#5A6E54">Bath</text>
+  <text x="560" y="310" font-family="Helvetica, Arial, sans-serif" font-size="24" fill="#4B6B7A">Bed 1</text>
+  <text x="560" y="430" font-family="Helvetica, Arial, sans-serif" font-size="22" fill="#7A5E4B">Bed 2</text>
+  <text x="90" y="430" font-family="Helvetica, Arial, sans-serif" font-size="24" fill="#4F6C58">Study</text>
+  <text x="320" y="430" font-family="Helvetica, Arial, sans-serif" font-size="24" fill="#7A5B5B">Entry</text>
+  <text x="60" y="500" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#7B5C8B">Spacious Plan</text>
+</svg>
