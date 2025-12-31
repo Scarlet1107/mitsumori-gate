@@ -4,12 +4,11 @@
 
 import { RefObject } from "react";
 import { StandardField, PostalCodeField, DetailAddressField, QuestionButtons } from "@/components/form/FormFields";
-import { InPersonFormSimulationDisplay } from "./InPersonFormSimulationDisplay";
 import { InPersonFormConfirmation } from "./InPersonFormConfirmation";
 import { CustomerSearchField } from "./CustomerSearchField";
-import { InPersonFormBudgetDisplay } from "./InPersonFormBudgetDisplay";
-import { InPersonFormLoanAdjustment } from "./InPersonFormLoanAdjustment";
-import { InPersonFormFloorPlanDisplay } from "./InPersonFormFloorPlanDisplay";
+import { BudgetDisplay } from "@/components/form/BudgetDisplay";
+import { LoanAdjustmentPanel } from "@/components/form/LoanAdjustmentPanel";
+import { SimulationResultDisplay } from "@/app/web-form/components/SimulationResultDisplay";
 import type { FormStep } from "@/lib/form-steps";
 import type { CustomerSearchResult } from "@/lib/form-types";
 import type { InPersonFormData } from "@/lib/form-types";
@@ -111,33 +110,23 @@ export function InPersonFormStepRenderer({
         switch (step.id) {
             case "budget_display":
                 return (
-                    <InPersonFormBudgetDisplay
+                    <BudgetDisplay
                         form={form}
                         onError={onError}
                     />
                 );
             case "loan_display":
                 return (
-                    <InPersonFormSimulationDisplay
+                    <LoanAdjustmentPanel
                         form={form}
+                        onFieldUpdate={(field, value) => onFieldUpdate(field, value as InPersonFormData[typeof field])}
                         onError={onError}
+                        ResultDisplay={SimulationResultDisplay}
+                        loadingMessage="試算中..."
+                        emptyMessage="試算結果を取得できませんでした"
+                        errorMessage="設定の取得に失敗しました"
+                        showCalculatingState={true}
                     />
-                );
-            case "floor_plan_display":
-                return (
-                    <InPersonFormFloorPlanDisplay variant="initial" />
-                );
-            case "adjustment":
-                return (
-                    <InPersonFormLoanAdjustment
-                        form={form}
-                        onFieldUpdate={onFieldUpdate}
-                        onError={onError}
-                    />
-                );
-            case "adjusted_plan_display":
-                return (
-                    <InPersonFormFloorPlanDisplay variant="adjusted" />
                 );
             case "confirmation":
                 return (

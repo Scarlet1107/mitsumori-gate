@@ -4,8 +4,9 @@
 
 import { RefObject } from "react";
 import { StandardField, QuestionButtons } from "@/components/form/FormFields";
-import { WebFormBudgetDisplay } from "./WebFormBudgetDisplay";
-import { WebFormLoanAdjustment } from "./WebFormLoanAdjustment";
+import { BudgetDisplay } from "@/components/form/BudgetDisplay";
+import { LoanAdjustmentPanel } from "@/components/form/LoanAdjustmentPanel";
+import { SimulationResultDisplay } from "./SimulationResultDisplay";
 import { WebFormConfirmation } from "./WebFormConfirmation";
 import type { FormStep } from "@/lib/form-steps";
 import type { WebFormData } from "@/lib/form-types";
@@ -44,36 +45,23 @@ export function WebFormStepRenderer({
         switch (step.id) {
             case "budget_display":
                 return (
-                    <WebFormBudgetDisplay
+                    <BudgetDisplay
                         form={form}
                         onError={onError}
                     />
                 );
             case "loan_display":
                 return (
-                    <WebFormLoanAdjustment
+                    <LoanAdjustmentPanel
                         form={form}
-                        onFieldUpdate={onFieldUpdate}
+                        onFieldUpdate={(field, value) => onFieldUpdate(field, value as WebFormData[typeof field])}
                         onError={onError}
+                        ResultDisplay={SimulationResultDisplay}
+                        loadingMessage="設定読み込み中..."
+                        emptyMessage="試算準備中..."
+                        errorMessage="設定の取得に失敗しました"
+                        useConfigErrorMessage={true}
                     />
-                );
-            case "floor_plan_display":
-                return (
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-semibold">{step.title}</h2>
-                        <div className="p-4 bg-emerald-50 rounded-lg">
-                            <p className="text-lg">おすすめ間取りプランを表示中...</p>
-                        </div>
-                    </div>
-                );
-            case "adjusted_plan_display":
-                return (
-                    <div className="space-y-4">
-                        <h2 className="text-xl font-semibold">{step.title}</h2>
-                        <div className="p-4 bg-emerald-50 rounded-lg">
-                            <p className="text-lg">調整後のプランを表示中...</p>
-                        </div>
-                    </div>
                 );
             case "complete":
                 return (

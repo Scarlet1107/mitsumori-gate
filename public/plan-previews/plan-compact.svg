@@ -1,0 +1,15 @@
+<svg width="800" height="520" viewBox="0 0 800 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="520" rx="28" fill="#F7F3EE"/>
+  <rect x="40" y="40" width="720" height="440" rx="20" fill="#FFF" stroke="#D8CFC6" stroke-width="4"/>
+  <rect x="60" y="60" width="400" height="240" rx="12" fill="#F2E8DD" stroke="#CDBEAF" stroke-width="3"/>
+  <rect x="480" y="60" width="260" height="140" rx="12" fill="#E9F0E6" stroke="#B7C7B0" stroke-width="3"/>
+  <rect x="480" y="220" width="260" height="180" rx="12" fill="#EAE7F4" stroke="#C5B9E3" stroke-width="3"/>
+  <rect x="60" y="320" width="260" height="140" rx="12" fill="#F7E6E6" stroke="#D7B7B7" stroke-width="3"/>
+  <rect x="340" y="320" width="120" height="140" rx="12" fill="#E6F2F7" stroke="#B7CBD7" stroke-width="3"/>
+  <text x="90" y="150" font-family="Helvetica, Arial, sans-serif" font-size="32" fill="#7A6757">LDK 14</text>
+  <text x="520" y="140" font-family="Helvetica, Arial, sans-serif" font-size="26" fill="#5E6B54">Bath</text>
+  <text x="520" y="310" font-family="Helvetica, Arial, sans-serif" font-size="26" fill="#5D5475">Bed</text>
+  <text x="90" y="400" font-family="Helvetica, Arial, sans-serif" font-size="26" fill="#7C5B5B">Entry</text>
+  <text x="360" y="400" font-family="Helvetica, Arial, sans-serif" font-size="22" fill="#4F6C77">WIC</text>
+  <text x="60" y="500" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#8B7C6E">Compact Plan</text>
+</svg>

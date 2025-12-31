@@ -12,9 +12,15 @@ interface SimulationResultDisplayProps {
     simulationResult: SimulationResult | null;
     loading?: boolean;
     usesTechnostructure?: boolean | null;
+    className?: string;
 }
 
-export function SimulationResultDisplay({ simulationResult, loading = false, usesTechnostructure }: SimulationResultDisplayProps) {
+export function SimulationResultDisplay({
+    simulationResult,
+    loading = false,
+    usesTechnostructure,
+    className,
+}: SimulationResultDisplayProps) {
     const showWarning = !loading && simulationResult?.warnings &&
         (simulationResult.warnings.exceedsMaxLoan || simulationResult.warnings.exceedsMaxTerm);
     const specLabel = usesTechnostructure === null || usesTechnostructure === undefined
@@ -24,8 +30,8 @@ export function SimulationResultDisplay({ simulationResult, loading = false, use
             : "長期優良住宅仕様";
 
     return (
-        <Card className="p-6">
-            <h3 className="text-lg font-semibold mb-4">更新された試算結果</h3>
+        <Card className={`p-6 ${className ?? ""}`.trim()}>
+            <h3 className="text-lg font-semibold mb-4">希望借り入れ条件 試算結果</h3>
 
             {showWarning && (
                 <div className="mb-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
@@ -39,7 +45,7 @@ export function SimulationResultDisplay({ simulationResult, loading = false, use
             )}
 
             {/* メイン指標 */}
-            <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="grid grid-cols-1 gap-4">
                 <div className="text-center p-4 bg-emerald-50 rounded-lg">
                     <p className="text-sm text-gray-600">借入金額</p>
                     <p className="text-2xl font-bold text-emerald-700">
@@ -49,6 +55,17 @@ export function SimulationResultDisplay({ simulationResult, loading = false, use
                             skeletonWidth="w-24"
                             skeletonHeight="h-8"
                         />
+                    </p>
+                    <p className="mt-1 text-xs text-gray-500">
+                        最大借入可能額:
+                        <span className="ml-1 font-semibold text-gray-600">
+                            <LoadingNumber
+                                loading={loading}
+                                value={simulationResult ? formatManWithOku(simulationResult.maxLoanAmount) : "---"}
+                                skeletonWidth="w-20"
+                                skeletonHeight="h-4"
+                            />
+                        </span>
                     </p>
                 </div>
                 <div className="text-center p-4 bg-emerald-50 rounded-lg">
@@ -62,20 +79,9 @@ export function SimulationResultDisplay({ simulationResult, loading = false, use
                         />
                     </p>
                 </div>
-                <div className="text-center p-4 bg-emerald-50 rounded-lg">
-                    <p className="text-sm text-gray-600">最大借入可能額</p>
-                    <p className="text-2xl font-bold text-emerald-700">
-                        <LoadingNumber
-                            loading={loading}
-                            value={simulationResult ? formatManWithOku(simulationResult.maxLoanAmount) : "---"}
-                            skeletonWidth="w-24"
-                            skeletonHeight="h-8"
-                        />
-                    </p>
-                </div>
             </div>
 
-            <Separator className="my-4" />
+            <Separator />
 
             {/* 建築プラン */}
             <div className="space-y-2">
@@ -160,47 +166,6 @@ export function SimulationResultDisplay({ simulationResult, loading = false, use
                 </div>
             </div>
 
-            <Separator className="my-4" />
-
-            {/* 返済詳細 */}
-            <div className="space-y-2">
-                <h4 className="font-semibold text-gray-800">返済詳細</h4>
-                <div className="space-y-1 text-sm">
-                    <div className="flex justify-between">
-                        <span>総返済額</span>
-                        <span>
-                            <LoadingNumber
-                                loading={loading}
-                                value={simulationResult ? formatManWithOku(simulationResult.totalPayment) : "---"}
-                                skeletonWidth="w-16"
-                                skeletonHeight="h-4"
-                            />
-                        </span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>利息総額</span>
-                        <span>
-                            <LoadingNumber
-                                loading={loading}
-                                value={simulationResult ? formatManWithOku(simulationResult.totalInterest) : "---"}
-                                skeletonWidth="w-16"
-                                skeletonHeight="h-4"
-                            />
-                        </span>
-                    </div>
-                    <div className="flex justify-between">
-                        <span>返済負担率</span>
-                        <span className={!loading && simulationResult && simulationResult.dtiRatio > 30 ? 'text-red-600' : 'text-emerald-600'}>
-                            <LoadingNumber
-                                loading={loading}
-                                value={simulationResult ? `${simulationResult.dtiRatio.toFixed(1)}%` : "---%"}
-                                skeletonWidth="w-12"
-                                skeletonHeight="h-4"
-                            />
-                        </span>
-                    </div>
-                </div>
-            </div>
         </Card>
     );
 }

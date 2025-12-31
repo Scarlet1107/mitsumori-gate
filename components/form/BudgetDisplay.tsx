@@ -1,9 +1,7 @@
-/**
- * WebFormBudgetDisplay - 予算表示コンポーネント
- */
+"use client";
 
 import { useState, useEffect } from "react";
-import type { WebFormData } from "@/lib/form-types";
+import type { BaseFormData } from "@/lib/form-types";
 import { useSimulationConfig } from "@/hooks/useSimulationConfig";
 import { formatManWithOku } from "@/lib/format";
 import { buildSimulationInputFromForm } from "@/lib/simulation/form-input";
@@ -15,15 +13,15 @@ interface BudgetResult {
     totalBudget: number;
 }
 
-interface WebFormBudgetDisplayProps {
-    form: WebFormData;
+interface BudgetDisplayProps {
+    form: BaseFormData;
     onError: (error: string | null) => void;
 }
 
 /**
- * 頭金と借入上限から予算を計算・表示するコンポーネント
+ * 頭金と借入上限から予算を計算・表示するコンポーネント（Web/対面共通）
  */
-export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProps) {
+export function BudgetDisplay({ form, onError }: BudgetDisplayProps) {
     const [budgetResult, setBudgetResult] = useState<BudgetResult | null>(null);
     const { config, loading: configLoading, error: configError } = useSimulationConfig();
     const [loading, setLoading] = useState(true);
@@ -33,8 +31,8 @@ export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProp
             try {
                 setLoading(true);
 
-                // 必要なデータが揃っているかチェック
                 if (!config || !form.ownIncome || !form.downPayment) {
+                    setBudgetResult(null);
                     setLoading(false);
                     return;
                 }
@@ -47,7 +45,7 @@ export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProp
                 setBudgetResult({
                     maxLoanAmount: maxLoan,
                     downPayment: downPayment,
-                    totalBudget: maxLoan + downPayment
+                    totalBudget: maxLoan + downPayment,
                 });
 
                 onError(null);
@@ -105,7 +103,6 @@ export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProp
 
     return (
         <div className="space-y-6 text-center">
-            {/* メインの予算表示 */}
             <div className="space-y-2">
                 <h3 className="text-lg font-semibold text-gray-700">あなたの上限予算</h3>
                 <div className="text-4xl font-bold text-emerald-700">
@@ -113,7 +110,6 @@ export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProp
                 </div>
             </div>
 
-            {/* 内訳 */}
             <div className="space-y-3 text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
                 <div className="flex justify-between">
                     <span>借入上限額</span>
@@ -130,7 +126,6 @@ export function WebFormBudgetDisplay({ form, onError }: WebFormBudgetDisplayProp
                 </div>
             </div>
 
-            {/* 注意書き */}
             <div className="text-xs text-gray-500 bg-yellow-50 p-3 rounded">
                 ※この予算は最大借入可能額に基づいています。実際の審査結果とは異なる場合があります。
             </div>
