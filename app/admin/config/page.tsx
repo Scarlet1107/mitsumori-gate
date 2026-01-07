@@ -67,14 +67,6 @@ export default function AdminConfigPage() {
         }
     };
 
-    if (loading) {
-        return (
-            <div className="container mx-auto max-w-2xl p-6">
-                <div className="text-center">読み込み中...</div>
-            </div>
-        );
-    }
-
     const getUnitForKey = (key: string) => {
         if (key === "annual_interest_rate" || key === "repayment_interest_rate" || key === "dti_ratio") {
             return "%";
@@ -133,26 +125,32 @@ export default function AdminConfigPage() {
                     <CardTitle>設定項目</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-6">
-                    {configs.map((config) => (
-                        <div key={config.key} className="space-y-2">
-                            <Label htmlFor={config.key}>
-                                {config.description}
-                            </Label>
-                            <div className="flex items-center space-x-2">
-                                <Input
-                                    id={config.key}
-                                    type="number"
-                                    step={getStepForKey(config.key)}
-                                    value={config.value}
-                                    onChange={(e) => handleValueChange(config.key, e.target.value)}
-                                    className="max-w-xs"
-                                />
-                                <span className="text-sm text-muted-foreground">
-                                    {getUnitForKey(config.key)}
-                                </span>
-                            </div>
-                        </div>
-                    ))}
+                    {loading ? (
+                        <div className="text-center">読み込み中...</div>
+                    ) : (
+                        <>
+                            {configs.map((config) => (
+                                <div key={config.key} className="space-y-2">
+                                    <Label htmlFor={config.key}>
+                                        {config.description}
+                                    </Label>
+                                    <div className="flex items-center space-x-2">
+                                        <Input
+                                            id={config.key}
+                                            type="number"
+                                            step={getStepForKey(config.key)}
+                                            value={config.value}
+                                            onChange={(e) => handleValueChange(config.key, e.target.value)}
+                                            className="max-w-xs"
+                                        />
+                                        <span className="text-sm text-muted-foreground">
+                                            {getUnitForKey(config.key)}
+                                        </span>
+                                    </div>
+                                </div>
+                            ))}
+                        </>
+                    )}
 
                     <div className="flex justify-end space-x-4 pt-6">
                         <Button asChild variant="outline">
