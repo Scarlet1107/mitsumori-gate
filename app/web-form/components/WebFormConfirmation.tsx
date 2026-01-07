@@ -90,7 +90,7 @@ export function WebFormConfirmation({ form }: WebFormConfirmationProps) {
                 <h3 className="text-lg font-semibold mb-4">住宅ローン希望条件</h3>
                 <div className="space-y-3">
                     <div className="flex justify-between">
-                        <span className="text-gray-600">頭金</span>
+                        <span className="text-gray-600">自己資金</span>
                         <span>{formatCurrency(form.downPayment)}</span>
                     </div>
                     <div className="flex justify-between">
@@ -136,6 +136,10 @@ export function WebFormConfirmation({ form }: WebFormConfirmationProps) {
                         <span className="text-gray-600">テクノストラクチャー工法</span>
                         <span>{formatYesNo(form.usesTechnostructure)}</span>
                     </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">付加断熱工法</span>
+                        <span>{formatYesNo(form.usesAdditionalInsulation)}</span>
+                    </div>
                 </div>
             </Card>
 
@@ -144,7 +148,6 @@ export function WebFormConfirmation({ form }: WebFormConfirmationProps) {
                 <p className="font-semibold mb-2">送信前にご確認ください</p>
                 <ul className="space-y-1 text-xs">
                     <li>• 入力内容に間違いがないかご確認ください</li>
-                    <li>• 送信後、担当者よりご連絡いたします</li>
                     <li>• より詳細な相談は店舗でも承っております</li>
                 </ul>
             </div>

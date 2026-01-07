@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { getFormSteps, initialInPersonFormData, initialWebFormData } from "@/lib/form-steps";
+import { CONSENT_ITEMS } from "@/lib/consent-copy";
 
 function ConsentPageContent() {
     const router = useRouter();
@@ -34,18 +34,18 @@ function ConsentPageContent() {
         return mode === "inperson" ? "/inperson-form" : "/web-form";
     }, [mode, searchParams]);
 
-    const totalSteps = useMemo(() => {
-        return mode === "inperson"
-            ? getFormSteps("inperson", initialInPersonFormData).length
-            : getFormSteps("web", initialWebFormData).length;
-    }, [mode]);
-
     const handleContinue = useCallback(() => {
         const params = new URLSearchParams();
         params.set("consent", "true");
         params.set("mode", mode);
+        const customerId = searchParams.get("customerId");
+        const newEntry = searchParams.get("newEntry");
+        const draftName = searchParams.get("draftName");
+        if (customerId) params.set("customerId", customerId);
+        if (newEntry) params.set("newEntry", newEntry);
+        if (draftName) params.set("draftName", draftName);
         router.push(`${nextPath}?${params.toString()}`);
-    }, [router, mode, nextPath]);
+    }, [router, mode, nextPath, searchParams]);
 
     return (
         <main className="mx-auto flex min-h-screen w-full max-w-2xl flex-col gap-8 px-6 py-12 text-foreground">
@@ -59,18 +59,11 @@ function ConsentPageContent() {
                         draggable={false}
                         className="pointer-events-none select-none"
                     />
-                    <p className="text-sm font-semibold text-emerald-700">サンワイデア株式会社</p>
-                    <p className="text-sm font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-                        Step 1 / {totalSteps}
+                    <p className="text-sm font-semibold text-muted-foreground">
+                        家づくりかんたんシミュレーション
                     </p>
                 </div>
-                <h1 className="text-3xl font-semibold">ご利用前のお願い</h1>
-                <p className="text-xs text-muted-foreground">
-                    モード: {mode === "inperson" ? "対面入力" : "Web入力"}
-                </p>
-                <p className="text-base text-muted-foreground">
-                    シミュレーションを開始する前に、以下の前提に同意をお願いします。
-                </p>
+                <h1 className="text-3xl font-semibold mt-4">ご利用前のお願い</h1>
             </header>
 
             <Card>
@@ -91,11 +84,11 @@ function ConsentPageContent() {
                         />
                         <span className="space-y-1">
                             <span className="text-base font-semibold text-foreground">同意します</span>
-                            <span className="block text-sm text-muted-foreground space-y-2">
-                                <p>入力いただいた個人情報は社内でのシミュレーションと提案検討のみに利用します。</p>
-                                <p>提案資料・見積内容を外部に公開しないことを確認しました。</p>
-                                <p>表示される金額はすべて目安であり、審査・金利条件・諸費用により実際と異なる場合があることを理解しています。</p>
-                            </span>
+                            <ol className="block list-decimal space-y-2 pl-5 text-sm text-muted-foreground">
+                                {CONSENT_ITEMS.map((item) => (
+                                    <li key={item}>{item}</li>
+                                ))}
+                            </ol>
                         </span>
                     </Label>
                 </CardContent>

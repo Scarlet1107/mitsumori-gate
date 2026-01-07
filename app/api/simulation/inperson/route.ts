@@ -1,19 +1,58 @@
 import { NextResponse } from "next/server";
-import { calculateFullSimulation, type SimulationInputPayload } from "../shared";
+import { calculateFullSimulation, buildSimulationData, type SimulationInputPayload } from "../shared";
 
 export async function POST(request: Request) {
     try {
         const body = await request.json() as SimulationInputPayload;
 
-        if (!body.age || !body.ownIncome || !body.downPayment ||
-            !body.wishMonthlyPayment || !body.wishPaymentYears) {
+        const isValidNumber = (value: unknown, min = 0) => {
+            const parsed = typeof value === "string" ? Number(value) : value;
+            return typeof parsed === "number" && Number.isFinite(parsed) && parsed > min;
+        };
+        const isFiniteNumber = (value: unknown) => {
+            const parsed = typeof value === "string" ? Number(value) : value;
+            return typeof parsed === "number" && Number.isFinite(parsed);
+        };
+
+        if (!isValidNumber(body.age) || !isValidNumber(body.ownIncome) ||
+            !isValidNumber(body.wishMonthlyPayment) || !isValidNumber(body.wishPaymentYears)) {
+            return NextResponse.json(
+                { error: "必須フィールドが不足しています" },
+                { status: 400 }
+            );
+        }
+        const downPaymentValue = body.downPayment as unknown;
+        const isEmptyDownPayment = typeof downPaymentValue === "string" && downPaymentValue.trim() === "";
+        if (downPaymentValue !== undefined && !isEmptyDownPayment && !isFiniteNumber(downPaymentValue)) {
             return NextResponse.json(
                 { error: "必須フィールドが不足しています" },
                 { status: 400 }
             );
         }
 
-        const { result } = await calculateFullSimulation(body);
+        const { normalizedInput, result } = await calculateFullSimulation(body);
+
+        if (normalizedInput.name && normalizedInput.email) {
+            try {
+                const { sendCustomerEmail } = await import("@/lib/simulation/email");
+                const simulationData = buildSimulationData(normalizedInput, result);
+                const emailResult = await sendCustomerEmail(
+                    "",
+                    "simulation_result",
+                    simulationData
+                );
+
+                if (emailResult.success) {
+                    console.log(`Simulation result email sent to ${normalizedInput.email}`);
+                } else {
+                    console.error(`Failed to send email: ${emailResult.error}`);
+                }
+            } catch (emailError) {
+                console.error("Email sending error:", emailError);
+            }
+        } else {
+            console.log("Email skipped (missing name or email)");
+        }
 
         return NextResponse.json(result);
     } catch (error) {

@@ -52,13 +52,14 @@ model Customer {
   wishPaymentYears   Int? @map("wish_payment_years")
 
   // その他条件
-  usesBonus           Boolean? @map("uses_bonus")
-  bonusPayment        Int?     @map("bonus_payment")
-  hasLand             Boolean? @map("has_land")
-  hasExistingBuilding Boolean? @map("has_existing_building")
-  hasLandBudget       Boolean? @map("has_land_budget")
-  landBudget          Int?     @map("land_budget")
-  usesTechnostructure Boolean? @map("uses_technostructure")
+  usesBonus                Boolean? @map("uses_bonus")
+  bonusPayment             Int?     @map("bonus_payment")
+  hasLand                  Boolean? @map("has_land")
+  hasExistingBuilding      Boolean? @map("has_existing_building")
+  hasLandBudget            Boolean? @map("has_land_budget")
+  landBudget               Int?     @map("land_budget")
+  usesTechnostructure      Boolean? @map("uses_technostructure")
+  usesAdditionalInsulation Boolean? @map("uses_additional_insulation")
 
   // 入力方式（web/inperson）
   inputMode String @default("web") @map("input_mode")

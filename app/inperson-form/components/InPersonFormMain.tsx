@@ -1,50 +1,48 @@
 /**
  * InPersonForm - リファクタリング版
- * 対面相談用フォーム（顧客検索機能付き）
+ * 対面相談用フォーム
  */
 
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { FormLayout } from "@/components/form/FormLayout";
+import { FormStepRenderer } from "@/components/form/FormStepRenderer";
 import { useForm } from "@/hooks/useForm";
-import { useInPersonFormCustomerSearch } from "./hooks/useInPersonFormCustomerSearch";
-import { formSteps, initialInPersonFormData } from "@/lib/form-steps";
-import { InPersonFormStepRenderer } from "./InPersonFormStepRenderer";
+import { formSteps, getPhaseLabel, initialInPersonFormData } from "@/lib/form-steps";
 import type { InPersonFormData } from "@/lib/form-types";
 import type { CustomerSearchResult } from "@/lib/form-types";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
+import { getDataKey, getProgressKey } from "@/lib/form-types";
+import { InPersonFormConfirmation } from "./InPersonFormConfirmation";
+import { SimulationResultDisplay } from "@/app/web-form/components/SimulationResultDisplay";
 
 /**
  * InPersonFormメインコンポーネント
  * 
  * 対面相談用の住宅ローン試算フォーム
- * 顧客検索機能とより詳細な住所入力を含む
+ * 住所入力と試算のフローを提供
  */
 interface InPersonFormProps {
     prefillConsent?: boolean;
+    initialCustomerId?: string;
+    initialAllowNewEntry?: boolean;
+    initialDraftName?: string;
 }
 
-export default function InPersonForm({ prefillConsent = false }: InPersonFormProps) {
+export default function InPersonForm({
+    prefillConsent = false,
+    initialCustomerId,
+    initialAllowNewEntry = false,
+    initialDraftName,
+}: InPersonFormProps) {
     // フォーム共通フック
     const {
         form,
-        currentStepIndex,
         direction,
         errors,
         loading,
         activeStep,
         progress,
-        totalSteps,
         updateField,
         handleNext,
         handlePrevious,
@@ -55,35 +53,14 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         isLastStep,
         isFirstStep,
         canProceed,
+        resetForm,
     } = useForm({
         steps: formSteps,
         initialFormData: { ...initialInPersonFormData, consentAccepted: prefillConsent },
         formType: "inperson",
         onComplete: handleFormComplete,
     });
-    const [showNewEntryDialog, setShowNewEntryDialog] = useState(false);
-    const [advanceAfterNewEntry, setAdvanceAfterNewEntry] = useState(false);
-
-    // 顧客検索フック
-    const {
-        searchQuery,
-        searchResults,
-        searchLoading,
-        recentCustomers,
-        isSearching,
-        isLoadingRecent,
-        handleSearch,
-        handleCustomerSelect,
-        clearSearch,
-    } = useInPersonFormCustomerSearch({
-        onCustomerSelected: handleCustomerSelected,
-    });
-
-    // 検索欄の入力変更時に新規フラグをリセット
-    const handleDraftNameChange = (value: string) => {
-        handleFieldUpdate("name", value);
-        handleFieldUpdate("allowNewEntry", false);
-    };
+    const hasInitializedFromSelection = useRef(false);
 
     // フォーム送信処理
     const buildCustomerUpdatePayload = (formData: InPersonFormData) => {
@@ -125,6 +102,7 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
             hasLandBudget: formData.hasLand === false ? formData.hasLandBudget ?? undefined : undefined,
             landBudget: formData.hasLand === false ? toNumber(formData.landBudget) : undefined,
             usesTechnostructure: formData.usesTechnostructure ?? undefined,
+            usesAdditionalInsulation: formData.usesAdditionalInsulation ?? undefined,
             inPersonCompleted: true,
         };
     };
@@ -165,7 +143,7 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         return typeof value === "string" ? value : value.toString();
     };
 
-    function handleCustomerSelected(customer: CustomerSearchResult) {
+    const handleCustomerSelected = useCallback((customer: CustomerSearchResult) => {
         // 顧客データをフォームに反映
         updateField("allowNewEntry", false);
         updateField("customerId", customer.id);
@@ -190,7 +168,13 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         updateField("ownLoanPayment", toStringValue(customer.ownLoanPayment));
         updateField("spouseIncome", toStringValue(customer.spouseIncome));
         updateField("spouseLoanPayment", toStringValue(customer.spouseLoanPayment));
-        updateField("downPayment", toStringValue(customer.downPayment));
+        const downPaymentValue = toStringValue(customer.downPayment);
+        updateField("downPayment", downPaymentValue);
+        if (downPaymentValue) {
+            updateField("hasDownPayment", Number(downPaymentValue) > 0);
+        } else {
+            updateField("hasDownPayment", null);
+        }
         updateField("wishMonthlyPayment", toStringValue(customer.wishMonthlyPayment));
         updateField("wishPaymentYears", toStringValue(customer.wishPaymentYears));
         updateField("bonusPayment", toStringValue(customer.bonusPayment));
@@ -215,13 +199,11 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         updateField("hasLandBudget", typeof customer.hasLandBudget === "boolean" ? customer.hasLandBudget : null);
         updateField("landBudget", toStringValue(customer.landBudget));
         updateField("usesTechnostructure", typeof customer.usesTechnostructure === "boolean" ? customer.usesTechnostructure : null);
-
-        // 検索をクリア
-        clearSearch();
+        updateField("usesAdditionalInsulation", null);
 
         // 次のステップへ自動進行
         handleAutoProgress();
-    }
+    }, [handleAutoProgress, updateField]);
 
     // フィールド値の取得
     const getFieldValue = useCallback((fieldName: keyof InPersonFormData): string => {
@@ -249,36 +231,89 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
         // 自動進行はQuestionButtonsコンポーネント内で処理するため、ここでは呼ばない
     }, [handleFieldUpdate]);
 
-    // 検索ステップで検索・選択なしに進む場合の確認
-    const handleNextAttempt = () => {
-        if (activeStep.id === "search_name" && !form.customerId && !form.name.trim()) {
-            setShowNewEntryDialog(true);
+    useEffect(() => {
+        if (hasInitializedFromSelection.current) return;
+        if (!initialCustomerId && !initialAllowNewEntry) return;
+
+        const getStoredState = () => {
+            if (typeof window === "undefined") return false;
+            const dataKey = getDataKey("inperson");
+            const progressKey = getProgressKey("inperson");
+            const storedForm = localStorage.getItem(dataKey);
+            if (storedForm || localStorage.getItem(progressKey)) {
+                return storedForm ? JSON.parse(storedForm) as InPersonFormData : true;
+            }
+            const cookies = document.cookie.split("; ");
+            const formCookie = cookies.find((entry) => entry.startsWith(`${dataKey}=`));
+            if (formCookie) {
+                const encoded = formCookie.slice(dataKey.length + 1);
+                try {
+                    return JSON.parse(decodeURIComponent(encoded)) as InPersonFormData;
+                } catch {
+                    return true;
+                }
+            }
+            const hasProgressCookie = cookies.some((entry) => entry.startsWith(`${progressKey}=`));
+            return hasProgressCookie;
+        };
+
+        const storedState = getStoredState();
+        if (storedState) {
+            if (typeof storedState === "object") {
+                const storedCustomerId = storedState.customerId;
+                const storedAllowNew = storedState.allowNewEntry;
+                if (initialCustomerId && storedCustomerId === initialCustomerId) {
+                    hasInitializedFromSelection.current = true;
+                    return;
+                }
+                if (initialAllowNewEntry && storedAllowNew) {
+                    hasInitializedFromSelection.current = true;
+                    return;
+                }
+            } else {
+                hasInitializedFromSelection.current = true;
+                return;
+            }
+            hasInitializedFromSelection.current = true;
             return;
         }
-        handleNext();
-    };
 
-    const proceedAsNewEntry = () => {
-        handleFieldUpdate("allowNewEntry", true);
-        setShowNewEntryDialog(false);
-        setAdvanceAfterNewEntry(true);
-    };
+        hasInitializedFromSelection.current = true;
 
-    // allowNewEntry をセットした上で次に進む。state更新を待ってから進めるためのフック。
-    useEffect(() => {
-        if (advanceAfterNewEntry && form.allowNewEntry) {
-            setAdvanceAfterNewEntry(false);
-            handleNext();
+        resetForm({
+            consentAccepted: prefillConsent,
+            allowNewEntry: initialAllowNewEntry,
+            name: initialDraftName || "",
+        });
+
+        if (initialCustomerId) {
+            (async () => {
+                try {
+                    const response = await fetch(`/api/customers/${initialCustomerId}`);
+                    if (!response.ok) {
+                        throw new Error("Failed to load customer");
+                    }
+                    const customer = await response.json() as CustomerSearchResult;
+                    handleCustomerSelected(customer);
+                } catch (error) {
+                    console.error("Failed to prefill customer:", error);
+                }
+            })();
         }
-    }, [advanceAfterNewEntry, form.allowNewEntry, handleNext]);
+    }, [
+        initialCustomerId,
+        initialAllowNewEntry,
+        initialDraftName,
+        prefillConsent,
+        resetForm,
+        handleCustomerSelected,
+    ]);
 
     return (
         <FormLayout
             // 進捗情報
             progress={progress}
-            currentStepIndex={currentStepIndex}
-            totalSteps={totalSteps}
-            formType="inperson"
+            stepLabel={getPhaseLabel(activeStep.phase)}
 
             // アニメーション
             stepKey={activeStep.id}
@@ -287,18 +322,18 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
             // ナビゲーション
             isFirstStep={isFirstStep}
             isLastStep={isLastStep}
-            canProceed={activeStep.id === "search_name" ? true : canProceed}
+            canProceed={canProceed}
             loading={loading}
             onPrevious={handlePrevious}
-            onNext={handleNextAttempt}
+            onNext={handleNext}
             onComplete={handleComplete}
 
             // タイトル・説明
-            title={activeStep.title}
-            description={activeStep.description}
+            title={activeStep.displayVariant === "phase_intro" ? undefined : activeStep.title}
+            description={activeStep.displayVariant === "phase_intro" ? undefined : activeStep.description}
         >
             {/* ステップ固有のコンテンツ */}
-            <InPersonFormStepRenderer
+            <FormStepRenderer
                 step={activeStep}
                 form={form}
                 errors={errors}
@@ -310,33 +345,15 @@ export default function InPersonForm({ prefillConsent = false }: InPersonFormPro
                 onAutoProgress={handleAutoProgress}
                 onError={setErrors}
                 inputRef={inputRef as React.RefObject<HTMLInputElement>}
-
-                // 顧客検索機能
-                searchQuery={searchQuery}
-                searchResults={searchResults}
-                searchLoading={searchLoading}
-                recentCustomers={recentCustomers}
-                isSearching={isSearching}
-                isLoadingRecent={isLoadingRecent}
-                onSearch={handleSearch}
-                onCustomerSelect={handleCustomerSelect}
-                onDraftNameChange={handleDraftNameChange}
+                ResultDisplay={SimulationResultDisplay}
+                Confirmation={InPersonFormConfirmation}
+                loanPanelConfig={{
+                    loadingMessage: "試算中...",
+                    emptyMessage: "試算結果を取得できませんでした",
+                    errorMessage: "設定の取得に失敗しました",
+                    showCalculatingState: true,
+                }}
             />
-            {/* 新規受付で進める確認ダイアログ */}
-            <AlertDialog open={showNewEntryDialog} onOpenChange={setShowNewEntryDialog}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>新規のお客様として進みますか？</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            検索結果から顧客を選択せずに進むと、新規受付としてヒアリングを開始します。
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setShowNewEntryDialog(false)}>戻る</AlertDialogCancel>
-                        <AlertDialogAction onClick={proceedAsNewEntry}>新規で進める</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </FormLayout>
     );
 }

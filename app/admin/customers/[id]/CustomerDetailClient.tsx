@@ -436,7 +436,7 @@ export function AdminCustomerDetail({ customer }: { customer: CustomerDetailPayl
                     <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <Label className="text-xs">頭金</Label>
+                                <Label className="text-xs">自己資金</Label>
                                 <Input value={form.downPayment} disabled={!isEditing} onChange={e => handleFieldChange("downPayment", e.target.value)} />
                             </div>
                             <div>

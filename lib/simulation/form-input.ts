@@ -34,6 +34,7 @@ export function buildSimulationInputFromForm(
         hasLandBudget: form.hasLandBudget ?? undefined,
         landBudget: toNumber(form.landBudget, 0),
         usesTechnostructure: form.usesTechnostructure ?? undefined,
+        usesAdditionalInsulation: form.usesAdditionalInsulation ?? undefined,
     };
 
     return { ...base, ...overrides };

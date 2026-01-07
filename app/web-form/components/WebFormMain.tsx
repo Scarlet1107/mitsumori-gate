@@ -7,10 +7,12 @@
 
 import { useCallback } from "react";
 import { FormLayout } from "@/components/form/FormLayout";
+import { FormStepRenderer } from "@/components/form/FormStepRenderer";
 import { useForm } from "@/hooks/useForm";
-import { formSteps, initialWebFormData } from "@/lib/form-steps";
-import { WebFormStepRenderer } from "./WebFormStepRenderer";
+import { formSteps, getPhaseLabel, initialWebFormData } from "@/lib/form-steps";
 import type { WebFormData } from "@/lib/form-types";
+import { SimulationResultDisplay } from "./SimulationResultDisplay";
+import { WebFormConfirmation } from "./WebFormConfirmation";
 
 /**
  * WebFormメインコンポーネント
@@ -22,13 +24,11 @@ export default function WebForm() {
     // フォーム共通フック
     const {
         form,
-        currentStepIndex,
         direction,
         errors,
         loading,
         activeStep,
         progress,
-        totalSteps,
         updateField,
         handleNext,
         handlePrevious,
@@ -99,9 +99,7 @@ export default function WebForm() {
         <FormLayout
             // 進捗情報
             progress={progress}
-            currentStepIndex={currentStepIndex}
-            totalSteps={totalSteps}
-            formType="web"
+            stepLabel={getPhaseLabel(activeStep.phase)}
 
             // アニメーション
             stepKey={activeStep.id}
@@ -117,21 +115,29 @@ export default function WebForm() {
             onComplete={handleComplete}
 
             // タイトル・説明
-            title={activeStep.title}
-            description={activeStep.description}
-        >
-            {/* ステップ固有のコンテンツ */}
-            <WebFormStepRenderer
-                step={activeStep}
-                form={form}
-                errors={errors}
-                getFieldValue={getFieldValue}
-                onFieldUpdate={handleFieldUpdate}
-                onQuestionAnswer={handleQuestionAnswer}
-                onAutoProgress={handleAutoProgress}
-                onError={setErrors}
-                inputRef={inputRef as React.RefObject<HTMLInputElement>}
-            />
-        </FormLayout>
-    );
+            title={activeStep.displayVariant === "phase_intro" ? undefined : activeStep.title}
+        description={activeStep.displayVariant === "phase_intro" ? undefined : activeStep.description}
+    >
+        {/* ステップ固有のコンテンツ */}
+        <FormStepRenderer
+            step={activeStep}
+            form={form}
+            errors={errors}
+            getFieldValue={getFieldValue}
+            onFieldUpdate={handleFieldUpdate}
+            onQuestionAnswer={handleQuestionAnswer}
+            onAutoProgress={handleAutoProgress}
+            onError={setErrors}
+            inputRef={inputRef as React.RefObject<HTMLInputElement>}
+            ResultDisplay={SimulationResultDisplay}
+            Completion={WebFormConfirmation}
+            loanPanelConfig={{
+                loadingMessage: "設定読み込み中...",
+                emptyMessage: "試算準備中...",
+                errorMessage: "設定の取得に失敗しました",
+                useConfigErrorMessage: true,
+            }}
+        />
+    </FormLayout>
+);
 }

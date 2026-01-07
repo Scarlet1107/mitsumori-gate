@@ -30,6 +30,7 @@ export function normalizeSimulationInput(input: SimulationInputPayload): Simulat
         hasLandBudget: toOptionalBoolean(input.hasLandBudget),
         landBudget: toOptionalNumber(input.landBudget),
         usesTechnostructure: toOptionalBoolean(input.usesTechnostructure),
+        usesAdditionalInsulation: toOptionalBoolean(input.usesAdditionalInsulation),
     };
 }
 
@@ -71,6 +72,7 @@ export async function persistWebFormSubmission(
     const usesBonus = getOptionalBoolean(formPayload["usesBonus"]);
     const hasLand = getOptionalBoolean(formPayload["hasLand"]);
     const hasLandBudget = getOptionalBoolean(formPayload["hasLandBudget"]);
+    const usesAdditionalInsulation = getOptionalBoolean(formPayload["usesAdditionalInsulation"]);
     const baseAddress = getOptionalString(formPayload["baseAddress"]) ?? getOptionalString(formPayload["address"]);
     const detailAddress = getOptionalString(formPayload["detailAddress"]);
     const bonusPaymentValue = (() => {
@@ -105,6 +107,7 @@ export async function persistWebFormSubmission(
         hasLandBudget,
         landBudget: hasLand ? undefined : getOptionalInteger(formPayload["landBudget"]),
         usesTechnostructure: getOptionalBoolean(formPayload["usesTechnostructure"]),
+        usesAdditionalInsulation,
         inputMode: "web",
         spouseName: getOptionalString(formPayload["spouseName"]),
         webCompleted: true,
@@ -121,9 +124,9 @@ export async function persistWebFormSubmission(
             buildingBudget: simulationResult.buildingBudget,
             estimatedTsubo: simulationResult.estimatedTsubo,
             estimatedSquareMeters: simulationResult.estimatedSquareMeters,
-            interestRate: simulationResult.interestRate,
+            interestRate: simulationResult.repaymentInterestRate,
             dtiRatio: simulationResult.dtiRatio,
-            unitPricePerTsubo: config.unitPricePerTsubo,
+            unitPricePerTsubo: Math.round(config.unitPricePerTsubo),
         },
     });
 
@@ -147,8 +150,13 @@ export function buildSimulationData(
         wishPaymentYears: normalizedInput.wishPaymentYears,
         hasSpouse: normalizedInput.hasSpouse || false,
         usesBonus: normalizedInput.usesBonus || false,
+        bonusPayment: normalizedInput.bonusPayment ?? 0,
         hasLand: normalizedInput.hasLand || false,
+        hasExistingBuilding: normalizedInput.hasExistingBuilding || false,
+        hasLandBudget: normalizedInput.hasLandBudget || false,
+        landBudget: normalizedInput.landBudget ?? 0,
         usesTechnostructure: normalizedInput.usesTechnostructure || false,
+        usesAdditionalInsulation: normalizedInput.usesAdditionalInsulation || false,
         result,
     };
 }

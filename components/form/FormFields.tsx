@@ -118,51 +118,6 @@ export const PostalCodeField = forwardRef<HTMLInputElement, BaseFieldProps & {
 
 PostalCodeField.displayName = "PostalCodeField";
 
-// 詳細住所入力フィールド（対面フォーム用）
-export const DetailAddressField = forwardRef<HTMLInputElement, BaseFieldProps & {
-    baseAddress?: string;
-    loading?: boolean;
-    fullAddress?: string;
-}>(({ value, onChange, placeholder, baseAddress, loading, fullAddress, className }, ref) => {
-    return (
-        <div className="space-y-4">
-            {/* 基本住所の表示 */}
-            {baseAddress && (
-                <div className="p-4 bg-muted/50 rounded-xl">
-                    <div className="text-sm text-muted-foreground mb-1">郵便番号から取得した住所</div>
-                    <div className="font-medium">{baseAddress}</div>
-                </div>
-            )}
-
-            {loading && (
-                <div className="text-center text-sm text-muted-foreground">
-                    住所を取得中...
-                </div>
-            )}
-
-            {/* 詳細住所入力 */}
-            <Input
-                ref={ref}
-                type="text"
-                value={value}
-                onChange={(e) => onChange(e.target.value)}
-                placeholder={placeholder}
-                className={className || "text-base sm:text-lg h-12 sm:h-14 rounded-xl"}
-            />
-
-            {/* 完全な住所のプレビュー */}
-            {fullAddress && (
-                <div className="p-3 bg-primary/5 rounded-xl border border-primary/20">
-                    <div className="text-xs text-muted-foreground mb-1">完全な住所</div>
-                    <div className="text-sm font-medium">{fullAddress}</div>
-                </div>
-            )}
-        </div>
-    );
-});
-
-DetailAddressField.displayName = "DetailAddressField";
-
 // はい/いいえボタン
 interface QuestionButtonsProps {
     value: boolean | null;

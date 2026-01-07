@@ -14,11 +14,25 @@ function safeEqual(a: string, b: string) {
 }
 
 export function middleware(req: NextRequest) {
-    const { pathname } = req.nextUrl;
+    const { pathname, searchParams } = req.nextUrl;
 
-    // /admin と /api/admin だけを対象に
-    const needsAuth =
-        pathname.startsWith("/admin") || pathname.startsWith("/api/admin");
+    const isPublicAsset = /\.(png|jpe?g|gif|svg|webp|avif|ico|css|js|map|txt|xml|json|woff2?|ttf|otf)$/i.test(pathname);
+    if (isPublicAsset) return NextResponse.next();
+
+    const isPublicApi =
+        pathname === "/api/config" ||
+        pathname === "/api/simulation/web" ||
+        pathname === "/api/simulation/budget";
+
+    const isPublicWebFlow = (() => {
+        if (pathname === "/web-form") return true;
+        if (pathname === "/cover" || pathname === "/consent" || pathname === "/done") {
+            return searchParams.get("mode") === "web";
+        }
+        return false;
+    })();
+
+    const needsAuth = !(isPublicApi || isPublicWebFlow);
     if (!needsAuth) return NextResponse.next();
 
     const auth = req.headers.get("authorization");
@@ -50,5 +64,5 @@ export function middleware(req: NextRequest) {
 }
 
 export const config = {
-    matcher: ["/admin/:path*", "/api/admin/:path*"],
+    matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.json|robots.txt|sitemap.xml).*)"],
 };

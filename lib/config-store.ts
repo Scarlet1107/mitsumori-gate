@@ -5,8 +5,13 @@ import { AppConfig } from "./generated/prisma";
 const DEFAULT_CONFIGS = [
     {
         key: "annual_interest_rate",
-        value: "1.5",
-        description: "年利率（%）",
+        value: "3",
+        description: "審査金利（%）",
+    },
+    {
+        key: "repayment_interest_rate",
+        value: "0.8",
+        description: "返済金利（%）",
     },
     {
         key: "dti_ratio",
@@ -15,8 +20,18 @@ const DEFAULT_CONFIGS = [
     },
     {
         key: "unit_price_per_tsubo",
-        value: "70",
+        value: "82",
         description: "坪単価（万円）",
+    },
+    {
+        key: "technostructure_unit_price_increase",
+        value: "4.8",
+        description: "テクノストラクチャー坪単価増加分（万円）",
+    },
+    {
+        key: "insulation_unit_price_increase",
+        value: "3",
+        description: "付加断熱坪単価増加分（万円）",
     },
     {
         key: "demolition_cost",
@@ -113,9 +128,16 @@ export async function getTypedConfigs() {
         const configMap = new Map(configs.map(c => [c.key, c.value]));
 
         return {
-            annualInterestRate: parseFloat(configMap.get("annual_interest_rate") || "1.5"),
+            screeningInterestRate: parseFloat(configMap.get("annual_interest_rate") || "3"),
+            repaymentInterestRate: parseFloat(configMap.get("repayment_interest_rate") || "0.8"),
             dtiRatio: parseFloat(configMap.get("dti_ratio") || "35"),
-            unitPricePerTsubo: parseInt(configMap.get("unit_price_per_tsubo") || "70"),
+            unitPricePerTsubo: parseFloat(configMap.get("unit_price_per_tsubo") || "82"),
+            technostructureUnitPriceIncrease: parseFloat(
+                configMap.get("technostructure_unit_price_increase") || "4.8"
+            ),
+            insulationUnitPriceIncrease: parseFloat(
+                configMap.get("insulation_unit_price_increase") || "3"
+            ),
             demolitionCost: parseInt(configMap.get("demolition_cost") || "250"),
             defaultLandCost: parseInt(configMap.get("default_land_cost") || "1000"),
             miscCost: parseInt(configMap.get("misc_cost") || "100"),
@@ -124,9 +146,12 @@ export async function getTypedConfigs() {
         console.error("Error getting configs:", error);
         // エラーの場合はデフォルト値を返す
         return {
-            annualInterestRate: 1.5,
+            screeningInterestRate: 3,
+            repaymentInterestRate: 0.8,
             dtiRatio: 35,
-            unitPricePerTsubo: 70,
+            unitPricePerTsubo: 82,
+            technostructureUnitPriceIncrease: 4.8,
+            insulationUnitPriceIncrease: 3,
             demolitionCost: 250,
             defaultLandCost: 1000,
             miscCost: 100,

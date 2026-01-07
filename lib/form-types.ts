@@ -21,6 +21,7 @@ export interface BaseFormData {
     spouseName: string;
     spouseIncome: string;
     spouseLoanPayment: string;
+    hasDownPayment: boolean | null;
     downPayment: string;
     wishMonthlyPayment: string;
     wishPaymentYears: string;
@@ -31,6 +32,7 @@ export interface BaseFormData {
     hasLandBudget: boolean | null;
     landBudget: string;
     usesTechnostructure: boolean | null;
+    usesAdditionalInsulation: boolean | null;
     adjustment: string;
     consentAccepted: boolean;
     allowNewEntry?: boolean;
@@ -90,6 +92,7 @@ export interface CustomerSearchResult {
     ownLoanPayment?: string;
     spouseIncome?: string;
     spouseLoanPayment?: string;
+    hasDownPayment?: boolean | null;
     downPayment?: string;
     wishMonthlyPayment?: string;
     wishPaymentYears?: string;
@@ -100,5 +103,6 @@ export interface CustomerSearchResult {
     hasLandBudget?: boolean | null;
     landBudget?: string;
     usesTechnostructure?: boolean | null;
+    usesAdditionalInsulation?: boolean | null;
     allowNewEntry?: boolean;
 }

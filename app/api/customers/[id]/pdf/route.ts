@@ -48,6 +48,7 @@ export async function GET(
             hasLandBudget: toBoolean(customer.hasLandBudget, false),
             landBudget: toNumber(customer.landBudget),
             usesTechnostructure: toBoolean(customer.usesTechnostructure, false),
+            usesAdditionalInsulation: toBoolean(customer.usesAdditionalInsulation, false),
         };
 
         const simulationResult = await calculateSimulation(simulationInput, config);
@@ -67,6 +68,16 @@ export async function GET(
             usesBonus: simulationInput.usesBonus ?? false,
             hasLand: simulationInput.hasLand ?? false,
             usesTechnostructure: simulationInput.usesTechnostructure ?? false,
+            usesAdditionalInsulation: simulationInput.usesAdditionalInsulation ?? false,
+            phone: customer.phone ?? "",
+            postalCode: customer.postalCode ?? "",
+            address: customer.detailAddress
+                ? `${customer.baseAddress ?? ""}${customer.detailAddress}`
+                : (customer.baseAddress ?? ""),
+            hasExistingBuilding: simulationInput.hasExistingBuilding ?? false,
+            hasLandBudget: simulationInput.hasLandBudget ?? false,
+            landBudget: simulationInput.landBudget ?? 0,
+            bonusPayment: simulationInput.bonusPayment ?? 0,
             result: {
                 maxLoanAmount: simulationResult.maxLoanAmount,
                 wishLoanAmount: simulationResult.wishLoanAmount,
@@ -74,12 +85,16 @@ export async function GET(
                 buildingBudget: simulationResult.buildingBudget,
                 estimatedTsubo: simulationResult.estimatedTsubo,
                 estimatedSquareMeters: simulationResult.estimatedSquareMeters,
+                landCost: simulationResult.landCost,
+                demolitionCost: simulationResult.demolitionCost,
+                miscCost: simulationResult.miscCost,
                 monthlyPaymentCapacity: simulationResult.monthlyPaymentCapacity,
                 dtiRatio: simulationResult.dtiRatio,
                 loanRatio: simulationResult.loanRatio,
                 totalPayment: simulationResult.totalPayment,
                 totalInterest: simulationResult.totalInterest,
-                interestRate: simulationResult.interestRate,
+                screeningInterestRate: simulationResult.screeningInterestRate,
+                repaymentInterestRate: simulationResult.repaymentInterestRate,
                 loanTerm: simulationResult.loanTerm,
             }
         };

@@ -5,9 +5,26 @@ export async function POST(request: Request) {
     try {
         const body = await request.json() as SimulationInputPayload;
 
-        // 必須チェック
-        if (!body.age || !body.ownIncome || !body.downPayment ||
-            !body.wishMonthlyPayment || !body.wishPaymentYears) {
+        const isValidNumber = (value: unknown, min = 0) => {
+            const parsed = typeof value === "string" ? Number(value) : value;
+            return typeof parsed === "number" && Number.isFinite(parsed) && parsed > min;
+        };
+        const isFiniteNumber = (value: unknown) => {
+            const parsed = typeof value === "string" ? Number(value) : value;
+            return typeof parsed === "number" && Number.isFinite(parsed);
+        };
+
+        // 必須チェック（自己資金は空欄可、空欄は0として扱う）
+        if (!isValidNumber(body.age) || !isValidNumber(body.ownIncome) ||
+            !isValidNumber(body.wishMonthlyPayment) || !isValidNumber(body.wishPaymentYears)) {
+            return NextResponse.json(
+                { error: "必須フィールドが不足しています" },
+                { status: 400 }
+            );
+        }
+        const downPaymentValue = body.downPayment as unknown;
+        const isEmptyDownPayment = typeof downPaymentValue === "string" && downPaymentValue.trim() === "";
+        if (downPaymentValue !== undefined && !isEmptyDownPayment && !isFiniteNumber(downPaymentValue)) {
             return NextResponse.json(
                 { error: "必須フィールドが不足しています" },
                 { status: 400 }

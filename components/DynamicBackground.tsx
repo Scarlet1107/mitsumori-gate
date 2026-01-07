@@ -10,7 +10,7 @@ export default function DynamicBackground() {
     setIsMobile(window.innerWidth <= 768);
   }, []);
 
-  const src = isMobile ? "/forMobile.png" : "/background3.png";
+  const src = isMobile ? "/mobileBackground.png" : "/background.png";
 
   return (
     <div className="fixed inset-0 -z-10">
