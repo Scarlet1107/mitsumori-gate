@@ -76,17 +76,34 @@ export default function AdminConfigPage() {
     }
 
     const getUnitForKey = (key: string) => {
-        if (key === "annual_interest_rate" || key === "dti_ratio") {
+        if (key === "annual_interest_rate" || key === "repayment_interest_rate" || key === "dti_ratio") {
             return "%";
         }
-        if (key === "unit_price_per_tsubo" || key === "demolition_cost" || key === "default_land_cost" || key === "misc_cost") {
+        if (
+            key === "unit_price_per_tsubo" ||
+            key === "technostructure_unit_price_increase" ||
+            key === "insulation_unit_price_increase" ||
+            key === "demolition_cost" ||
+            key === "default_land_cost" ||
+            key === "misc_cost"
+        ) {
             return "万円";
         }
         return "";
     };
 
     const getStepForKey = (key: string) => {
-        return (key === "annual_interest_rate" || key === "dti_ratio") ? "0.1" : "1";
+        if (
+            key === "annual_interest_rate" ||
+            key === "repayment_interest_rate" ||
+            key === "dti_ratio" ||
+            key === "unit_price_per_tsubo" ||
+            key === "technostructure_unit_price_increase" ||
+            key === "insulation_unit_price_increase"
+        ) {
+            return "0.1";
+        }
+        return "1";
     };
 
     return (

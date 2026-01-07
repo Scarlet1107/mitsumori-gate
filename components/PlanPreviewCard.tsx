@@ -13,8 +13,8 @@ import {
 type PlanPreview = {
     id: string;
     title: string;
-    budgetMin: number;
-    budgetMax?: number;
+    tsuboMin: number;
+    tsuboMax?: number;
     description: string;
     features: string[];
     imageSrc: string;
@@ -25,8 +25,8 @@ const PLAN_PREVIEWS: PlanPreview[] = [
     {
         id: "compact",
         title: "コンパクトプラン",
-        budgetMin: 0,
-        budgetMax: 2000,
+        tsuboMin: 0,
+        tsuboMax: 25,
         description: "必要な機能をぎゅっと集めた効率重視の住まい。",
         features: ["LDK中心の動線", "収納をまとめた間取り", "ワンフロア想定"],
         imageSrc: "/plan-previews/plan-compact.svg",
@@ -35,8 +35,8 @@ const PLAN_PREVIEWS: PlanPreview[] = [
     {
         id: "standard",
         title: "スタンダードプラン",
-        budgetMin: 2000,
-        budgetMax: 3000,
+        tsuboMin: 25,
+        tsuboMax: 32,
         description: "家族の暮らしをバランスよく支える王道プラン。",
         features: ["LDK + 2室", "水回りを集約", "小さな書斎スペース"],
         imageSrc: "/plan-previews/plan-standard.svg",
@@ -45,8 +45,8 @@ const PLAN_PREVIEWS: PlanPreview[] = [
     {
         id: "spacious",
         title: "ゆとりプラン",
-        budgetMin: 3000,
-        budgetMax: 4000,
+        tsuboMin: 32,
+        tsuboMax: 40,
         description: "趣味や在宅ワークにも対応できる余白のある構成。",
         features: ["LDK拡張", "個室2〜3室", "多目的スペース"],
         imageSrc: "/plan-previews/plan-spacious.svg",
@@ -55,7 +55,7 @@ const PLAN_PREVIEWS: PlanPreview[] = [
     {
         id: "premium",
         title: "プレミアムプラン",
-        budgetMin: 4000,
+        tsuboMin: 40,
         description: "開放感と上質さを両立した贅沢プラン。",
         features: ["広めのLDK", "趣味室 + 主寝室", "回遊動線"],
         imageSrc: "/plan-previews/plan-premium.svg",
@@ -63,11 +63,11 @@ const PLAN_PREVIEWS: PlanPreview[] = [
     },
 ];
 
-const pickPlanPreview = (buildingBudget: number) => {
+const pickPlanPreview = (estimatedTsubo: number) => {
     for (const preview of PLAN_PREVIEWS) {
         if (
-            buildingBudget >= preview.budgetMin &&
-            (preview.budgetMax === undefined || buildingBudget < preview.budgetMax)
+            estimatedTsubo >= preview.tsuboMin &&
+            (preview.tsuboMax === undefined || estimatedTsubo < preview.tsuboMax)
         ) {
             return preview;
         }
@@ -77,12 +77,14 @@ const pickPlanPreview = (buildingBudget: number) => {
 
 export function PlanPreviewCard({
     buildingBudget,
+    estimatedTsubo,
     className,
 }: {
     buildingBudget: number;
+    estimatedTsubo: number;
     className?: string;
 }) {
-    const preview = pickPlanPreview(buildingBudget);
+    const preview = pickPlanPreview(estimatedTsubo);
 
     return (
         <Card className={`p-6 space-y-4 ${className ?? ""}`.trim()}>

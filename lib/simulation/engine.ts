@@ -1,7 +1,10 @@
 export interface SimulationConfig {
-    annualInterestRate: number; // %
+    screeningInterestRate: number; // %
+    repaymentInterestRate: number; // %
     dtiRatio: number; // %
     unitPricePerTsubo: number; // 万円
+    technostructureUnitPriceIncrease: number; // 万円
+    insulationUnitPriceIncrease: number; // 万円
     demolitionCost: number; // 万円
     defaultLandCost: number; // 万円
     miscCost: number; // 万円
@@ -27,6 +30,7 @@ export interface SimulationInput {
     hasLandBudget?: boolean;
     landBudget?: number;
     usesTechnostructure?: boolean;
+    usesAdditionalInsulation?: boolean;
 }
 
 export interface SimulationWarnings {
@@ -49,7 +53,8 @@ export interface SimulationResult {
     loanRatio: number;
     totalPayment: number;
     totalInterest: number;
-    interestRate: number;
+    screeningInterestRate: number;
+    repaymentInterestRate: number;
     loanTerm: number;
     maxTermYears: number;
     warnings: SimulationWarnings;
@@ -75,7 +80,7 @@ function calculateLoanAmount(monthlyPayment: number, monthlyRate: number, termMo
 export function calculateSimulation(input: SimulationInput, config: SimulationConfig): SimulationResult {
     const spouseAge = input.spouseAge ?? input.age;
     const maxAge = Math.max(input.age, spouseAge);
-    const maxTermYears = Math.max(0, 80 - maxAge);
+    const maxTermYears = Math.min(50, 80 - maxAge);
 
     const totalIncome = input.ownIncome + (input.spouseIncome ?? 0);
     const existingMonthlyPayment = input.ownLoanPayment + (input.spouseLoanPayment ?? 0);
@@ -84,14 +89,15 @@ export function calculateSimulation(input: SimulationInput, config: SimulationCo
     const availableAnnualPayment = Math.max(0, maxAnnualPayment - existingAnnualPayment);
     const monthlyPaymentCapacity = availableAnnualPayment / 12;
 
-    const monthlyRate = config.annualInterestRate / 100 / 12;
-    const maxLoanAmount = calculateLoanAmount(monthlyPaymentCapacity, monthlyRate, maxTermYears * 12);
+    const screeningMonthlyRate = config.screeningInterestRate / 100 / 12;
+    const maxLoanAmount = calculateLoanAmount(monthlyPaymentCapacity, screeningMonthlyRate, maxTermYears * 12);
 
     const bonusPayment = input.usesBonus ? (input.bonusPayment ?? 0) : 0;
     const bonusAnnual = bonusPayment * 2;
     const bonusMonthlyEquivalent = bonusAnnual / 12;
     const wishMonthlyTotal = input.wishMonthlyPayment + bonusMonthlyEquivalent;
-    const wishLoanAmount = calculateLoanAmount(wishMonthlyTotal, monthlyRate, input.wishPaymentYears * 12);
+    const repaymentMonthlyRate = config.repaymentInterestRate / 100 / 12;
+    const wishLoanAmount = calculateLoanAmount(wishMonthlyTotal, repaymentMonthlyRate, input.wishPaymentYears * 12);
 
     const totalBudget = wishLoanAmount + input.downPayment;
 
@@ -108,8 +114,11 @@ export function calculateSimulation(input: SimulationInput, config: SimulationCo
 
     const miscCost = config.miscCost;
     const buildingBudget = Math.max(0, totalBudget - landCost - demolitionCost - miscCost);
-    const estimatedTsubo = config.unitPricePerTsubo > 0
-        ? buildingBudget / config.unitPricePerTsubo
+    const unitPriceAdjustment = (input.usesTechnostructure ? config.technostructureUnitPriceIncrease : 0)
+        + (input.usesAdditionalInsulation ? config.insulationUnitPriceIncrease : 0);
+    const effectiveUnitPrice = config.unitPricePerTsubo + unitPriceAdjustment;
+    const estimatedTsubo = effectiveUnitPrice > 0
+        ? buildingBudget / effectiveUnitPrice
         : 0;
     const estimatedSquareMeters = estimatedTsubo * SQM_PER_TSUBO;
 
@@ -138,7 +147,8 @@ export function calculateSimulation(input: SimulationInput, config: SimulationCo
         loanRatio: clamp(loanRatio, 0, Number.POSITIVE_INFINITY),
         totalPayment,
         totalInterest,
-        interestRate: config.annualInterestRate,
+        screeningInterestRate: config.screeningInterestRate,
+        repaymentInterestRate: config.repaymentInterestRate,
         loanTerm: input.wishPaymentYears,
         maxTermYears,
         warnings: {

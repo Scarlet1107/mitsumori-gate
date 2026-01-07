@@ -9,9 +9,12 @@ export async function GET() {
         console.error("Failed to get config:", error);
         // エラーの場合はデフォルト値を返す
         return NextResponse.json({
-            annualInterestRate: 1.5,
+            screeningInterestRate: 3,
+            repaymentInterestRate: 0.8,
             dtiRatio: 35,
-            unitPricePerTsubo: 70,
+            unitPricePerTsubo: 82,
+            technostructureUnitPriceIncrease: 4.8,
+            insulationUnitPriceIncrease: 3,
             demolitionCost: 250,
             defaultLandCost: 1000,
             miscCost: 100,

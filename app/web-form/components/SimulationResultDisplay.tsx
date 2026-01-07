@@ -12,6 +12,7 @@ interface SimulationResultDisplayProps {
     simulationResult: SimulationResult | null;
     loading?: boolean;
     usesTechnostructure?: boolean | null;
+    usesAdditionalInsulation?: boolean | null;
     className?: string;
 }
 
@@ -19,15 +20,21 @@ export function SimulationResultDisplay({
     simulationResult,
     loading = false,
     usesTechnostructure,
+    usesAdditionalInsulation,
     className,
 }: SimulationResultDisplayProps) {
     const showWarning = !loading && simulationResult?.warnings &&
         (simulationResult.warnings.exceedsMaxLoan || simulationResult.warnings.exceedsMaxTerm);
-    const specLabel = usesTechnostructure === null || usesTechnostructure === undefined
-        ? "未選択"
-        : usesTechnostructure
-            ? "テクノストラクチャー + 長期優良住宅"
-            : "長期優良住宅仕様";
+    const specLabel = (() => {
+        if (usesTechnostructure === null || usesTechnostructure === undefined) {
+            return "未選択";
+        }
+        const base = usesTechnostructure ? "テクノストラクチャー + 長期優良住宅" : "長期優良住宅仕様";
+        if (usesAdditionalInsulation) {
+            return `${base} + 付加断熱`;
+        }
+        return base;
+    })();
 
     return (
         <Card className={`p-6 ${className ?? ""}`.trim()}>

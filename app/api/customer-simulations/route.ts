@@ -15,9 +15,11 @@ export async function POST(request: Request) {
                 buildingBudget: simulationData.buildingBudget,
                 estimatedTsubo: simulationData.estimatedTsubo,
                 estimatedSquareMeters: simulationData.estimatedSquareMeters,
-                interestRate: simulationData.interestRate,
+                interestRate: simulationData.repaymentInterestRate ?? simulationData.interestRate,
                 dtiRatio: simulationData.dtiRatio,
-                unitPricePerTsubo: simulationData.unitPricePerTsubo,
+                unitPricePerTsubo: Number.isFinite(simulationData.unitPricePerTsubo)
+                    ? Math.round(simulationData.unitPricePerTsubo)
+                    : null,
             },
         });
 

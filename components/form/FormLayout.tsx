@@ -12,9 +12,7 @@ import type { NavigationDirection } from "@/lib/form-types";
 interface FormLayoutProps {
     // 進捗情報
     progress: number;
-    currentStepIndex: number;
-    totalSteps: number;
-    formType: "web" | "inperson";
+    stepLabel?: string;
 
     // アニメーション
     stepKey: string;
@@ -56,9 +54,7 @@ interface FormLayoutProps {
 export const FormLayout = memo<FormLayoutProps>(({
     // 進捗情報
     progress,
-    currentStepIndex,
-    totalSteps,
-    formType,
+    stepLabel,
 
     // アニメーション
     stepKey,
@@ -98,9 +94,7 @@ export const FormLayout = memo<FormLayoutProps>(({
                         <CardHeader className="pb-4">
                             <FormProgress
                                 progress={progress}
-                                currentStepIndex={currentStepIndex}
-                                totalSteps={totalSteps}
-                                formType={formType}
+                                stepLabel={stepLabel}
                             />
                         </CardHeader>
                     )}

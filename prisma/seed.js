@@ -3,8 +3,13 @@ const { PrismaClient } = require("../lib/generated/prisma");
 const DEFAULT_CONFIGS = [
   {
     key: "annual_interest_rate",
-    value: "1.5",
-    description: "年利率（%）",
+    value: "3",
+    description: "審査金利（%）",
+  },
+  {
+    key: "repayment_interest_rate",
+    value: "0.8",
+    description: "返済金利（%）",
   },
   {
     key: "dti_ratio",
@@ -13,8 +18,18 @@ const DEFAULT_CONFIGS = [
   },
   {
     key: "unit_price_per_tsubo",
-    value: "70",
+    value: "82",
     description: "坪単価（万円）",
+  },
+  {
+    key: "technostructure_unit_price_increase",
+    value: "4.8",
+    description: "テクノストラクチャー坪単価増加分（万円）",
+  },
+  {
+    key: "insulation_unit_price_increase",
+    value: "3",
+    description: "付加断熱坪単価増加分（万円）",
   },
   {
     key: "demolition_cost",

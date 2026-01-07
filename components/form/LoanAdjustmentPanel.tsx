@@ -14,6 +14,7 @@ type ResultDisplayProps = {
     simulationResult: SimulationResult | null;
     loading?: boolean;
     usesTechnostructure?: boolean | null;
+    usesAdditionalInsulation?: boolean | null;
     className?: string;
 };
 
@@ -124,7 +125,7 @@ export function LoanAdjustmentPanel({
                                 <label className="text-sm font-medium text-gray-700">
                                     希望返済月額
                                 </label>
-                                <span className="text-lg font-bold text-emerald-700">
+                                <span className="text-lg font-bold text-emerald-600">
                                     {formatManWithOku(currentMonthlyPayment)}
                                 </span>
                             </div>
@@ -173,10 +174,12 @@ export function LoanAdjustmentPanel({
                     simulationResult={simulationResult}
                     loading={configLoading || calculating}
                     usesTechnostructure={form.usesTechnostructure}
+                    usesAdditionalInsulation={form.usesAdditionalInsulation}
                     className="order-1 h-full md:order-3"
                 />
                 <PlanPreviewCard
                     buildingBudget={simulationResult.buildingBudget}
+                    estimatedTsubo={simulationResult.estimatedTsubo}
                     className="order-4 h-full md:order-4"
                 />
             </div>

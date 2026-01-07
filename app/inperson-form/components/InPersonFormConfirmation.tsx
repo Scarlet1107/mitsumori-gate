@@ -134,7 +134,7 @@ export function InPersonFormConfirmation({ form }: InPersonFormConfirmationProps
                 <h3 className="text-lg font-semibold mb-4">住宅ローン希望条件</h3>
                 <div className="space-y-3">
                     <div className="flex justify-between">
-                        <span className="text-gray-600">頭金</span>
+                        <span className="text-gray-600">自己資金</span>
                         <span>{formatCurrency(form.downPayment)}</span>
                     </div>
                     <div className="flex justify-between">
@@ -179,6 +179,10 @@ export function InPersonFormConfirmation({ form }: InPersonFormConfirmationProps
                     <div className="flex justify-between">
                         <span className="text-gray-600">テクノストラクチャー工法</span>
                         <span>{formatYesNo(form.usesTechnostructure)}</span>
+                    </div>
+                    <div className="flex justify-between">
+                        <span className="text-gray-600">付加断熱工法</span>
+                        <span>{formatYesNo(form.usesAdditionalInsulation)}</span>
                     </div>
                 </div>
             </Card>

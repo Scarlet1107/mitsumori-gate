@@ -34,6 +34,7 @@ export function useForm<TFormData extends BaseFormData>(
     const [loading, setLoading] = useState(false);
     const [history, setHistory] = useState<string[]>([]);
     const [isRestored, setIsRestored] = useState(disablePersistence);
+    const shouldUseCookies = formType === "inperson";
 
     const stepMap = useRef(new Map<string, FormStep>());
     useEffect(() => {
@@ -66,18 +67,27 @@ export function useForm<TFormData extends BaseFormData>(
             const savedProgress = localStorage.getItem(getProgressKey(formType));
             const savedForm = localStorage.getItem(getDataKey(formType));
             const savedHistory = localStorage.getItem(getHistoryKey(formType));
+            const cookieForm = !savedForm && shouldUseCookies
+                ? readCookieValue(getDataKey(formType))
+                : null;
+            const cookieProgress = !savedProgress && shouldUseCookies
+                ? readCookieValue(getProgressKey(formType))
+                : null;
+            const cookieHistory = !savedHistory && shouldUseCookies
+                ? readCookieValue(getHistoryKey(formType))
+                : null;
 
-            if (savedForm) {
-                const parsedForm = JSON.parse(savedForm);
+            if (savedForm || cookieForm) {
+                const parsedForm = JSON.parse(savedForm ?? cookieForm ?? "{}");
                 setForm(parsedForm);
             }
 
-            if (savedProgress) {
-                setCurrentStepId(savedProgress);
+            if (savedProgress || cookieProgress) {
+                setCurrentStepId(savedProgress ?? cookieProgress ?? "");
             }
 
-            if (savedHistory) {
-                const parsedHistory = JSON.parse(savedHistory);
+            if (savedHistory || cookieHistory) {
+                const parsedHistory = JSON.parse(savedHistory ?? cookieHistory ?? "[]");
                 if (Array.isArray(parsedHistory)) {
                     setHistory(parsedHistory.filter((entry) => typeof entry === "string"));
                 }
@@ -87,23 +97,32 @@ export function useForm<TFormData extends BaseFormData>(
         } finally {
             setIsRestored(true);
         }
-    }, [steps.length, formType, disablePersistence]);
+    }, [steps.length, formType, disablePersistence, shouldUseCookies]);
 
     // 進捗保存
     useEffect(() => {
         if (disablePersistence || !isRestored) return;
         localStorage.setItem(getDataKey(formType), JSON.stringify(form));
-    }, [form, formType, disablePersistence, isRestored]);
+        if (shouldUseCookies) {
+            writeCookieValue(getDataKey(formType), JSON.stringify(form));
+        }
+    }, [form, formType, disablePersistence, isRestored, shouldUseCookies]);
 
     useEffect(() => {
         if (disablePersistence || !isRestored) return;
         localStorage.setItem(getProgressKey(formType), currentStepId);
-    }, [currentStepId, formType, disablePersistence, isRestored]);
+        if (shouldUseCookies) {
+            writeCookieValue(getProgressKey(formType), currentStepId);
+        }
+    }, [currentStepId, formType, disablePersistence, isRestored, shouldUseCookies]);
 
     useEffect(() => {
         if (disablePersistence || !isRestored) return;
         localStorage.setItem(getHistoryKey(formType), JSON.stringify(history));
-    }, [history, formType, disablePersistence, isRestored]);
+        if (shouldUseCookies) {
+            writeCookieValue(getHistoryKey(formType), JSON.stringify(history));
+        }
+    }, [history, formType, disablePersistence, isRestored, shouldUseCookies]);
 
     // 現在のステップ情報
     const visibleSteps = getFormSteps(formType, form, steps);
@@ -284,6 +303,11 @@ export function useForm<TFormData extends BaseFormData>(
             localStorage.removeItem(getProgressKey(formType));
             localStorage.removeItem(getDataKey(formType));
             localStorage.removeItem(getHistoryKey(formType));
+            if (shouldUseCookies) {
+                clearCookieValue(getProgressKey(formType));
+                clearCookieValue(getDataKey(formType));
+                clearCookieValue(getHistoryKey(formType));
+            }
 
             router.push(`/done?mode=${formType}`);
         } catch (error) {
@@ -292,7 +316,7 @@ export function useForm<TFormData extends BaseFormData>(
         } finally {
             setLoading(false);
         }
-    }, [onComplete, form, formType, router]);
+    }, [onComplete, form, formType, router, shouldUseCookies]);
 
     // フォーカス管理
     useEffect(() => {
@@ -341,6 +365,26 @@ export function useForm<TFormData extends BaseFormData>(
         setDebounceTimer(timer);
     }, [debounceTimer]);
 
+    const resetForm = useCallback((overrides: Partial<TFormData> = {}) => {
+        const nextForm = { ...initialFormData, ...overrides };
+        setForm(nextForm);
+        setHistory([]);
+        setErrors(null);
+        setDirection(1);
+        setCurrentStepId(steps[0]?.id ?? "");
+
+        if (!disablePersistence) {
+            localStorage.removeItem(getProgressKey(formType));
+            localStorage.removeItem(getDataKey(formType));
+            localStorage.removeItem(getHistoryKey(formType));
+            if (shouldUseCookies) {
+                clearCookieValue(getProgressKey(formType));
+                clearCookieValue(getDataKey(formType));
+                clearCookieValue(getHistoryKey(formType));
+            }
+        }
+    }, [initialFormData, steps, formType, disablePersistence, shouldUseCookies]);
+
     return {
         // 状態
         form,
@@ -363,6 +407,7 @@ export function useForm<TFormData extends BaseFormData>(
         validateCurrentStep,
         setErrors,
         debounce,
+        resetForm,
 
         // Ref
         inputRef,
@@ -376,7 +421,31 @@ export function useForm<TFormData extends BaseFormData>(
 
 // 自動フォーカスが必要な入力タイプかどうか
 function shouldAutoFocus(stepType?: string): boolean {
-    return ["text", "email", "number", "tel", "search", "detail_address", "postal_code"].includes(stepType || "");
+    return ["text", "email", "number", "tel", "postal_code"].includes(stepType || "");
+}
+
+function readCookieValue(key: string): string | null {
+    if (typeof document === "undefined") return null;
+    const entries = document.cookie.split("; ");
+    for (const entry of entries) {
+        if (!entry) continue;
+        const index = entry.indexOf("=");
+        const name = entry.slice(0, index);
+        if (name === key) {
+            return decodeURIComponent(entry.slice(index + 1));
+        }
+    }
+    return null;
+}
+
+function writeCookieValue(key: string, value: string, maxAgeSeconds = 60 * 60 * 24 * 7) {
+    if (typeof document === "undefined") return;
+    document.cookie = `${key}=${encodeURIComponent(value)}; path=/; max-age=${maxAgeSeconds}`;
+}
+
+function clearCookieValue(key: string) {
+    if (typeof document === "undefined") return;
+    document.cookie = `${key}=; path=/; max-age=0`;
 }
 
 export type UseFormReturn<TFormData extends BaseFormData> = ReturnType<typeof useForm<TFormData>>;

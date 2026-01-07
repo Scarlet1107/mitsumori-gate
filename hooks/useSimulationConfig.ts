@@ -13,9 +13,12 @@ interface UseSimulationConfigResult {
 
 // デフォルト設定（フォールバック用）
 const DEFAULT_CONFIG: SimulationConfig = {
-    annualInterestRate: 1.5,
+    screeningInterestRate: 3,
+    repaymentInterestRate: 0.8,
     dtiRatio: 35,
-    unitPricePerTsubo: 70,
+    unitPricePerTsubo: 82,
+    technostructureUnitPriceIncrease: 4.8,
+    insulationUnitPriceIncrease: 3,
     demolitionCost: 250,
     defaultLandCost: 1000,
     miscCost: 100,

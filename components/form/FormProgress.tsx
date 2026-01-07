@@ -8,32 +8,26 @@ import Image from "next/image";
 
 interface FormProgressProps {
     progress: number;
-    currentStepIndex: number;
-    totalSteps: number;
-    formType: "web" | "inperson";
     className?: string;
     showStepInfo?: boolean;
+    stepLabel?: string;
 }
 
 /**
  * フォーム進捗表示コンポーネント
  * 
  * @param progress - 進捗パーセンテージ（0-100）
- * @param currentStepIndex - 現在のステップインデックス（0-based）
- * @param totalSteps - 総ステップ数
- * @param formType - フォームタイプ
  * @param className - 追加のCSSクラス
  * @param showStepInfo - ステップ情報の表示（デフォルト: true）
+ * @param stepLabel - 画面右側に表示するステップ表記
  */
 export const FormProgress = memo<FormProgressProps>(({
     progress,
-    currentStepIndex,
-    totalSteps,
-    formType,
     className = "",
     showStepInfo = true,
+    stepLabel,
 }) => {
-    const formTypeText = formType === "web" ? "簡単家づくりシミュレーション" : "対面相談";
+    const formTypeText = "家づくりかんたんシミュレーション";
 
     return (
         <div className={`space-y-2 ${className}`}>
@@ -48,9 +42,7 @@ export const FormProgress = memo<FormProgressProps>(({
             {showStepInfo && (
                 <div className="flex justify-between items-center text-sm text-muted-foreground">
                     <span>{formTypeText}</span>
-                    <span>
-                        ステップ {currentStepIndex + 1} / {totalSteps}
-                    </span>
+                    {stepLabel && <span>{stepLabel}</span>}
                 </div>
             )}
             <Progress

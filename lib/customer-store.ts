@@ -6,6 +6,7 @@ export type CustomerRecord = Customer & {
     hasExistingBuilding?: boolean | null;
     hasLandBudget?: boolean | null;
     landBudget?: number | null;
+    usesAdditionalInsulation?: boolean | null;
     simulations?: Simulation[];
 };
 
@@ -34,6 +35,7 @@ export interface CustomerCreateInput {
     hasLandBudget?: boolean;
     landBudget?: number;
     usesTechnostructure?: boolean;
+    usesAdditionalInsulation?: boolean;
     inputMode?: "web" | "inperson";
     webCompleted?: boolean;
     inPersonCompleted?: boolean;
@@ -64,6 +66,7 @@ export interface CustomerUpdateInput {
     hasLandBudget?: boolean;
     landBudget?: number;
     usesTechnostructure?: boolean;
+    usesAdditionalInsulation?: boolean;
     webCompleted?: boolean;
     inPersonCompleted?: boolean;
 }
@@ -96,6 +99,7 @@ export async function createCustomer(input: CustomerCreateInput): Promise<Custom
             hasLandBudget: input.hasLandBudget,
             landBudget: input.landBudget,
             usesTechnostructure: input.usesTechnostructure,
+            usesAdditionalInsulation: input.usesAdditionalInsulation,
             inputMode: input.inputMode || "web",
             webCompleted: input.webCompleted ?? (input.inputMode === "web"),
             inPersonCompleted: input.inPersonCompleted ?? false,

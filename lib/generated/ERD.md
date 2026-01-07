@@ -29,6 +29,7 @@ erDiagram
     Boolean has_land_budget "❓"
     Int land_budget "❓"
     Boolean uses_technostructure "❓"
+    Boolean uses_additional_insulation "❓"
     String input_mode 
     Boolean web_completed 
     Boolean in_person_completed 
