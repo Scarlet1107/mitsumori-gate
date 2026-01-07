@@ -49,6 +49,7 @@ interface CustomerDetailPayload {
     hasLandBudget?: boolean | null;
     landBudget?: number | null;
     usesTechnostructure?: boolean | null;
+    usesAdditionalInsulation?: boolean | null;
     webCompleted: boolean;
     inPersonCompleted: boolean;
     simulations?: SimulationSnapshot[];
@@ -79,6 +80,7 @@ interface CustomerFormState {
     hasLandBudget: boolean;
     landBudget: string;
     usesTechnostructure: boolean;
+    usesAdditionalInsulation: boolean;
     webCompleted: boolean;
     inPersonCompleted: boolean;
 }
@@ -129,6 +131,7 @@ const toFormState = (customer: CustomerDetailPayload): CustomerFormState => ({
     hasLandBudget: toBooleanValue(customer.hasLandBudget),
     landBudget: toStringValue(customer.landBudget),
     usesTechnostructure: toBooleanValue(customer.usesTechnostructure),
+    usesAdditionalInsulation: toBooleanValue(customer.usesAdditionalInsulation),
     webCompleted: customer.webCompleted,
     inPersonCompleted: customer.inPersonCompleted,
 });
@@ -190,6 +193,7 @@ export function AdminCustomerDetail({ customer }: { customer: CustomerDetailPayl
             hasLandBudget: form.hasLandBudget,
             landBudget: form.hasLandBudget ? toOptionalNumber(form.landBudget) : undefined,
             usesTechnostructure: form.usesTechnostructure,
+            usesAdditionalInsulation: form.usesAdditionalInsulation,
             webCompleted: form.webCompleted,
             inPersonCompleted: form.inPersonCompleted,
         };
@@ -222,6 +226,7 @@ export function AdminCustomerDetail({ customer }: { customer: CustomerDetailPayl
         hasLandBudget: form.hasLandBudget,
         landBudget: form.hasLandBudget ? (toOptionalNumber(form.landBudget) ?? null) : null,
         usesTechnostructure: form.usesTechnostructure,
+        usesAdditionalInsulation: form.usesAdditionalInsulation,
         webCompleted: form.webCompleted,
         inPersonCompleted: form.inPersonCompleted,
     });
@@ -492,6 +497,10 @@ export function AdminCustomerDetail({ customer }: { customer: CustomerDetailPayl
                             <div className="flex items-center justify-between rounded-md border px-3 py-2">
                                 <span className="text-sm">テクノストラクチャー</span>
                                 <Switch checked={form.usesTechnostructure} disabled={!isEditing} onCheckedChange={checked => handleFieldChange("usesTechnostructure", checked)} />
+                            </div>
+                            <div className="flex items-center justify-between rounded-md border px-3 py-2">
+                                <span className="text-sm">付加断熱</span>
+                                <Switch checked={form.usesAdditionalInsulation} disabled={!isEditing} onCheckedChange={checked => handleFieldChange("usesAdditionalInsulation", checked)} />
                             </div>
                         </div>
                     </CardContent>
