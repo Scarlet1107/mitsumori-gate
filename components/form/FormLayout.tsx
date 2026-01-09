@@ -31,9 +31,11 @@ interface FormLayoutProps {
     children: ReactNode;
     title?: ReactNode;
     description?: ReactNode;
+    headerAction?: ReactNode;
 
     // カスタマイズ
     className?: string;
+    cardClassName?: string;
     showProgress?: boolean;
     showNavigation?: boolean;
     animationEnabled?: boolean;
@@ -73,9 +75,11 @@ export const FormLayout = memo<FormLayoutProps>(({
     children,
     title,
     description,
+    headerAction,
 
     // カスタマイズ
     className = "",
+    cardClassName = "",
     showProgress = true,
     showNavigation = true,
     animationEnabled = true,
@@ -89,12 +93,13 @@ export const FormLayout = memo<FormLayoutProps>(({
     return (
         <div className={`min-h-screen bg-transparent ${className}`}>
             <div className="container mx-auto px-4 py-8">
-                <Card className="max-w-2xl mx-auto">
+                <Card className={`max-w-2xl mx-auto ${cardClassName}`}>
                     {showProgress && (
                         <CardHeader className="pb-4">
                             <FormProgress
                                 progress={progress}
                                 stepLabel={stepLabel}
+                                headerAction={headerAction}
                             />
                         </CardHeader>
                     )}

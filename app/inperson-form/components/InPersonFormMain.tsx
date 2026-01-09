@@ -5,7 +5,8 @@
 
 "use client";
 
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useRouter } from "next/navigation";
 import { FormLayout } from "@/components/form/FormLayout";
 import { FormStepRenderer } from "@/components/form/FormStepRenderer";
 import { useForm } from "@/hooks/useForm";
@@ -15,6 +16,17 @@ import type { CustomerSearchResult } from "@/lib/form-types";
 import { getDataKey, getProgressKey } from "@/lib/form-types";
 import { InPersonFormConfirmation } from "./InPersonFormConfirmation";
 import { SimulationResultDisplay } from "@/app/web-form/components/SimulationResultDisplay";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { Button } from "@/components/ui/button";
 
 /**
  * InPersonFormメインコンポーネント
@@ -35,6 +47,8 @@ export default function InPersonForm({
     initialAllowNewEntry = false,
     initialDraftName,
 }: InPersonFormProps) {
+    const router = useRouter();
+    const [exitOpen, setExitOpen] = useState(false);
     // フォーム共通フック
     const {
         form,
@@ -61,6 +75,10 @@ export default function InPersonForm({
         onComplete: handleFormComplete,
     });
     const hasInitializedFromSelection = useRef(false);
+    const handleExit = useCallback(() => {
+        setExitOpen(false);
+        router.push("/inperson-select");
+    }, [router]);
 
     async function handleFormComplete(formData: InPersonFormData) {
         try {
@@ -146,7 +164,10 @@ export default function InPersonForm({
         updateField("hasLandBudget", typeof customer.hasLandBudget === "boolean" ? customer.hasLandBudget : null);
         updateField("landBudget", toStringValue(customer.landBudget));
         updateField("usesTechnostructure", typeof customer.usesTechnostructure === "boolean" ? customer.usesTechnostructure : null);
-        updateField("usesAdditionalInsulation", null);
+        updateField(
+            "usesAdditionalInsulation",
+            typeof customer.usesAdditionalInsulation === "boolean" ? customer.usesAdditionalInsulation : null
+        );
 
         // 次のステップへ自動進行
         handleAutoProgress();
@@ -258,9 +279,35 @@ export default function InPersonForm({
 
     return (
         <FormLayout
+            className="bg-gradient-to-b from-slate-50 via-white to-slate-100"
+            cardClassName="border-slate-200/70 shadow-lg/10"
             // 進捗情報
             progress={progress}
             stepLabel={getPhaseLabel(activeStep.phase)}
+            headerAction={
+                <AlertDialog open={exitOpen} onOpenChange={setExitOpen}>
+                    <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => setExitOpen(true)}
+                        className="h-9 rounded-full px-4 text-xs font-semibold"
+                    >
+                        終了
+                    </Button>
+                    <AlertDialogContent>
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>入力を終了しますか？</AlertDialogTitle>
+                            <AlertDialogDescription>
+                                ここまでの入力内容は保存されません。よろしいですか？
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel>いいえ</AlertDialogCancel>
+                            <AlertDialogAction onClick={handleExit}>はい</AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            }
 
             // アニメーション
             stepKey={activeStep.id}
