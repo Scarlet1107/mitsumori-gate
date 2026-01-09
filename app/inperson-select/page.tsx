@@ -2,6 +2,7 @@
 
 import { useCallback, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import Image from "next/image";
 
 import { useInPersonFormCustomerSearch } from "@/app/inperson-form/components/hooks/useInPersonFormCustomerSearch";
@@ -62,7 +63,7 @@ export default function InPersonSelectPage() {
     };
 
     return (
-        <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-8 px-6 py-12 text-foreground">
+        <main className="mx-auto flex min-h-screen w-full max-w-3xl flex-col gap-8 px-6 py-12 text-foreground bg-gradient-to-b from-slate-50 via-white to-slate-100">
             <header className="space-y-3 text-center">
                 <div className="flex flex-col items-center gap-3">
                     <Image
@@ -79,7 +80,7 @@ export default function InPersonSelectPage() {
                 </div>
             </header>
 
-            <Card>
+            <Card className="border-slate-200/70 shadow-lg/10">
                 <CardHeader className="space-y-2 text-center">
                     <CardTitle className="text-2xl sm:text-3xl">
                         お客様の選択
@@ -104,8 +105,11 @@ export default function InPersonSelectPage() {
                         inputRef={inputRef}
                     />
 
-                    <div className="flex justify-end">
-                        <Button type="button" variant="outline" onClick={handleNewEntry}>
+                    <div className="flex items-center justify-between">
+                        <Button type="button" variant="ghost" asChild className="rounded-full px-4">
+                            <Link href="/">戻る</Link>
+                        </Button>
+                        <Button type="button" variant="outline" onClick={handleNewEntry} className="rounded-full">
                             新規受付で進める
                         </Button>
                     </div>

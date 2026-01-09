@@ -3,7 +3,7 @@
  */
 
 import { motion, AnimatePresence } from "framer-motion";
-import { useCallback, ReactNode, memo } from "react";
+import { ReactNode, memo, useRef } from "react";
 import type { NavigationDirection } from "@/lib/form-types";
 
 interface FormAnimationWrapperProps {
@@ -13,22 +13,6 @@ interface FormAnimationWrapperProps {
     animationEnabled?: boolean;
     className?: string;
 }
-
-// アニメーション設定
-const getAnimationVariants = (direction: NavigationDirection) => ({
-    enter: {
-        x: direction > 0 ? 20 : -20,
-        opacity: 0,
-    },
-    center: {
-        x: 0,
-        opacity: 1,
-    },
-    exit: {
-        x: direction > 0 ? -20 : 20,
-        opacity: 0,
-    },
-});
 
 const animationTransition = {
     duration: 0.2,
@@ -51,10 +35,22 @@ export const FormAnimationWrapper = memo<FormAnimationWrapperProps>(({
     animationEnabled = true,
     className = "",
 }) => {
-    const variants = useCallback(() =>
-        getAnimationVariants(direction),
-        [direction]
-    );
+    const directionRef = useRef<NavigationDirection>(direction);
+    directionRef.current = direction;
+    const variants = {
+        enter: () => ({
+            x: directionRef.current > 0 ? 20 : -20,
+            opacity: 0,
+        }),
+        center: {
+            x: 0,
+            opacity: 1,
+        },
+        exit: () => ({
+            x: directionRef.current > 0 ? -20 : 20,
+            opacity: 0,
+        }),
+    };
 
     if (!animationEnabled) {
         return (
@@ -65,11 +61,10 @@ export const FormAnimationWrapper = memo<FormAnimationWrapperProps>(({
     }
 
     return (
-        <AnimatePresence mode="wait" custom={direction}>
+        <AnimatePresence mode="wait">
             <motion.div
                 key={stepKey}
-                custom={direction}
-                variants={variants()}
+                variants={variants}
                 initial="enter"
                 animate="center"
                 exit="exit"
