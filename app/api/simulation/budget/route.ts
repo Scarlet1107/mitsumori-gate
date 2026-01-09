@@ -59,17 +59,6 @@ export async function POST(request: Request) {
         const downPayment = Number.isFinite(input.downPayment) ? input.downPayment : 0;
         const totalBudget = result.maxLoanAmount + downPayment;
 
-        const spouseAge = input.spouseAge ?? input.age;
-        const maxAge = Math.max(input.age, spouseAge);
-        const maxTermYears = Math.min(50, 80 - maxAge);
-        const totalIncome = input.ownIncome + (input.spouseIncome ?? 0);
-        const existingMonthlyPayment = input.ownLoanPayment + (input.spouseLoanPayment ?? 0);
-        const existingAnnualPayment = existingMonthlyPayment * 12;
-        const maxAnnualPayment = totalIncome * (config.dtiRatio / 100);
-        const availableAnnualPayment = Math.max(0, maxAnnualPayment - existingAnnualPayment);
-        const monthlyPaymentCapacity = availableAnnualPayment / 12;
-
-
         return NextResponse.json({
             maxLoanAmount: result.maxLoanAmount,
             downPayment,

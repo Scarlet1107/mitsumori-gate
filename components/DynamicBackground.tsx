@@ -1,14 +1,15 @@
 // components/DynamicBackground.tsx
 "use client";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import Image from "next/image";
 
 export default function DynamicBackground() {
-  const [isMobile, setIsMobile] = useState(false);
-
-  useEffect(() => {
-    setIsMobile(window.innerWidth <= 768);
-  }, []);
+  const [isMobile] = useState(() => {
+    if (typeof window === "undefined") {
+      return false;
+    }
+    return window.innerWidth <= 768;
+  });
 
   const src = isMobile ? "/mobileBackground.png" : "/background.png";
 
