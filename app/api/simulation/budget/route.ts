@@ -69,34 +69,6 @@ export async function POST(request: Request) {
         const availableAnnualPayment = Math.max(0, maxAnnualPayment - existingAnnualPayment);
         const monthlyPaymentCapacity = availableAnnualPayment / 12;
 
-        console.info("[BudgetCalculation]", JSON.stringify({
-            input: {
-                age: input.age,
-                spouseAge: input.spouseAge ?? null,
-                ownIncome: input.ownIncome,
-                spouseIncome: input.spouseIncome ?? 0,
-                ownLoanPayment: input.ownLoanPayment,
-                spouseLoanPayment: input.spouseLoanPayment ?? 0,
-                downPayment,
-            },
-            config: {
-                screeningInterestRate: config.screeningInterestRate,
-                dtiRatio: config.dtiRatio,
-            },
-            derived: {
-                totalIncome,
-                existingMonthlyPayment,
-                existingAnnualPayment,
-                maxAnnualPayment,
-                availableAnnualPayment,
-                monthlyPaymentCapacity,
-                maxTermYears,
-            },
-            result: {
-                maxLoanAmount: result.maxLoanAmount,
-                totalBudget,
-            },
-        }));
 
         return NextResponse.json({
             maxLoanAmount: result.maxLoanAmount,

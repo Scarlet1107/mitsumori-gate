@@ -55,6 +55,8 @@ export interface SimulationData {
         loanRatio: number;
         totalPayment: number;
         totalInterest: number;
+        maxLoanTotalPayment: number;
+        maxLoanTotalInterest: number;
         screeningInterestRate: number;
         repaymentInterestRate: number;
         loanTerm: number;
