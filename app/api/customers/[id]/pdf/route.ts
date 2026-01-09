@@ -93,6 +93,8 @@ export async function GET(
                 loanRatio: simulationResult.loanRatio,
                 totalPayment: simulationResult.totalPayment,
                 totalInterest: simulationResult.totalInterest,
+                maxLoanTotalPayment: simulationResult.maxLoanTotalPayment,
+                maxLoanTotalInterest: simulationResult.maxLoanTotalInterest,
                 screeningInterestRate: simulationResult.screeningInterestRate,
                 repaymentInterestRate: simulationResult.repaymentInterestRate,
                 loanTerm: simulationResult.loanTerm,

@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server";
-import { getAllConfigs, upsertConfig } from "@/lib/config-store";
+import { getAllConfigs, seedDefaultConfigs, upsertConfig } from "@/lib/config-store";
 
 export async function GET() {
     try {
+        await seedDefaultConfigs();
         const configs = await getAllConfigs();
         return NextResponse.json(configs);
     } catch (error) {

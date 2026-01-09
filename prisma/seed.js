@@ -1,3 +1,4 @@
+// eslint-disable-next-line @typescript-eslint/no-require-imports
 const { PrismaClient } = require("../lib/generated/prisma");
 
 const DEFAULT_CONFIGS = [

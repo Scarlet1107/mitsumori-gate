@@ -183,7 +183,7 @@ export function useForm<TFormData extends BaseFormData>(
             setErrors(null);
         }
         return result;
-    }, [activeStep.id, form]);
+    }, [activeStep, form]);
 
     // 次へ進む
     const resolveNextStep = useCallback((selectedValue?: boolean) => {

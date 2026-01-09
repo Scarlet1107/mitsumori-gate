@@ -39,25 +39,27 @@ export interface SimulationWarnings {
 }
 
 export interface SimulationResult {
-    maxLoanAmount: number;
-    wishLoanAmount: number;
-    totalBudget: number;
-    buildingBudget: number;
-    landCost: number;
-    demolitionCost: number;
-    miscCost: number;
-    estimatedTsubo: number;
-    estimatedSquareMeters: number;
-    monthlyPaymentCapacity: number;
-    dtiRatio: number;
-    loanRatio: number;
-    totalPayment: number;
-    totalInterest: number;
-    screeningInterestRate: number;
-    repaymentInterestRate: number;
-    loanTerm: number;
-    maxTermYears: number;
-    warnings: SimulationWarnings;
+    maxLoanAmount: number; // 借入可能額（審査金利ベース）
+    wishLoanAmount: number; // 希望借入額（希望返済額ベース）
+    totalBudget: number; // 総予算（借入額 + 頭金）
+    buildingBudget: number; // 建築に使える予算（総予算から土地・解体・諸費用を引いた額）
+    landCost: number; // 土地費用
+    demolitionCost: number; // 解体費用（既存建物がある場合のみ）
+    miscCost: number; // 諸費用（固定）
+    estimatedTsubo: number; // 想定延床面積（坪）
+    estimatedSquareMeters: number; // 想定延床面積（平方メートル）
+    monthlyPaymentCapacity: number; // 月々の返済余力
+    dtiRatio: number; // 返済比率（DTI）
+    loanRatio: number; // 希望借入額 / 借入可能額 の比率
+    totalPayment: number; // 総返済額（元利合計、ボーナス含む）
+    totalInterest: number; // 総利息（総返済額 - 借入額）
+    maxLoanTotalPayment: number; // 最大借入額の総返済額（審査金利・上限年数ベース）
+    maxLoanTotalInterest: number; // 最大借入額の総利息（総返済額 - 最大借入額）
+    screeningInterestRate: number; // 審査金利（%）
+    repaymentInterestRate: number; // 返済金利（%）
+    loanTerm: number; // 返済年数（希望）
+    maxTermYears: number; // 年齢から算出した上限返済年数
+    warnings: SimulationWarnings; // 警告フラグ
 }
 
 const SQM_PER_TSUBO = 3.305785;
@@ -77,6 +79,8 @@ function calculateLoanAmount(monthlyPayment: number, monthlyRate: number, termMo
     return monthlyPayment * (numerator / denominator);
 }
 
+
+// お金の計算を行う関数 シミュレーションに出てくるお金の計算をここでまとめて行う
 export function calculateSimulation(input: SimulationInput, config: SimulationConfig): SimulationResult {
     const spouseAge = input.spouseAge ?? input.age;
     const maxAge = Math.max(input.age, spouseAge);
@@ -124,6 +128,8 @@ export function calculateSimulation(input: SimulationInput, config: SimulationCo
 
     const totalPayment = (input.wishMonthlyPayment * 12 * input.wishPaymentYears) + (bonusAnnual * input.wishPaymentYears);
     const totalInterest = totalPayment - wishLoanAmount;
+    const maxLoanTotalPayment = monthlyPaymentCapacity * maxTermYears * 12;
+    const maxLoanTotalInterest = maxLoanTotalPayment - maxLoanAmount;
 
     const desiredAnnualPayment = (input.wishMonthlyPayment * 12) + bonusAnnual;
     const dtiRatio = totalIncome > 0
@@ -132,7 +138,7 @@ export function calculateSimulation(input: SimulationInput, config: SimulationCo
 
     const loanRatio = maxLoanAmount > 0 ? wishLoanAmount / maxLoanAmount : 0;
 
-    return {
+    const result = {
         maxLoanAmount,
         wishLoanAmount,
         totalBudget,
@@ -147,6 +153,8 @@ export function calculateSimulation(input: SimulationInput, config: SimulationCo
         loanRatio: clamp(loanRatio, 0, Number.POSITIVE_INFINITY),
         totalPayment,
         totalInterest,
+        maxLoanTotalPayment,
+        maxLoanTotalInterest,
         screeningInterestRate: config.screeningInterestRate,
         repaymentInterestRate: config.repaymentInterestRate,
         loanTerm: input.wishPaymentYears,
@@ -156,4 +164,6 @@ export function calculateSimulation(input: SimulationInput, config: SimulationCo
             exceedsMaxTerm: input.wishPaymentYears > maxTermYears,
         },
     };
+
+    return result;
 }

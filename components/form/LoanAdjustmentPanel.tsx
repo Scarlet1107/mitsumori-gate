@@ -8,6 +8,7 @@ import { useSimulationConfig } from "@/hooks/useSimulationConfig";
 import { formatManWithOku } from "@/lib/format";
 import { calculateSimulation, type SimulationResult } from "@/lib/simulation/engine";
 import { buildSimulationInputFromForm } from "@/lib/simulation/form-input";
+import { logSimulation } from "@/app/actions/simulation-log";
 import type { BaseFormData } from "@/lib/form-types";
 
 type ResultDisplayProps = {
@@ -62,6 +63,10 @@ export function LoanAdjustmentPanel({
             });
             const result = calculateSimulation(input, config);
             setSimulationResult(result);
+            // デバッグ用にログをサーバーに送信
+            void logSimulation(input, config, result).catch((error) => {
+                console.error("Simulation log error:", error);
+            });
             onError(null);
         } catch (error) {
             console.error("Simulation error:", error);

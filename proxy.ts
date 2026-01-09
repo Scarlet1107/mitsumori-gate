@@ -13,7 +13,7 @@ function safeEqual(a: string, b: string) {
     return diff === 0;
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
     const { pathname, searchParams } = req.nextUrl;
 
     const isPublicAsset = /\.(png|jpe?g|gif|svg|webp|avif|ico|css|js|map|txt|xml|json|woff2?|ttf|otf)$/i.test(pathname);
