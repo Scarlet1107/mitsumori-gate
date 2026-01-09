@@ -1,4 +1,5 @@
 import type { BaseFormData, InPersonFormData, ValidationResult, FormType } from "@/lib/form-types";
+import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 
 export type FormStepType =
     | "text"
@@ -33,6 +34,16 @@ export interface FormStep {
 
 const requireText = (value: string, message: string): ValidationResult => {
     return value.trim() ? { isValid: true } : { isValid: false, error: message };
+};
+
+const requirePhoneNumber = (value: string): ValidationResult => {
+    const digits = normalizePhoneNumber(value);
+    if (!digits) {
+        return { isValid: false, error: "電話番号を入力してください" };
+    }
+    return isValidPhoneNumber(digits)
+        ? { isValid: true }
+        : { isValid: false, error: "電話番号は数字のみで10〜11桁で入力してください" };
 };
 
 const requireNumber = (value: string, message: string, min = 0): ValidationResult => {
@@ -117,11 +128,11 @@ export const formSteps: FormStep[] = [
         id: "phone",
         type: "tel",
         title: "電話番号を入力してください",
-        placeholder: "例）090-1234-5678",
+        placeholder: "例）09012345678",
         inPersonOnly: true,
         field: "phone",
         phase: 1,
-        validate: (form) => requireText(form.phone, "電話番号を入力してください"),
+        validate: (form) => requirePhoneNumber(form.phone),
     },
     {
         id: "email",

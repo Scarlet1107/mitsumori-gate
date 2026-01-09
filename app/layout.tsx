@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import DynamicBackground from "@/components/DynamicBackground";
+import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
   title: "簡単家づくりシミュレーション",
@@ -16,6 +17,7 @@ export default function RootLayout({
     <html lang="ja">
       <body className="antialiased">
         {children}
+        <Toaster />
         <DynamicBackground />
       </body>
     </html>

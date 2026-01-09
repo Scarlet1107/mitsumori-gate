@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { calculateFullSimulation, buildSimulationData, type SimulationInputPayload } from "../shared";
+import { calculateFullSimulation, buildSimulationData, persistInPersonSubmission, type SimulationInputPayload } from "../shared";
 
 export async function POST(request: Request) {
     try {
@@ -30,14 +30,27 @@ export async function POST(request: Request) {
             );
         }
 
-        const { normalizedInput, result } = await calculateFullSimulation(body);
+        const { config, normalizedInput, result } = await calculateFullSimulation(body);
+
+        let customerId: string | null = null;
+        try {
+            customerId = await persistInPersonSubmission(body, result, {
+                unitPricePerTsubo: config.unitPricePerTsubo,
+            });
+        } catch (dbError) {
+            console.error("Failed to persist inperson form submission:", dbError);
+            return NextResponse.json(
+                { error: "フォームデータの保存に失敗しました" },
+                { status: 500 }
+            );
+        }
 
         if (normalizedInput.name && normalizedInput.email) {
             try {
                 const { sendCustomerEmail } = await import("@/lib/simulation/email");
                 const simulationData = buildSimulationData(normalizedInput, result);
                 const emailResult = await sendCustomerEmail(
-                    "",
+                    customerId ?? "",
                     "simulation_result",
                     simulationData
                 );
@@ -54,7 +67,10 @@ export async function POST(request: Request) {
             console.log("Email skipped (missing name or email)");
         }
 
-        return NextResponse.json(result);
+        return NextResponse.json({
+            ...result,
+            customerId: customerId ?? undefined,
+        });
     } catch (error) {
         console.error("InPerson simulation API error:", error);
         return NextResponse.json(
