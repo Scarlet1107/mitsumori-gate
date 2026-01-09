@@ -3,7 +3,7 @@
  */
 
 import { motion, AnimatePresence } from "framer-motion";
-import { ReactNode, memo, useRef } from "react";
+import { ReactNode, memo, useEffect, useRef } from "react";
 import type { NavigationDirection } from "@/lib/form-types";
 
 interface FormAnimationWrapperProps {
@@ -36,7 +36,9 @@ export const FormAnimationWrapper = memo<FormAnimationWrapperProps>(({
     className = "",
 }) => {
     const directionRef = useRef<NavigationDirection>(direction);
-    directionRef.current = direction;
+    useEffect(() => {
+        directionRef.current = direction;
+    }, [direction]);
     const variants = {
         enter: () => ({
             x: directionRef.current > 0 ? 20 : -20,
