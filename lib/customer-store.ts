@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma";
+import type { Prisma } from "./generated/prisma";
 import { Customer, Simulation } from "./generated/prisma";
+import { normalizePhoneNumber } from "@/lib/phone";
 
 export type CustomerRecord = Customer & {
     spouseAge?: number | null;
@@ -44,7 +46,7 @@ export interface CustomerCreateInput {
 export interface CustomerUpdateInput {
     name?: string;
     email?: string;
-    phone?: string;
+    phone?: string | null;
     postalCode?: string;
     baseAddress?: string;
     detailAddress?: string;
@@ -71,13 +73,19 @@ export interface CustomerUpdateInput {
     inPersonCompleted?: boolean;
 }
 
+const normalizePhoneForStorage = (value?: string | null): string | null | undefined => {
+    if (value === undefined) return undefined;
+    const digits = normalizePhoneNumber(value ?? "");
+    return digits ? digits : null;
+};
+
 // 顧客作成
 export async function createCustomer(input: CustomerCreateInput): Promise<CustomerRecord> {
     return await prisma.customer.create({
         data: {
             name: input.name,
             email: input.email,
-            phone: input.phone,
+            phone: normalizePhoneForStorage(input.phone),
             postalCode: input.postalCode,
             baseAddress: input.baseAddress,
             detailAddress: input.detailAddress,
@@ -112,9 +120,14 @@ export async function updateCustomer(
     id: string,
     input: CustomerUpdateInput
 ): Promise<CustomerRecord> {
+    const normalizedPhone = normalizePhoneForStorage(input.phone);
+    const data: CustomerUpdateInput & { phone?: string | null } = {
+        ...input,
+        ...(normalizedPhone !== undefined ? { phone: normalizedPhone } : {}),
+    };
     return await prisma.customer.update({
         where: { id },
-        data: input,
+        data,
     });
 }
 
@@ -215,6 +228,45 @@ export async function getAllCustomers(limit = 50, offset = 0): Promise<{
     return { customers, total };
 }
 
+// 管理画面用の顧客一覧（検索・ページング）
+export async function getAdminCustomers(options?: {
+    query?: string;
+    limit?: number;
+    offset?: number;
+}): Promise<{ customers: CustomerRecord[]; total: number }> {
+    const limit = options?.limit ?? 10;
+    const offset = options?.offset ?? 0;
+    const query = options?.query?.trim();
+    const phoneQuery = query ? normalizePhoneNumber(query) : "";
+    const orConditions: Prisma.CustomerWhereInput[] = [];
+
+    if (query) {
+        orConditions.push(
+            { name: { contains: query, mode: "insensitive" } },
+            { email: { contains: query, mode: "insensitive" } }
+        );
+    }
+    if (phoneQuery) {
+        orConditions.push({ phone: { contains: phoneQuery } });
+    }
+
+    const where: Prisma.CustomerWhereInput = orConditions.length
+        ? { deletedAt: null, OR: orConditions }
+        : { deletedAt: null };
+
+    const [customers, total] = await Promise.all([
+        prisma.customer.findMany({
+            where,
+            orderBy: { createdAt: "desc" },
+            take: limit,
+            skip: offset,
+        }),
+        prisma.customer.count({ where }),
+    ]);
+
+    return { customers, total };
+}
+
 // 削除済み顧客一覧取得（管理画面用）
 export async function getDeletedCustomers(limit = 50, offset = 0): Promise<{
     customers: CustomerRecord[];
@@ -244,5 +296,13 @@ export async function deleteCustomer(id: string): Promise<void> {
     await prisma.customer.update({
         where: { id },
         data: { deletedAt: new Date() },
+    });
+}
+
+// 顧客復元
+export async function restoreCustomer(id: string): Promise<void> {
+    await prisma.customer.update({
+        where: { id },
+        data: { deletedAt: null },
     });
 }

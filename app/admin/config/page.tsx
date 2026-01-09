@@ -1,15 +1,19 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useMemo, useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { HelpCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { sortConfigs } from "@/lib/config-order";
+import { getConfigMeta } from "@/lib/config-metadata";
 
 interface Config {
-    key: string;
+    key: "unit_price_per_tsubo" | "technostructure_unit_price_increase" | "insulation_unit_price_increase" | "demolition_cost" | "default_land_cost" | "misc_cost" | "annual_interest_rate" | "repayment_interest_rate" | "dti_ratio";
     value: string;
     description: string | null;
 }
@@ -20,6 +24,7 @@ export default function AdminConfigPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const orderedConfigs = useMemo(() => sortConfigs(configs), [configs]);
 
     useEffect(() => {
         fetchConfigs();
@@ -67,36 +72,8 @@ export default function AdminConfigPage() {
         }
     };
 
-    const getUnitForKey = (key: string) => {
-        if (key === "annual_interest_rate" || key === "repayment_interest_rate" || key === "dti_ratio") {
-            return "%";
-        }
-        if (
-            key === "unit_price_per_tsubo" ||
-            key === "technostructure_unit_price_increase" ||
-            key === "insulation_unit_price_increase" ||
-            key === "demolition_cost" ||
-            key === "default_land_cost" ||
-            key === "misc_cost"
-        ) {
-            return "万円";
-        }
-        return "";
-    };
-
-    const getStepForKey = (key: string) => {
-        if (
-            key === "annual_interest_rate" ||
-            key === "repayment_interest_rate" ||
-            key === "dti_ratio" ||
-            key === "unit_price_per_tsubo" ||
-            key === "technostructure_unit_price_increase" ||
-            key === "insulation_unit_price_increase"
-        ) {
-            return "0.1";
-        }
-        return "1";
-    };
+    const getUnitForKey = (key: string) => getConfigMeta(key as Config["key"])?.unit ?? "";
+    const getStepForKey = (key: string) => getConfigMeta(key as Config["key"])?.step ?? "1";
 
     return (
         <div className="container mx-auto max-w-2xl space-y-8 p-6">
@@ -129,26 +106,49 @@ export default function AdminConfigPage() {
                         <div className="text-center">読み込み中...</div>
                     ) : (
                         <>
-                            {configs.map((config) => (
-                                <div key={config.key} className="space-y-2">
-                                    <Label htmlFor={config.key}>
-                                        {config.description}
-                                    </Label>
-                                    <div className="flex items-center space-x-2">
-                                        <Input
-                                            id={config.key}
-                                            type="number"
-                                            step={getStepForKey(config.key)}
-                                            value={config.value}
-                                            onChange={(e) => handleValueChange(config.key, e.target.value)}
-                                            className="max-w-xs"
-                                        />
-                                        <span className="text-sm text-muted-foreground">
-                                            {getUnitForKey(config.key)}
-                                        </span>
+                            {orderedConfigs.map((config) => {
+                                const meta = getConfigMeta(config.key);
+                                const labelText = meta?.description ?? config.description ?? config.key;
+                                const helpText = meta?.help;
+                                return (
+                                    <div key={config.key} className="space-y-2">
+                                        <div className="flex items-center gap-2">
+                                            <Label htmlFor={config.key}>
+                                                {labelText}
+                                            </Label>
+                                            {helpText ? (
+                                                <HoverCard openDelay={150}>
+                                                    <HoverCardTrigger asChild>
+                                                        <button
+                                                            type="button"
+                                                            className="inline-flex items-center text-muted-foreground transition hover:text-foreground"
+                                                            aria-label={`${labelText}の説明`}
+                                                        >
+                                                            <HelpCircle className="size-4" />
+                                                        </button>
+                                                    </HoverCardTrigger>
+                                                    <HoverCardContent className="w-72 text-sm leading-relaxed">
+                                                        {helpText}
+                                                    </HoverCardContent>
+                                                </HoverCard>
+                                            ) : null}
+                                        </div>
+                                        <div className="flex items-center space-x-2">
+                                            <Input
+                                                id={config.key}
+                                                type="number"
+                                                step={getStepForKey(config.key)}
+                                                value={config.value}
+                                                onChange={(e) => handleValueChange(config.key, e.target.value)}
+                                                className="max-w-xs"
+                                            />
+                                            <span className="text-sm text-muted-foreground">
+                                                {getUnitForKey(config.key)}
+                                            </span>
+                                        </div>
                                     </div>
-                                </div>
-                            ))}
+                                );
+                            })}
                         </>
                     )}
 

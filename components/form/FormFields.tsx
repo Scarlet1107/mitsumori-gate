@@ -6,6 +6,7 @@ import { forwardRef } from "react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { formatPostalCode, isValidPostalCode } from "@/lib/postal-address";
+import { normalizePhoneNumber } from "@/lib/phone";
 import { Spinner } from "../ui/spinner";
 
 // 全角数字を半角に揃える
@@ -31,25 +32,32 @@ export const StandardField = forwardRef<HTMLInputElement, BaseFieldProps & {
     unit?: string;
 }>(({ value, onChange, placeholder, type, unit, className }, ref) => {
     const isNumberInput = type === "number";
+    const isTelInput = type === "tel";
     const inputType = isNumberInput ? "text" : type;
-    const inputMode = isNumberInput ? "decimal" : undefined;
+    const inputMode = isNumberInput ? "decimal" : isTelInput ? "numeric" : undefined;
     const showUnit = type === "number" && Boolean(unit);
 
     if (showUnit) {
         return (
             <div className="flex items-stretch overflow-hidden rounded-xl border bg-background shadow-sm focus-within:border-primary/50 focus-within:ring-2 focus-within:ring-primary/20">
-                <Input
-                    ref={ref}
-                    type={inputType}
-                    value={value}
-                    onChange={(e) => {
-                        const newValue = isNumberInput ? normalizeNumberInput(e.target.value) : e.target.value;
-                        onChange(newValue);
-                    }}
-                    placeholder={placeholder}
-                    inputMode={inputMode}
-                    className="border-0 text-base sm:text-lg h-12 sm:h-14 focus-visible:ring-0"
-                />
+            <Input
+                ref={ref}
+                type={inputType}
+                value={value}
+                onChange={(e) => {
+                    const newValue = isNumberInput
+                        ? normalizeNumberInput(e.target.value)
+                        : isTelInput
+                            ? normalizePhoneNumber(e.target.value)
+                            : e.target.value;
+                    onChange(newValue);
+                }}
+                placeholder={placeholder}
+                inputMode={inputMode}
+                pattern={isTelInput ? "[0-9]*" : undefined}
+                maxLength={isTelInput ? 11 : undefined}
+                className="border-0 text-base sm:text-lg h-12 sm:h-14 focus-visible:ring-0"
+            />
                 <span className="flex items-center bg-muted px-3 sm:px-4 text-sm font-medium text-muted-foreground">
                     {unit}
                 </span>
@@ -63,11 +71,17 @@ export const StandardField = forwardRef<HTMLInputElement, BaseFieldProps & {
             type={inputType}
             value={value}
             onChange={(e) => {
-                const newValue = isNumberInput ? normalizeNumberInput(e.target.value) : e.target.value;
+                const newValue = isNumberInput
+                    ? normalizeNumberInput(e.target.value)
+                    : isTelInput
+                        ? normalizePhoneNumber(e.target.value)
+                        : e.target.value;
                 onChange(newValue);
             }}
             placeholder={placeholder}
             inputMode={inputMode}
+            pattern={isTelInput ? "[0-9]*" : undefined}
+            maxLength={isTelInput ? 11 : undefined}
             className={className || "text-base sm:text-lg h-12 sm:h-14 rounded-xl"}
         />
     );

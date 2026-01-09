@@ -1,6 +1,6 @@
 import { calculateSimulation, type SimulationInput, type SimulationResult } from "@/lib/simulation/engine";
 import { getTypedConfigs } from "@/lib/config-store";
-import { createCustomer, type CustomerCreateInput } from "@/lib/customer-store";
+import { createCustomer, updateCustomer, type CustomerCreateInput } from "@/lib/customer-store";
 import { prisma } from "@/lib/prisma";
 import type { SimulationData } from "@/lib/pdf/simulation-pdf";
 
@@ -66,54 +66,14 @@ export async function persistWebFormSubmission(
     simulationResult: SimulationResult,
     config: { unitPricePerTsubo: number }
 ): Promise<string> {
-    const name = getRequiredString(formPayload["name"], "name");
+    const customerInput = buildCustomerInput(formPayload);
 
-    const hasSpouse = getOptionalBoolean(formPayload["hasSpouse"]);
-    const usesBonus = getOptionalBoolean(formPayload["usesBonus"]);
-    const hasLand = getOptionalBoolean(formPayload["hasLand"]);
-    const hasLandBudget = getOptionalBoolean(formPayload["hasLandBudget"]);
-    const usesAdditionalInsulation = getOptionalBoolean(formPayload["usesAdditionalInsulation"]);
-    const baseAddress = getOptionalString(formPayload["baseAddress"]) ?? getOptionalString(formPayload["address"]);
-    const detailAddress = getOptionalString(formPayload["detailAddress"]);
-    const bonusPaymentValue = (() => {
-        const parsed = getOptionalInteger(formPayload["bonusPayment"]);
-        if (usesBonus === false) {
-            return 0;
-        }
-        return parsed ?? 0;
-    })();
-
-    const customerInput: CustomerCreateInput = {
-        name,
-        email: getOptionalString(formPayload["email"]),
-        phone: getOptionalString(formPayload["phone"]),
-        postalCode: getOptionalString(formPayload["postalCode"]),
-        baseAddress,
-        detailAddress,
-        age: getOptionalInteger(formPayload["age"]),
-        hasSpouse,
-        ownIncome: getOptionalInteger(formPayload["ownIncome"]),
-        spouseIncome: hasSpouse ? getOptionalInteger(formPayload["spouseIncome"]) : undefined,
-        ownLoanPayment: getOptionalInteger(formPayload["ownLoanPayment"]),
-        spouseLoanPayment: hasSpouse ? getOptionalInteger(formPayload["spouseLoanPayment"]) : undefined,
-        spouseAge: hasSpouse ? getOptionalInteger(formPayload["spouseAge"]) : undefined,
-        downPayment: getOptionalInteger(formPayload["downPayment"]),
-        wishMonthlyPayment: getOptionalInteger(formPayload["wishMonthlyPayment"]),
-        wishPaymentYears: getOptionalInteger(formPayload["wishPaymentYears"]),
-        usesBonus,
-        bonusPayment: bonusPaymentValue,
-        hasLand,
-        hasExistingBuilding: hasLand ? getOptionalBoolean(formPayload["hasExistingBuilding"]) : undefined,
-        hasLandBudget,
-        landBudget: hasLand ? undefined : getOptionalInteger(formPayload["landBudget"]),
-        usesTechnostructure: getOptionalBoolean(formPayload["usesTechnostructure"]),
-        usesAdditionalInsulation,
+    const customer = await createCustomer({
+        ...customerInput,
         inputMode: "web",
-        spouseName: getOptionalString(formPayload["spouseName"]),
         webCompleted: true,
-    };
-
-    const customer = await createCustomer(customerInput);
+        inPersonCompleted: false,
+    });
 
     await prisma.simulation.create({
         data: {
@@ -131,6 +91,48 @@ export async function persistWebFormSubmission(
     });
 
     return customer.id;
+}
+
+export async function persistInPersonSubmission(
+    formPayload: Record<string, unknown>,
+    simulationResult: SimulationResult,
+    config: { unitPricePerTsubo: number }
+): Promise<string> {
+    const customerId = getOptionalString(formPayload["customerId"]);
+    const customerInput = buildCustomerInput(formPayload);
+
+    const finalCustomerId = customerId
+        ? (
+            await updateCustomer(customerId, {
+                ...customerInput,
+                inPersonCompleted: true,
+            })
+        ).id
+        : (
+            await createCustomer({
+                ...customerInput,
+                inputMode: "inperson",
+                webCompleted: false,
+                inPersonCompleted: true,
+            })
+        ).id;
+
+    await prisma.simulation.create({
+        data: {
+            customerId: finalCustomerId,
+            maxLoanAmount: simulationResult.maxLoanAmount,
+            wishLoanAmount: simulationResult.wishLoanAmount,
+            totalBudget: simulationResult.totalBudget,
+            buildingBudget: simulationResult.buildingBudget,
+            estimatedTsubo: simulationResult.estimatedTsubo,
+            estimatedSquareMeters: simulationResult.estimatedSquareMeters,
+            interestRate: simulationResult.repaymentInterestRate,
+            dtiRatio: simulationResult.dtiRatio,
+            unitPricePerTsubo: Math.round(config.unitPricePerTsubo),
+        },
+    });
+
+    return finalCustomerId;
 }
 
 export function buildSimulationData(
@@ -158,6 +160,52 @@ export function buildSimulationData(
         usesTechnostructure: normalizedInput.usesTechnostructure || false,
         usesAdditionalInsulation: normalizedInput.usesAdditionalInsulation || false,
         result,
+    };
+}
+
+function buildCustomerInput(formPayload: Record<string, unknown>): CustomerCreateInput {
+    const name = getRequiredString(formPayload["name"], "name");
+    const hasSpouse = getOptionalBoolean(formPayload["hasSpouse"]);
+    const usesBonus = getOptionalBoolean(formPayload["usesBonus"]);
+    const hasLand = getOptionalBoolean(formPayload["hasLand"]);
+    const hasLandBudget = getOptionalBoolean(formPayload["hasLandBudget"]);
+    const usesAdditionalInsulation = getOptionalBoolean(formPayload["usesAdditionalInsulation"]);
+    const baseAddress = getOptionalString(formPayload["baseAddress"]) ?? getOptionalString(formPayload["address"]);
+    const detailAddress = getOptionalString(formPayload["detailAddress"]);
+    const bonusPaymentValue = (() => {
+        const parsed = getOptionalInteger(formPayload["bonusPayment"]);
+        if (usesBonus === false) {
+            return 0;
+        }
+        return parsed ?? 0;
+    })();
+
+    return {
+        name,
+        email: getOptionalString(formPayload["email"]),
+        phone: getOptionalString(formPayload["phone"]),
+        postalCode: getOptionalString(formPayload["postalCode"]),
+        baseAddress,
+        detailAddress,
+        age: getOptionalInteger(formPayload["age"]),
+        hasSpouse,
+        ownIncome: getOptionalInteger(formPayload["ownIncome"]),
+        spouseIncome: hasSpouse ? getOptionalInteger(formPayload["spouseIncome"]) : undefined,
+        ownLoanPayment: getOptionalInteger(formPayload["ownLoanPayment"]),
+        spouseLoanPayment: hasSpouse ? getOptionalInteger(formPayload["spouseLoanPayment"]) : undefined,
+        spouseAge: hasSpouse ? getOptionalInteger(formPayload["spouseAge"]) : undefined,
+        downPayment: getOptionalInteger(formPayload["downPayment"]),
+        wishMonthlyPayment: getOptionalInteger(formPayload["wishMonthlyPayment"]),
+        wishPaymentYears: getOptionalInteger(formPayload["wishPaymentYears"]),
+        usesBonus,
+        bonusPayment: bonusPaymentValue,
+        hasLand,
+        hasExistingBuilding: hasLand ? getOptionalBoolean(formPayload["hasExistingBuilding"]) : undefined,
+        hasLandBudget,
+        landBudget: hasLand ? undefined : getOptionalInteger(formPayload["landBudget"]),
+        usesTechnostructure: getOptionalBoolean(formPayload["usesTechnostructure"]),
+        usesAdditionalInsulation,
+        spouseName: getOptionalString(formPayload["spouseName"]),
     };
 }
 

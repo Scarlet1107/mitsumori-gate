@@ -62,51 +62,6 @@ export default function InPersonForm({
     });
     const hasInitializedFromSelection = useRef(false);
 
-    // フォーム送信処理
-    const buildCustomerUpdatePayload = (formData: InPersonFormData) => {
-        const toNumber = (value: string): number | undefined => {
-            const num = Number(value);
-            return Number.isFinite(num) ? num : undefined;
-        };
-
-        const normalizeBonusPayment = () => {
-            const parsed = toNumber(formData.bonusPayment ?? "");
-            if (formData.usesBonus === false) {
-                return 0;
-            }
-            return parsed ?? 0;
-        };
-
-        return {
-            name: formData.name || undefined,
-            email: formData.email || undefined,
-            phone: formData.phone || undefined,
-            postalCode: formData.postalCode || undefined,
-            baseAddress: formData.baseAddress || undefined,
-            detailAddress: formData.detailAddress || undefined,
-            age: toNumber(formData.age),
-            hasSpouse: formData.hasSpouse ?? undefined,
-            spouseName: formData.hasSpouse ? (formData.spouseName || undefined) : undefined,
-            spouseAge: formData.hasSpouse ? toNumber(formData.spouseAge) : undefined,
-            ownIncome: toNumber(formData.ownIncome),
-            ownLoanPayment: toNumber(formData.ownLoanPayment),
-            spouseIncome: formData.hasSpouse ? toNumber(formData.spouseIncome) : undefined,
-            spouseLoanPayment: formData.hasSpouse ? toNumber(formData.spouseLoanPayment) : undefined,
-            downPayment: toNumber(formData.downPayment),
-            wishMonthlyPayment: toNumber(formData.wishMonthlyPayment),
-            wishPaymentYears: toNumber(formData.wishPaymentYears),
-            usesBonus: formData.usesBonus ?? undefined,
-            bonusPayment: normalizeBonusPayment(),
-            hasLand: formData.hasLand ?? undefined,
-            hasExistingBuilding: formData.hasLand ? formData.hasExistingBuilding ?? undefined : undefined,
-            hasLandBudget: formData.hasLand === false ? formData.hasLandBudget ?? undefined : undefined,
-            landBudget: formData.hasLand === false ? toNumber(formData.landBudget) : undefined,
-            usesTechnostructure: formData.usesTechnostructure ?? undefined,
-            usesAdditionalInsulation: formData.usesAdditionalInsulation ?? undefined,
-            inPersonCompleted: true,
-        };
-    };
-
     async function handleFormComplete(formData: InPersonFormData) {
         try {
             const response = await fetch("/api/simulation/inperson", {
@@ -120,14 +75,6 @@ export default function InPersonForm({
 
             if (!response.ok) {
                 throw new Error("送信に失敗しました");
-            }
-
-            if (formData.customerId) {
-                await fetch(`/api/customers/${formData.customerId}`, {
-                    method: "PUT",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(buildCustomerUpdatePayload(formData)),
-                });
             }
 
             // 成功時は完了ページへリダイレクト（useFormが自動処理）

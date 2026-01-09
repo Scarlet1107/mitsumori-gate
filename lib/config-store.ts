@@ -1,54 +1,17 @@
 import { prisma } from "@/lib/prisma";
 import { AppConfig } from "./generated/prisma";
+import { CONFIG_METADATA } from "@/lib/config-metadata";
 
 // 初期設定値
-const DEFAULT_CONFIGS = [
-    {
-        key: "annual_interest_rate",
-        value: "3",
-        description: "審査金利（%）",
-    },
-    {
-        key: "repayment_interest_rate",
-        value: "0.8",
-        description: "返済金利（%）",
-    },
-    {
-        key: "dti_ratio",
-        value: "35",
-        description: "DTI比率（%）",
-    },
-    {
-        key: "unit_price_per_tsubo",
-        value: "82",
-        description: "坪単価（万円）",
-    },
-    {
-        key: "technostructure_unit_price_increase",
-        value: "4.8",
-        description: "テクノストラクチャー坪単価増加分（万円）",
-    },
-    {
-        key: "insulation_unit_price_increase",
-        value: "3",
-        description: "付加断熱坪単価増加分（万円）",
-    },
-    {
-        key: "demolition_cost",
-        value: "250",
-        description: "解体費（万円）",
-    },
-    {
-        key: "default_land_cost",
-        value: "1000",
-        description: "土地代デフォルト（万円）",
-    },
-    {
-        key: "misc_cost",
-        value: "100",
-        description: "諸経費（万円）",
-    },
-] as const;
+const DEFAULT_CONFIGS: ReadonlyArray<{
+    key: string;
+    value: string;
+    description: string;
+}> = CONFIG_METADATA.map((meta) => ({
+    key: meta.key,
+    value: meta.defaultValue,
+    description: meta.description,
+}));
 
 export interface ConfigValue {
     key: string;

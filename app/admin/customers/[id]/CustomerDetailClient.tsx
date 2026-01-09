@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { formatManWithOku } from "@/lib/format";
+import { normalizePhoneNumber } from "@/lib/phone";
 import { Loader2 } from "lucide-react";
 
 interface SimulationSnapshot {
@@ -336,7 +337,14 @@ export function AdminCustomerDetail({ customer }: { customer: CustomerDetailPayl
                             </div>
                             <div>
                                 <Label className="text-xs">電話番号</Label>
-                                <Input value={form.phone} disabled={!isEditing} onChange={e => handleFieldChange("phone", e.target.value)} />
+                                <Input
+                                    value={form.phone}
+                                    disabled={!isEditing}
+                                    inputMode="numeric"
+                                    pattern="[0-9]*"
+                                    maxLength={11}
+                                    onChange={e => handleFieldChange("phone", normalizePhoneNumber(e.target.value))}
+                                />
                             </div>
                             <div>
                                 <Label className="text-xs">入力方式</Label>

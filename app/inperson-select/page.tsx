@@ -8,6 +8,7 @@ import { useInPersonFormCustomerSearch } from "@/app/inperson-form/components/ho
 import { CustomerSearchField } from "@/app/inperson-form/components/CustomerSearchField";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { getDataKey, getHistoryKey, getProgressKey } from "@/lib/form-types";
 import type { CustomerSearchResult } from "@/lib/form-types";
 
 export default function InPersonSelectPage() {
@@ -41,6 +42,15 @@ export default function InPersonSelectPage() {
     }, []);
 
     const handleNewEntry = () => {
+        const dataKey = getDataKey("inperson");
+        const progressKey = getProgressKey("inperson");
+        const historyKey = getHistoryKey("inperson");
+        localStorage.removeItem(dataKey);
+        localStorage.removeItem(progressKey);
+        localStorage.removeItem(historyKey);
+        document.cookie = `${dataKey}=; path=/; max-age=0`;
+        document.cookie = `${progressKey}=; path=/; max-age=0`;
+        document.cookie = `${historyKey}=; path=/; max-age=0`;
         const params = new URLSearchParams();
         params.set("mode", "inperson");
         params.set("newEntry", "true");
