@@ -2,6 +2,8 @@ import { NextResponse, NextRequest } from "next/server";
 
 const USER = process.env.BASIC_AUTH_USER ?? "";
 const PASS = process.env.BASIC_AUTH_PASS ?? "";
+const COOKIE_NAME = "basic_auth";
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 180; // 180 days
 
 /** constant-time 比較（長さが違う場合は即false） */
 function safeEqual(a: string, b: string) {
@@ -35,6 +37,15 @@ export function proxy(req: NextRequest) {
     const needsAuth = !(isPublicApi || isPublicWebFlow);
     if (!needsAuth) return NextResponse.next();
 
+    const expectedCookieValue = getExpectedCookieValue();
+    const authCookie = req.cookies.get(COOKIE_NAME)?.value;
+    if (authCookie && expectedCookieValue && safeEqual(authCookie, expectedCookieValue)) {
+        const res = NextResponse.next();
+        res.headers.set("X-Robots-Tag", "noindex, nofollow");
+        res.headers.set("Cache-Control", "no-store");
+        return res;
+    }
+
     const auth = req.headers.get("authorization");
     if (auth?.startsWith("Basic ")) {
         try {
@@ -48,6 +59,17 @@ export function proxy(req: NextRequest) {
                 const res = NextResponse.next();
                 res.headers.set("X-Robots-Tag", "noindex, nofollow");
                 res.headers.set("Cache-Control", "no-store");
+                if (expectedCookieValue) {
+                    res.cookies.set({
+                        name: COOKIE_NAME,
+                        value: expectedCookieValue,
+                        httpOnly: true,
+                        sameSite: "lax",
+                        secure: process.env.NODE_ENV === "production",
+                        maxAge: COOKIE_MAX_AGE,
+                        path: "/",
+                    });
+                }
                 return res;
             }
         } catch {
@@ -66,3 +88,8 @@ export function proxy(req: NextRequest) {
 export const config = {
     matcher: ["/((?!_next/static|_next/image|favicon.ico|manifest.json|robots.txt|sitemap.xml).*)"],
 };
+
+function getExpectedCookieValue() {
+    if (!USER || !PASS) return null;
+    return btoa(`${USER}:${PASS}`);
+}
