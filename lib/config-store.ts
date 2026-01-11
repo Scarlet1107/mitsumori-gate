@@ -96,7 +96,7 @@ export async function getTypedConfigs() {
             dtiRatio: parseFloat(configMap.get("dti_ratio") || "35"),
             unitPricePerTsubo: parseFloat(configMap.get("unit_price_per_tsubo") || "82"),
             technostructureUnitPriceIncrease: parseFloat(
-                configMap.get("technostructure_unit_price_increase") || "4.8"
+                configMap.get("technostructure_unit_price_increase") || "4.5"
             ),
             insulationUnitPriceIncrease: parseFloat(
                 configMap.get("insulation_unit_price_increase") || "3"
@@ -113,7 +113,7 @@ export async function getTypedConfigs() {
             repaymentInterestRate: 0.8,
             dtiRatio: 35,
             unitPricePerTsubo: 82,
-            technostructureUnitPriceIncrease: 4.8,
+            technostructureUnitPriceIncrease: 4.5,
             insulationUnitPriceIncrease: 3,
             demolitionCost: 250,
             defaultLandCost: 1000,
