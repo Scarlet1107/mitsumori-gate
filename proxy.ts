@@ -3,7 +3,7 @@ import { NextResponse, NextRequest } from "next/server";
 const USER = process.env.BASIC_AUTH_USER ?? "";
 const PASS = process.env.BASIC_AUTH_PASS ?? "";
 const COOKIE_NAME = "basic_auth";
-const COOKIE_MAX_AGE = 60 * 60 * 24 * 180; // 180 days
+const COOKIE_MAX_AGE = 60 * 60 * 24 * 30; // 30 days
 
 /** constant-time 比較（長さが違う場合は即false） */
 function safeEqual(a: string, b: string) {
