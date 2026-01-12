@@ -33,7 +33,7 @@ export const CONFIG_METADATA = [
     },
     {
         key: "technostructure_unit_price_increase",
-        defaultValue: "4.8",
+        defaultValue: "4.5",
         description: "テクノストラクチャー坪単価増加分（万円）",
         help: "テクノストラクチャー採用時の坪単価の上乗せ額です。",
         unit: "万円",

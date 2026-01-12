@@ -17,7 +17,7 @@ const DEFAULT_CONFIG: SimulationConfig = {
     repaymentInterestRate: 0.8,
     dtiRatio: 35,
     unitPricePerTsubo: 82,
-    technostructureUnitPriceIncrease: 4.8,
+    technostructureUnitPriceIncrease: 4.5,
     insulationUnitPriceIncrease: 3,
     demolitionCost: 250,
     defaultLandCost: 1000,
