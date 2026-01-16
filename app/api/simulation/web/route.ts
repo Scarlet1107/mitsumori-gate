@@ -32,12 +32,12 @@ export async function POST(request: Request) {
         }
 
         // 計算と正規化
-        const { config, normalizedInput, result } = await calculateFullSimulation(body);
+        const { normalizedInput, result } = await calculateFullSimulation(body);
 
         // 保存（Web入力のみ）
         let customerId: string | null = null;
         try {
-            customerId = await persistWebFormSubmission(body, result, config);
+            customerId = await persistWebFormSubmission(body, result, result.unitPricePerTsubo);
         } catch (dbError) {
             console.error("Failed to persist web form submission:", dbError);
             return NextResponse.json(

@@ -30,13 +30,11 @@ export async function POST(request: Request) {
             );
         }
 
-        const { config, normalizedInput, result } = await calculateFullSimulation(body);
+        const { normalizedInput, result } = await calculateFullSimulation(body);
 
         let customerId: string | null = null;
         try {
-            customerId = await persistInPersonSubmission(body, result, {
-                unitPricePerTsubo: config.unitPricePerTsubo,
-            });
+            customerId = await persistInPersonSubmission(body, result, result.unitPricePerTsubo);
         } catch (dbError) {
             console.error("Failed to persist inperson form submission:", dbError);
             return NextResponse.json(

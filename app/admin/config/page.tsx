@@ -9,11 +9,12 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { sortConfigs } from "@/lib/config-order";
-import { getConfigMeta } from "@/lib/config-metadata";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { BASE_CONFIG_ORDER, sortBaseConfigs, sortUnitPriceConfigs, type BaseConfigKey } from "@/lib/config-order";
+import { getConfigMeta, isUnitPriceTierKey, UNIT_PRICE_TIER_METADATA, type ConfigKey, type UnitPriceTierKey } from "@/lib/config-metadata";
 
 interface Config {
-    key: "unit_price_per_tsubo" | "technostructure_unit_price_increase" | "insulation_unit_price_increase" | "demolition_cost" | "default_land_cost" | "misc_cost" | "annual_interest_rate" | "repayment_interest_rate" | "dti_ratio";
+    key: ConfigKey;
     value: string;
     description: string | null;
 }
@@ -24,7 +25,18 @@ export default function AdminConfigPage() {
     const [loading, setLoading] = useState(true);
     const [saving, setSaving] = useState(false);
     const [error, setError] = useState<string | null>(null);
-    const orderedConfigs = useMemo(() => sortConfigs(configs), [configs]);
+    const orderedBaseConfigs = useMemo(() => {
+        const baseConfigs = configs.filter((config): config is Config & { key: BaseConfigKey } =>
+            BASE_CONFIG_ORDER.includes(config.key as BaseConfigKey)
+        );
+        return sortBaseConfigs(baseConfigs);
+    }, [configs]);
+    const orderedUnitPriceConfigs = useMemo(() => {
+        const tierConfigs = configs.filter((config): config is Config & { key: UnitPriceTierKey } =>
+            isUnitPriceTierKey(config.key)
+        );
+        return sortUnitPriceConfigs(tierConfigs);
+    }, [configs]);
 
     useEffect(() => {
         fetchConfigs();
@@ -72,11 +84,11 @@ export default function AdminConfigPage() {
         }
     };
 
-    const getUnitForKey = (key: string) => getConfigMeta(key as Config["key"])?.unit ?? "";
-    const getStepForKey = (key: string) => getConfigMeta(key as Config["key"])?.step ?? "1";
+    const getUnitForKey = (key: ConfigKey) => getConfigMeta(key)?.unit ?? "";
+    const getStepForKey = (key: ConfigKey) => getConfigMeta(key)?.step ?? "1";
 
     return (
-        <div className="container mx-auto max-w-2xl space-y-8 p-6">
+        <div className="container mx-auto max-w-5xl space-y-8 p-6">
             <div className="flex items-center justify-between">
                 <div>
                     <h1 className="text-3xl font-bold tracking-tight">設定値管理</h1>
@@ -97,71 +109,127 @@ export default function AdminConfigPage() {
                 </Card>
             )}
 
-            <Card>
-                <CardHeader>
-                    <CardTitle>設定項目</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-6">
-                    {loading ? (
-                        <div className="text-center">読み込み中...</div>
-                    ) : (
-                        <>
-                            {orderedConfigs.map((config) => {
-                                const meta = getConfigMeta(config.key);
-                                const labelText = meta?.description ?? config.description ?? config.key;
-                                const helpText = meta?.help;
-                                return (
-                                    <div key={config.key} className="space-y-2">
-                                        <div className="flex items-center gap-2">
-                                            <Label htmlFor={config.key}>
-                                                {labelText}
-                                            </Label>
-                                            {helpText ? (
-                                                <HoverCard openDelay={150}>
-                                                    <HoverCardTrigger asChild>
-                                                        <button
-                                                            type="button"
-                                                            className="inline-flex items-center text-muted-foreground transition hover:text-foreground"
-                                                            aria-label={`${labelText}の説明`}
-                                                        >
-                                                            <HelpCircle className="size-4" />
-                                                        </button>
-                                                    </HoverCardTrigger>
-                                                    <HoverCardContent className="w-72 text-sm leading-relaxed">
-                                                        {helpText}
-                                                    </HoverCardContent>
-                                                </HoverCard>
-                                            ) : null}
+            <div className="grid gap-6 lg:grid-cols-2">
+                <Card className="h-full">
+                    <CardHeader>
+                        <CardTitle>設定項目</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-6">
+                        {loading ? (
+                            <div className="text-center">読み込み中...</div>
+                        ) : (
+                            <>
+                                {orderedBaseConfigs.map((config) => {
+                                    const meta = getConfigMeta(config.key);
+                                    const labelText = meta?.description ?? config.description ?? config.key;
+                                    const helpText = meta?.help;
+                                    return (
+                                        <div key={config.key} className="space-y-2">
+                                            <div className="flex items-center gap-2">
+                                                <Label htmlFor={config.key}>
+                                                    {labelText}
+                                                </Label>
+                                                {helpText ? (
+                                                    <HoverCard openDelay={150}>
+                                                        <HoverCardTrigger asChild>
+                                                            <button
+                                                                type="button"
+                                                                className="inline-flex items-center text-muted-foreground transition hover:text-foreground"
+                                                                aria-label={`${labelText}の説明`}
+                                                            >
+                                                                <HelpCircle className="size-4" />
+                                                            </button>
+                                                        </HoverCardTrigger>
+                                                        <HoverCardContent className="w-72 text-sm leading-relaxed">
+                                                            {helpText}
+                                                        </HoverCardContent>
+                                                    </HoverCard>
+                                                ) : null}
+                                            </div>
+                                            <div className="flex items-center space-x-2">
+                                                <Input
+                                                    id={config.key}
+                                                    type="number"
+                                                    step={getStepForKey(config.key)}
+                                                    value={config.value}
+                                                    onChange={(e) => handleValueChange(config.key, e.target.value)}
+                                                    className="max-w-xs"
+                                                />
+                                                <span className="text-sm text-muted-foreground">
+                                                    {getUnitForKey(config.key)}
+                                                </span>
+                                            </div>
                                         </div>
-                                        <div className="flex items-center space-x-2">
-                                            <Input
-                                                id={config.key}
-                                                type="number"
-                                                step={getStepForKey(config.key)}
-                                                value={config.value}
-                                                onChange={(e) => handleValueChange(config.key, e.target.value)}
-                                                className="max-w-xs"
-                                            />
-                                            <span className="text-sm text-muted-foreground">
-                                                {getUnitForKey(config.key)}
-                                            </span>
-                                        </div>
-                                    </div>
-                                );
-                            })}
-                        </>
-                    )}
+                                    );
+                                })}
+                            </>
+                        )}
 
-                    <div className="flex justify-end space-x-4 pt-6">
-                        <Button asChild variant="outline">
-                            <Link href="/admin">キャンセル</Link>
-                        </Button>
-                        <Button onClick={handleSave} disabled={saving}>
-                            {saving ? "保存中..." : "保存"}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+
+                <Card className="h-full">
+                    <CardHeader>
+                        <CardTitle>坪単価設定</CardTitle>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                        <p className="text-sm text-muted-foreground">
+                            施工面積の上限ごとに適用する坪単価を設定します。
+                        </p>
+                        <div className="overflow-hidden rounded-lg border">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        <TableHead>施工面積（坪）</TableHead>
+                                        <TableHead>総額（万円）</TableHead>
+                                        <TableHead>坪単価（万円）</TableHead>
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {UNIT_PRICE_TIER_METADATA.map((meta) => {
+                                        const config = orderedUnitPriceConfigs.find((item) => item.key === meta.key);
+                                        const value = config?.value ?? meta.defaultValue;
+                                        const numericValue = Number(value);
+                                        const maxBudget = Number.isFinite(numericValue)
+                                            ? Math.round(numericValue * meta.maxTsubo)
+                                            : 0;
+                                        return (
+                                            <TableRow key={meta.key}>
+                                                <TableCell className="font-medium">〜{meta.maxTsubo}</TableCell>
+                                                <TableCell>〜{maxBudget}</TableCell>
+                                                <TableCell>
+                                                    <div className="flex items-center gap-2">
+                                                        <Input
+                                                            id={meta.key}
+                                                            type="number"
+                                                            step={meta.step ?? "0.1"}
+                                                            value={value}
+                                                            onChange={(e) => handleValueChange(meta.key, e.target.value)}
+                                                            className="max-w-[140px]"
+                                                        />
+                                                        <span className="text-xs text-muted-foreground">
+                                                            {meta.unit ?? "万円"}
+                                                        </span>
+                                                    </div>
+                                                </TableCell>
+                                            </TableRow>
+                                        );
+                                    })}
+                                </TableBody>
+                            </Table>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <div className="flex justify-end space-x-4">
+                <Button asChild variant="outline">
+                    <Link href="/admin">キャンセル</Link>
+                </Button>
+                <Button onClick={handleSave} disabled={saving}>
+                    {saving ? "保存中..." : "保存"}
+                </Button>
+            </div>
         </div>
     );
 }

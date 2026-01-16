@@ -64,7 +64,7 @@ export async function calculateFullSimulation(input: SimulationInputPayload) {
 export async function persistWebFormSubmission(
     formPayload: Record<string, unknown>,
     simulationResult: SimulationResult,
-    config: { unitPricePerTsubo: number }
+    unitPricePerTsubo: number
 ): Promise<string> {
     const customerInput = buildCustomerInput(formPayload);
 
@@ -86,7 +86,7 @@ export async function persistWebFormSubmission(
             estimatedSquareMeters: simulationResult.estimatedSquareMeters,
             interestRate: simulationResult.repaymentInterestRate,
             dtiRatio: simulationResult.dtiRatio,
-            unitPricePerTsubo: Math.round(config.unitPricePerTsubo),
+            unitPricePerTsubo: Math.round(unitPricePerTsubo),
         },
     });
 
@@ -96,7 +96,7 @@ export async function persistWebFormSubmission(
 export async function persistInPersonSubmission(
     formPayload: Record<string, unknown>,
     simulationResult: SimulationResult,
-    config: { unitPricePerTsubo: number }
+    unitPricePerTsubo: number
 ): Promise<string> {
     const customerId = getOptionalString(formPayload["customerId"]);
     const customerInput = buildCustomerInput(formPayload);
@@ -128,7 +128,7 @@ export async function persistInPersonSubmission(
             estimatedSquareMeters: simulationResult.estimatedSquareMeters,
             interestRate: simulationResult.repaymentInterestRate,
             dtiRatio: simulationResult.dtiRatio,
-            unitPricePerTsubo: Math.round(config.unitPricePerTsubo),
+            unitPricePerTsubo: Math.round(unitPricePerTsubo),
         },
     });
 

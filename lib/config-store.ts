@@ -1,6 +1,6 @@
 import { prisma } from "@/lib/prisma";
 import { AppConfig } from "./generated/prisma";
-import { CONFIG_METADATA } from "@/lib/config-metadata";
+import { CONFIG_METADATA, UNIT_PRICE_TIER_METADATA } from "@/lib/config-metadata";
 
 // 初期設定値
 const DEFAULT_CONFIGS: ReadonlyArray<{
@@ -89,12 +89,16 @@ export async function getTypedConfigs() {
         }
 
         const configMap = new Map(configs.map(c => [c.key, c.value]));
+        const unitPriceTiers = UNIT_PRICE_TIER_METADATA.map((tier) => ({
+            maxTsubo: tier.maxTsubo,
+            unitPrice: parseFloat(configMap.get(tier.key) || tier.defaultValue),
+        }));
 
         return {
             screeningInterestRate: parseFloat(configMap.get("annual_interest_rate") || "3"),
             repaymentInterestRate: parseFloat(configMap.get("repayment_interest_rate") || "0.8"),
             dtiRatio: parseFloat(configMap.get("dti_ratio") || "35"),
-            unitPricePerTsubo: parseFloat(configMap.get("unit_price_per_tsubo") || "82"),
+            unitPriceTiers,
             technostructureUnitPriceIncrease: parseFloat(
                 configMap.get("technostructure_unit_price_increase") || "4.5"
             ),
@@ -112,7 +116,10 @@ export async function getTypedConfigs() {
             screeningInterestRate: 3,
             repaymentInterestRate: 0.8,
             dtiRatio: 35,
-            unitPricePerTsubo: 82,
+            unitPriceTiers: UNIT_PRICE_TIER_METADATA.map((tier) => ({
+                maxTsubo: tier.maxTsubo,
+                unitPrice: parseFloat(tier.defaultValue),
+            })),
             technostructureUnitPriceIncrease: 4.5,
             insulationUnitPriceIncrease: 3,
             demolitionCost: 250,
