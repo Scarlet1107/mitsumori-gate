@@ -18,9 +18,44 @@ const DEFAULT_CONFIGS = [
     description: "DTI比率（%）",
   },
   {
-    key: "unit_price_per_tsubo",
-    value: "82",
-    description: "坪単価（万円）",
+    key: "unit_price_per_tsubo_upto_20",
+    value: "105",
+    description: "〜20坪 坪単価（万円）",
+  },
+  {
+    key: "unit_price_per_tsubo_upto_25",
+    value: "100",
+    description: "〜25坪 坪単価（万円）",
+  },
+  {
+    key: "unit_price_per_tsubo_upto_30",
+    value: "90",
+    description: "〜30坪 坪単価（万円）",
+  },
+  {
+    key: "unit_price_per_tsubo_upto_35",
+    value: "87",
+    description: "〜35坪 坪単価（万円）",
+  },
+  {
+    key: "unit_price_per_tsubo_upto_40",
+    value: "84",
+    description: "〜40坪 坪単価（万円）",
+  },
+  {
+    key: "unit_price_per_tsubo_upto_45",
+    value: "81",
+    description: "〜45坪 坪単価（万円）",
+  },
+  {
+    key: "unit_price_per_tsubo_upto_50",
+    value: "78",
+    description: "〜50坪 坪単価（万円）",
+  },
+  {
+    key: "unit_price_per_tsubo_upto_55",
+    value: "75",
+    description: "〜55坪 坪単価（万円）",
   },
   {
     key: "technostructure_unit_price_increase",

@@ -2,7 +2,10 @@ export interface SimulationConfig {
     screeningInterestRate: number; // %
     repaymentInterestRate: number; // %
     dtiRatio: number; // %
-    unitPricePerTsubo: number; // 万円
+    unitPriceTiers: Array<{
+        maxTsubo: number;
+        unitPrice: number;
+    }>;
     technostructureUnitPriceIncrease: number; // 万円
     insulationUnitPriceIncrease: number; // 万円
     demolitionCost: number; // 万円
@@ -48,6 +51,7 @@ export interface SimulationResult {
     miscCost: number; // 諸費用（固定）
     estimatedTsubo: number; // 想定延床面積（坪）
     estimatedSquareMeters: number; // 想定延床面積（平方メートル）
+    unitPricePerTsubo: number; // 適用した坪単価（万円）
     monthlyPaymentCapacity: number; // 月々の返済余力
     dtiRatio: number; // 返済比率（DTI）
     loanRatio: number; // 希望借入額 / 借入可能額 の比率
@@ -65,6 +69,23 @@ export interface SimulationResult {
 const SQM_PER_TSUBO = 3.305785;
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+function selectUnitPriceTier(
+    buildingBudget: number,
+    tiers: SimulationConfig["unitPriceTiers"]
+): { maxTsubo: number; unitPrice: number } {
+    if (tiers.length === 0) {
+        return { maxTsubo: 0, unitPrice: 0 };
+    }
+    const sorted = [...tiers].sort((a, b) => a.maxTsubo - b.maxTsubo);
+    for (const tier of sorted) {
+        const maxBudget = tier.maxTsubo * tier.unitPrice;
+        if (buildingBudget <= maxBudget) {
+            return tier;
+        }
+    }
+    return sorted[sorted.length - 1];
+}
 
 function calculateLoanAmount(monthlyPayment: number, monthlyRate: number, termMonths: number): number {
     if (monthlyPayment <= 0 || termMonths <= 0) {
@@ -118,9 +139,10 @@ export function calculateSimulation(input: SimulationInput, config: SimulationCo
 
     const miscCost = config.miscCost;
     const buildingBudget = Math.max(0, totalBudget - landCost - demolitionCost - miscCost);
+    const selectedTier = selectUnitPriceTier(buildingBudget, config.unitPriceTiers);
     const unitPriceAdjustment = (input.usesTechnostructure ? config.technostructureUnitPriceIncrease : 0)
         + (input.usesAdditionalInsulation ? config.insulationUnitPriceIncrease : 0);
-    const effectiveUnitPrice = config.unitPricePerTsubo + unitPriceAdjustment;
+    const effectiveUnitPrice = selectedTier.unitPrice + unitPriceAdjustment;
     const estimatedTsubo = effectiveUnitPrice > 0
         ? buildingBudget / effectiveUnitPrice
         : 0;
@@ -148,6 +170,7 @@ export function calculateSimulation(input: SimulationInput, config: SimulationCo
         miscCost,
         estimatedTsubo,
         estimatedSquareMeters,
+        unitPricePerTsubo: selectedTier.unitPrice,
         monthlyPaymentCapacity,
         dtiRatio: clamp(dtiRatio, 0, 1000),
         loanRatio: clamp(loanRatio, 0, Number.POSITIVE_INFINITY),
