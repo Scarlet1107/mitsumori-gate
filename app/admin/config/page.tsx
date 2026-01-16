@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { BASE_CONFIG_ORDER, sortBaseConfigs, sortUnitPriceConfigs, type BaseConfigKey } from "@/lib/config-order";
 import { getConfigMeta, isUnitPriceTierKey, UNIT_PRICE_TIER_METADATA, type ConfigKey, type UnitPriceTierKey } from "@/lib/config-metadata";
@@ -187,6 +188,20 @@ export default function AdminConfigPage() {
                                 </TableHeader>
                                 <TableBody>
                                     {UNIT_PRICE_TIER_METADATA.map((meta) => {
+                                        if (loading) {
+                                            return (
+                                                <TableRow key={meta.key}>
+                                                    <TableCell className="font-medium">〜{meta.maxTsubo}</TableCell>
+                                                    <TableCell>
+                                                        <Skeleton className="h-5 w-20" />
+                                                    </TableCell>
+                                                    <TableCell>
+                                                        <Skeleton className="h-9 w-[140px]" />
+                                                    </TableCell>
+                                                </TableRow>
+                                            );
+                                        }
+
                                         const config = orderedUnitPriceConfigs.find((item) => item.key === meta.key);
                                         const value = config?.value ?? meta.defaultValue;
                                         const numericValue = Number(value);
