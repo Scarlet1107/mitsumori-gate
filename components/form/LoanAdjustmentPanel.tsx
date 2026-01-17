@@ -122,8 +122,8 @@ export function LoanAdjustmentPanel({
 
     return (
         <div className="space-y-6">
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2 md:items-stretch">
-                <Card className="order-2 h-full p-6 md:col-span-2 md:order-1">
+            <div className="flex flex-col gap-6">
+                <Card className="p-6">
                     <div className="space-y-6">
                         <div>
                             <div className="flex justify-between items-center mb-2">
@@ -137,7 +137,7 @@ export function LoanAdjustmentPanel({
                             <Slider
                                 value={[currentMonthlyPayment]}
                                 onValueChange={(values: number[]) => handleSliderChange("monthly", values[0])}
-                                max={Math.min(simulationResult.monthlyPaymentCapacity * 1.2, 50)}
+                                max={Math.min(simulationResult.monthlyPaymentCapacity, 50)}
                                 min={5}
                                 step={1}
                                 className="w-full"
@@ -146,7 +146,9 @@ export function LoanAdjustmentPanel({
                             />
                             <div className="flex justify-between text-xs text-gray-500 mt-1">
                                 <span>5万円</span>
-                                <span>上限: {formatManWithOku(simulationResult.monthlyPaymentCapacity)}</span>
+                                <span>
+                                    上限: {formatManWithOku(Math.min(simulationResult.monthlyPaymentCapacity, 50))}
+                                </span>
                             </div>
                         </div>
                         <div>
@@ -180,12 +182,12 @@ export function LoanAdjustmentPanel({
                     loading={configLoading || calculating}
                     usesTechnostructure={form.usesTechnostructure}
                     usesAdditionalInsulation={form.usesAdditionalInsulation}
-                    className="order-1 h-full md:order-3"
+                    className=""
                 />
                 <PlanPreviewCard
                     buildingBudget={simulationResult.buildingBudget}
                     estimatedTsubo={simulationResult.estimatedTsubo}
-                    className="order-4 h-full md:order-4"
+                    className=""
                 />
             </div>
 
