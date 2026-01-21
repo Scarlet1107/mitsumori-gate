@@ -1,12 +1,21 @@
 import { describe, expect, it } from "@jest/globals";
 
-import { calculateSimulation, type SimulationConfig, type SimulationInput } from "@/lib/simulation/engine";
+import {
+    calculateSimulation,
+    type SimulationConfig,
+    type SimulationInput,
+} from "@/lib/simulation/engine";
 
 type ExpectedResult = {
-    [Key in keyof ReturnType<typeof calculateSimulation>]: ReturnType<typeof calculateSimulation>[Key];
+    [Key in keyof ReturnType<typeof calculateSimulation>]: ReturnType<
+        typeof calculateSimulation
+    >[Key];
 };
 
-const expectResultClose = (actual: ReturnType<typeof calculateSimulation>, expected: ExpectedResult) => {
+const expectResultClose = (
+    actual: ReturnType<typeof calculateSimulation>,
+    expected: ExpectedResult,
+) => {
     const keys = Object.keys(expected) as Array<keyof ExpectedResult>;
     for (const key of keys) {
         const actualValue = actual[key];

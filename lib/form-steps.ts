@@ -1,4 +1,9 @@
-import type { BaseFormData, InPersonFormData, ValidationResult, FormType } from "@/lib/form-types";
+import type {
+    BaseFormData,
+    InPersonFormData,
+    ValidationResult,
+    FormType,
+} from "@/lib/form-types";
 import { isValidPhoneNumber, normalizePhoneNumber } from "@/lib/phone";
 
 export type FormStepType =
@@ -43,10 +48,17 @@ const requirePhoneNumber = (value: string): ValidationResult => {
     }
     return isValidPhoneNumber(digits)
         ? { isValid: true }
-        : { isValid: false, error: "電話番号は数字のみで10〜11桁で入力してください" };
+        : {
+            isValid: false,
+            error: "電話番号は数字のみで10〜11桁で入力してください",
+        };
 };
 
-const requireNumber = (value: string, message: string, min = 0): ValidationResult => {
+const requireNumber = (
+    value: string,
+    message: string,
+    min = 0,
+): ValidationResult => {
     const parsed = Number(value);
     if (!Number.isFinite(parsed)) {
         return { isValid: false, error: message };
@@ -54,11 +66,18 @@ const requireNumber = (value: string, message: string, min = 0): ValidationResul
     return parsed >= min ? { isValid: true } : { isValid: false, error: message };
 };
 
-const requirePositiveNumber = (value: string, message: string): ValidationResult => {
+const requirePositiveNumber = (
+    value: string,
+    message: string,
+): ValidationResult => {
     return requireNumber(value, message, 0.01);
 };
 
-const allowEmptyNumber = (value: string, message: string, min = 0): ValidationResult => {
+const allowEmptyNumber = (
+    value: string,
+    message: string,
+    min = 0,
+): ValidationResult => {
     if (!value.trim()) {
         return { isValid: true };
     }
@@ -73,7 +92,7 @@ export const formPhases = [
     {
         id: 2,
         label: "STEP2",
-        title: "希望される返済額から予算の上限を見てみましょう",
+        title: "希望される返済月額と期間から予算の上限を見てみましょう",
     },
     {
         id: 3,
@@ -171,7 +190,8 @@ export const formSteps: FormStep[] = [
         inPersonOnly: true,
         field: "postalCode",
         phase: 1,
-        validate: (form) => requireText(form.postalCode, "郵便番号を入力してください"),
+        validate: (form) =>
+            requireText(form.postalCode, "郵便番号を入力してください"),
     },
     {
         id: "baseAddress",
@@ -192,7 +212,8 @@ export const formSteps: FormStep[] = [
         unit: "万円",
         field: "ownIncome",
         phase: 1,
-        validate: (form) => requirePositiveNumber(form.ownIncome, "年収を入力してください"),
+        validate: (form) =>
+            requirePositiveNumber(form.ownIncome, "年収を入力してください"),
     },
     {
         id: "ownLoanPayment",
@@ -203,7 +224,12 @@ export const formSteps: FormStep[] = [
         unit: "万円",
         field: "ownLoanPayment",
         phase: 1,
-        validate: (form) => allowEmptyNumber(form.ownLoanPayment, "借入返済額を入力してください（0以上）", 0),
+        validate: (form) =>
+            allowEmptyNumber(
+                form.ownLoanPayment,
+                "借入返済額を入力してください（0以上）",
+                0,
+            ),
     },
     {
         id: "spouse_question",
@@ -232,7 +258,8 @@ export const formSteps: FormStep[] = [
         field: "spouseName",
         phase: 1,
         isSkippable: (form) => form.hasSpouse !== true,
-        validate: (form) => requireText(form.spouseName, "配偶者のお名前を入力してください"),
+        validate: (form) =>
+            requireText(form.spouseName, "配偶者のお名前を入力してください"),
     },
     {
         id: "spouseAge",
@@ -243,7 +270,8 @@ export const formSteps: FormStep[] = [
         field: "spouseAge",
         phase: 1,
         isSkippable: (form) => form.hasSpouse !== true,
-        validate: (form) => requireNumber(form.spouseAge, "配偶者の年齢を入力してください", 18),
+        validate: (form) =>
+            requireNumber(form.spouseAge, "配偶者の年齢を入力してください", 18),
     },
     {
         id: "spouseIncome",
@@ -255,7 +283,12 @@ export const formSteps: FormStep[] = [
         field: "spouseIncome",
         phase: 1,
         isSkippable: (form) => form.hasSpouse !== true,
-        validate: (form) => requireNumber(form.spouseIncome, "配偶者の年収を入力してください（0以上）", 0),
+        validate: (form) =>
+            requireNumber(
+                form.spouseIncome,
+                "配偶者の年収を入力してください（0以上）",
+                0,
+            ),
     },
     {
         id: "spouseLoanPayment",
@@ -267,7 +300,12 @@ export const formSteps: FormStep[] = [
         field: "spouseLoanPayment",
         phase: 1,
         isSkippable: (form) => form.hasSpouse !== true,
-        validate: (form) => allowEmptyNumber(form.spouseLoanPayment, "配偶者の借入返済額を入力してください（0以上）", 0),
+        validate: (form) =>
+            allowEmptyNumber(
+                form.spouseLoanPayment,
+                "配偶者の借入返済額を入力してください（0以上）",
+                0,
+            ),
     },
     {
         id: "hasDownPayment",
@@ -295,7 +333,12 @@ export const formSteps: FormStep[] = [
         unit: "万円",
         field: "downPayment",
         phase: 1,
-        validate: (form) => allowEmptyNumber(form.downPayment, "自己資金を入力してください（0以上）", 0),
+        validate: (form) =>
+            allowEmptyNumber(
+                form.downPayment,
+                "自己資金を入力してください（0以上）",
+                0,
+            ),
     },
     {
         id: "budget_display",
@@ -314,7 +357,11 @@ export const formSteps: FormStep[] = [
         unit: "万円",
         field: "wishMonthlyPayment",
         phase: 2,
-        validate: (form) => requirePositiveNumber(form.wishMonthlyPayment, "希望返済月額を入力してください"),
+        validate: (form) =>
+            requirePositiveNumber(
+                form.wishMonthlyPayment,
+                "希望返済月額を入力してください",
+            ),
     },
     {
         id: "wishPaymentYears",
@@ -325,7 +372,8 @@ export const formSteps: FormStep[] = [
         unit: "年",
         field: "wishPaymentYears",
         phase: 2,
-        validate: (form) => requireNumber(form.wishPaymentYears, "希望返済年数を入力してください", 1),
+        validate: (form) =>
+            requireNumber(form.wishPaymentYears, "希望返済年数を入力してください", 1),
     },
     {
         id: "usesBonus",
@@ -335,7 +383,7 @@ export const formSteps: FormStep[] = [
         phase: 2,
         nextByAnswer: {
             true: "bonusPayment",
-            false: "hasLand",
+            false: "wish_budget_display",
         },
         onAnswer: (form, answer) => {
             return answer ? { bonusPayment: "" } : { bonusPayment: "0" };
@@ -351,14 +399,26 @@ export const formSteps: FormStep[] = [
         field: "bonusPayment",
         phase: 2,
         isSkippable: (form) => form.usesBonus !== true,
-        validate: (form) => allowEmptyNumber(form.bonusPayment, "ボーナス支払い金額を入力してください（0以上）", 0),
+        validate: (form) =>
+            allowEmptyNumber(
+                form.bonusPayment,
+                "ボーナス支払い金額を入力してください（0以上）",
+                0,
+            ),
     },
+    {
+        id: "wish_budget_display",
+        type: "display",
+        title: "あなたの希望予算",
+        phase: 2,
+    },
+    createPhaseIntroStep(3),
     {
         id: "hasLand",
         type: "question",
         title: "土地をお持ちですか？",
         field: "hasLand",
-        phase: 2,
+        phase: 3,
         nextByAnswer: {
             true: "hasExistingBuilding",
             false: "hasLandBudget",
@@ -380,7 +440,7 @@ export const formSteps: FormStep[] = [
         type: "question",
         title: "既存建築物はありますか？",
         field: "hasExistingBuilding",
-        phase: 2,
+        phase: 3,
         isSkippable: (form) => form.hasLand !== true,
     },
     {
@@ -388,7 +448,7 @@ export const formSteps: FormStep[] = [
         type: "question",
         title: "土地の予算は決めていますか？",
         field: "hasLandBudget",
-        phase: 2,
+        phase: 3,
         isSkippable: (form) => form.hasLand !== false,
         nextByAnswer: {
             true: "landBudget",
@@ -406,25 +466,30 @@ export const formSteps: FormStep[] = [
         placeholder: "例）1000",
         unit: "万円",
         field: "landBudget",
-        phase: 2,
-        isSkippable: (form) => form.hasLand !== false || form.hasLandBudget !== true,
-        validate: (form) => allowEmptyNumber(form.landBudget, "土地の予算を入力してください（0以上）", 0),
+        phase: 3,
+        isSkippable: (form) =>
+            form.hasLand !== false || form.hasLandBudget !== true,
+        validate: (form) =>
+            allowEmptyNumber(
+                form.landBudget,
+                "土地の予算を入力してください（0以上）",
+                0,
+            ),
     },
     {
         id: "usesTechnostructure",
         type: "question",
         title: "テクノストラクチャー工法をご希望ですか？",
         field: "usesTechnostructure",
-        phase: 2,
+        phase: 3,
     },
     {
         id: "usesAdditionalInsulation",
         type: "question",
         title: "付加断熱工法を採用しますか？",
         field: "usesAdditionalInsulation",
-        phase: 2,
+        phase: 3,
     },
-    createPhaseIntroStep(3),
     {
         id: "loan_display",
         type: "display",
@@ -489,12 +554,15 @@ export const initialInPersonFormData: InPersonFormData = {
 export function getFormSteps(
     formType: FormType,
     form: BaseFormData,
-    steps: FormStep[] = formSteps
+    steps: FormStep[] = formSteps,
 ): FormStep[] {
     return steps.filter((step) => isStepAvailable(formType, form, step));
 }
 
-export function validateStep(step: FormStep, form: BaseFormData): ValidationResult {
+export function validateStep(
+    step: FormStep,
+    form: BaseFormData,
+): ValidationResult {
     if (step.type === "display") {
         return { isValid: true };
     }
@@ -521,7 +589,7 @@ export function validateStep(step: FormStep, form: BaseFormData): ValidationResu
 export function isStepAvailable(
     formType: FormType,
     form: BaseFormData,
-    step: FormStep
+    step: FormStep,
 ): boolean {
     if (formType === "web" && step.inPersonOnly) return false;
     if (formType === "inperson" && step.webOnly) return false;

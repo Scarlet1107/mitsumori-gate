@@ -42,7 +42,10 @@ export default function LoanSliderDebugPage() {
     const [form, setForm] = useState<BaseFormData>(createDebugForm);
     const [error, setError] = useState<string | null>(null);
 
-    const updateField = (field: "wishMonthlyPayment" | "wishPaymentYears", value: string) => {
+    const updateField = (
+        field: "wishMonthlyPayment" | "wishPaymentYears" | "usesTechnostructure" | "usesAdditionalInsulation",
+        value: string | boolean,
+    ) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
 
@@ -52,12 +55,21 @@ export default function LoanSliderDebugPage() {
             `世帯年収: ${form.ownIncome}+${form.spouseIncome}万円`,
             `頭金: ${form.downPayment}万円 / ボーナス: ${form.bonusPayment}万円`,
         ];
-    }, [form.age, form.spouseAge, form.ownIncome, form.spouseIncome, form.downPayment, form.bonusPayment]);
+    }, [
+        form.age,
+        form.spouseAge,
+        form.ownIncome,
+        form.spouseIncome,
+        form.downPayment,
+        form.bonusPayment,
+    ]);
 
     return (
         <div className="mx-auto flex w-full max-w-6xl flex-col gap-8 px-6 py-10">
             <div className="space-y-2">
-                <h1 className="text-2xl font-bold text-gray-900">借入金額スライダー デバッグ</h1>
+                <h1 className="text-2xl font-bold text-gray-900">
+                    借入金額スライダー デバッグ
+                </h1>
                 <p className="text-sm text-gray-600">
                     借入条件の調整と試算結果の連動を確認するための検証ページです。
                 </p>

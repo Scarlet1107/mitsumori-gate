@@ -11,6 +11,7 @@ import {
     QuestionButtons,
 } from "@/components/form/FormFields";
 import { BudgetDisplay } from "@/components/form/BudgetDisplay";
+import { WishBudgetDisplay } from "@/components/form/WishBudgetDisplay";
 import { LoanAdjustmentPanel } from "@/components/form/LoanAdjustmentPanel";
 import { PhaseIntro } from "@/components/form/PhaseIntro";
 import type { FormStep } from "@/lib/form-steps";
@@ -128,6 +129,8 @@ export function FormStepRenderer<TFormData extends BaseFormData>({
         switch (step.id) {
             case "budget_display":
                 return <BudgetDisplay form={form} onError={onError} />;
+            case "wish_budget_display":
+                return <WishBudgetDisplay form={form} onError={onError} />;
             case "loan_display":
                 return (
                     <LoanAdjustmentPanel
