@@ -4,7 +4,7 @@ import DynamicBackground from "@/components/DynamicBackground";
 import { Toaster } from "@/components/ui/toaster";
 
 export const metadata: Metadata = {
-  title: "簡単家づくりシミュレーション",
+  title: "家づくりかんたんシミュレーション",
   description: "住宅ローンとプランニングの事前シミュレーション",
 };
 

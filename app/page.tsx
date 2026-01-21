@@ -15,7 +15,7 @@ export default function Home() {
       <Card className="w-full max-w-3xl text-center">
         <CardHeader className="flex flex-col items-center space-y-3 w-full">
           <span className="text-xs font-semibold uppercase tracking-[0.3em] text-muted-foreground">
-            家づくりシミュレーション
+            家づくりかんたんシミュレーション
           </span>
           <CardTitle className="text-3xl sm:text-4xl">
             住宅ローンとプランニングのシミュレーション
