@@ -43,8 +43,8 @@ export default function LoanSliderDebugPage() {
     const [error, setError] = useState<string | null>(null);
 
     const updateField = (
-        field: "wishMonthlyPayment" | "wishPaymentYears",
-        value: string,
+        field: "wishMonthlyPayment" | "wishPaymentYears" | "usesTechnostructure" | "usesAdditionalInsulation",
+        value: string | boolean,
     ) => {
         setForm((prev) => ({ ...prev, [field]: value }));
     };
