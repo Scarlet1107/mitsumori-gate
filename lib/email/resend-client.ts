@@ -157,7 +157,7 @@ ${customerName} 様
   return await sendEmail({
     to: recipientEmail,
     from: fromEmail,
-    subject: "【家づくりシミュレーション】結果レポートをお送りします",
+    subject: "【家づくりかんたんシミュレーション】結果レポートをお送りします",
     html: htmlContent,
     text: textContent,
     attachments: [

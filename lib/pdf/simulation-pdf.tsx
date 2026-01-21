@@ -327,7 +327,7 @@ export async function generatePDFBuffer(data: SimulationData): Promise<Buffer> {
     doc.setTextColor(127, 140, 141);
     drawJapaneseText(
         doc,
-        `家づくりシミュレーション | ${currentDate}`,
+        `家づくりかんたんシミュレーション | ${currentDate}`,
         pageWidth / 2,
         yPosition,
         { align: "center" },
