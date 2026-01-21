@@ -180,6 +180,26 @@ export async function generatePDFBuffer(data: SimulationData): Promise<Buffer> {
     doc.rect(20, yPosition, pageWidth - 40, 15, "FD");
     doc.setFontSize(12);
     doc.setFont(fontFamily, "bold");
+    drawJapaneseText(doc, "最大借入可能額", pageWidth / 2, yPosition + 5, {
+        align: "center",
+    });
+    doc.setFontSize(16);
+    doc.setTextColor(44, 62, 80);
+    drawJapaneseText(
+        doc,
+        formatManWithOku(data.result.maxLoanAmount),
+        pageWidth / 2,
+        yPosition + 11,
+        { align: "center" },
+    );
+    doc.setTextColor(0, 0, 0);
+    yPosition += 20;
+
+    doc.setFillColor(summaryFillColor.r, summaryFillColor.g, summaryFillColor.b);
+    doc.setDrawColor(226, 232, 240);
+    doc.rect(20, yPosition, pageWidth - 40, 15, "FD");
+    doc.setFontSize(12);
+    doc.setFont(fontFamily, "bold");
     drawJapaneseText(doc, "月々の返済額", pageWidth / 2, yPosition + 5, {
         align: "center",
     });
@@ -249,8 +269,11 @@ export async function generatePDFBuffer(data: SimulationData): Promise<Buffer> {
         ["年齢", `${data.age}歳`],
         ["年収（本人）", formatManWithOku(data.ownIncome)],
         ["年収（配偶者）", formatManWithOku(data.spouseIncome ?? 0)],
-        ["既存借入返済額（本人）", formatManWithOku(data.ownLoanPayment)],
-        ["既存借入返済額（配偶者）", formatManWithOku(data.spouseLoanPayment ?? 0)],
+        ["現在返済中のローンの月々返済額", formatManWithOku(data.ownLoanPayment)],
+        [
+            "配偶者の毎月の借り入れ返済額",
+            formatManWithOku(data.spouseLoanPayment ?? 0),
+        ],
         ["自己資金", formatManWithOku(data.downPayment)],
         ["希望返済月額", formatManWithOku(data.wishMonthlyPayment)],
         ["希望返済年数", `${data.wishPaymentYears}年`],
@@ -285,7 +308,7 @@ export async function generatePDFBuffer(data: SimulationData): Promise<Buffer> {
         data.usesTechnostructure,
         data.usesAdditionalInsulation,
     );
-    conditionRows.push(["仕様", specLabel]);
+    conditionRows.push(["住宅仕様", specLabel]);
 
     drawTable(doc, conditionRows, 20, yPosition, (pageWidth - 40) / 2);
     yPosition += conditionRows.length * 8 + 15;

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, JSX } from "react";
 import { Card } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
+import { Switch } from "@/components/ui/switch";
 import { PlanPreviewCard } from "@/components/PlanPreviewCard";
 import { useSimulationConfig } from "@/hooks/useSimulationConfig";
 import { formatManWithOku } from "@/lib/format";
@@ -21,7 +22,10 @@ type ResultDisplayProps = {
 
 interface LoanAdjustmentPanelProps {
     form: BaseFormData;
-    onFieldUpdate: (field: "wishMonthlyPayment" | "wishPaymentYears", value: string) => void;
+    onFieldUpdate: (
+        field: "wishMonthlyPayment" | "wishPaymentYears" | "usesTechnostructure" | "usesAdditionalInsulation",
+        value: string | boolean
+    ) => void;
     onError: (error: string | null) => void;
     ResultDisplay: (props: ResultDisplayProps) => JSX.Element;
     loadingMessage: string;
@@ -90,6 +94,13 @@ export function LoanAdjustmentPanel({
             setCurrentPaymentYears(value);
             onFieldUpdate("wishPaymentYears", value.toString());
         }
+    }, [onFieldUpdate]);
+
+    const handleToggleChange = useCallback((
+        field: "usesTechnostructure" | "usesAdditionalInsulation",
+        checked: boolean
+    ) => {
+        onFieldUpdate(field, checked);
     }, [onFieldUpdate]);
 
     if (configLoading || (showCalculatingState && calculating)) {
@@ -173,6 +184,26 @@ export function LoanAdjustmentPanel({
                             <div className="flex justify-between text-xs text-gray-500 mt-1">
                                 <span>10年</span>
                                 <span>50年</span>
+                            </div>
+                        </div>
+                        <div className="flex flex-wrap items-center justify-center gap-4">
+                            <div className="flex items-center justify-between gap-3 rounded-md border border-gray-200 px-3 py-2">
+                                    <span className="text-sm text-gray-700">テクノストラクチャー</span>
+                                    <Switch
+                                        checked={Boolean(form.usesTechnostructure)}
+                                        onCheckedChange={(checked) =>
+                                            handleToggleChange("usesTechnostructure", checked)
+                                        }
+                                    />
+                            </div>
+                            <div className="flex items-center justify-between gap-3 rounded-md border border-gray-200 px-3 py-2">
+                                    <span className="text-sm text-gray-700">付加断熱</span>
+                                    <Switch
+                                        checked={Boolean(form.usesAdditionalInsulation)}
+                                        onCheckedChange={(checked) =>
+                                            handleToggleChange("usesAdditionalInsulation", checked)
+                                        }
+                                    />
                             </div>
                         </div>
                     </div>

@@ -383,7 +383,7 @@ export const formSteps: FormStep[] = [
         phase: 2,
         nextByAnswer: {
             true: "bonusPayment",
-            false: "hasLand",
+            false: "wish_budget_display",
         },
         onAnswer: (form, answer) => {
             return answer ? { bonusPayment: "" } : { bonusPayment: "0" };
@@ -407,11 +407,18 @@ export const formSteps: FormStep[] = [
             ),
     },
     {
+        id: "wish_budget_display",
+        type: "display",
+        title: "あなたの希望予算",
+        phase: 2,
+    },
+    createPhaseIntroStep(3),
+    {
         id: "hasLand",
         type: "question",
         title: "土地をお持ちですか？",
         field: "hasLand",
-        phase: 2,
+        phase: 3,
         nextByAnswer: {
             true: "hasExistingBuilding",
             false: "hasLandBudget",
@@ -433,7 +440,7 @@ export const formSteps: FormStep[] = [
         type: "question",
         title: "既存建築物はありますか？",
         field: "hasExistingBuilding",
-        phase: 2,
+        phase: 3,
         isSkippable: (form) => form.hasLand !== true,
     },
     {
@@ -441,7 +448,7 @@ export const formSteps: FormStep[] = [
         type: "question",
         title: "土地の予算は決めていますか？",
         field: "hasLandBudget",
-        phase: 2,
+        phase: 3,
         isSkippable: (form) => form.hasLand !== false,
         nextByAnswer: {
             true: "landBudget",
@@ -459,7 +466,7 @@ export const formSteps: FormStep[] = [
         placeholder: "例）1000",
         unit: "万円",
         field: "landBudget",
-        phase: 2,
+        phase: 3,
         isSkippable: (form) =>
             form.hasLand !== false || form.hasLandBudget !== true,
         validate: (form) =>
@@ -474,16 +481,15 @@ export const formSteps: FormStep[] = [
         type: "question",
         title: "テクノストラクチャー工法をご希望ですか？",
         field: "usesTechnostructure",
-        phase: 2,
+        phase: 3,
     },
     {
         id: "usesAdditionalInsulation",
         type: "question",
         title: "付加断熱工法を採用しますか？",
         field: "usesAdditionalInsulation",
-        phase: 2,
+        phase: 3,
     },
-    createPhaseIntroStep(3),
     {
         id: "loan_display",
         type: "display",
