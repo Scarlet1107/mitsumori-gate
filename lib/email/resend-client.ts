@@ -23,6 +23,15 @@ export interface SendEmailOptions {
   attachments?: EmailAttachment[];
 }
 
+function buildAdminUrl(): string {
+  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || "";
+  if (!baseUrl) {
+    return "/admin";
+  }
+  const normalized = baseUrl.endsWith("/") ? baseUrl.slice(0, -1) : baseUrl;
+  return `${normalized}/admin`;
+}
+
 /**
  * メール送信のラッパー関数
  */
@@ -55,6 +64,59 @@ export async function sendEmail(options: SendEmailOptions) {
       error: error instanceof Error ? error.message : "Unknown error",
     };
   }
+}
+
+/**
+ * 社内向け: Web見積もり完了通知
+ */
+export async function sendCompanyWebCompletionEmail(
+  recipientEmail: string,
+  customerName: string,
+) {
+  const fromEmail = process.env.RESEND_FROM_EMAIL || "noreply@yourdomain.com";
+  const adminUrl = buildAdminUrl();
+
+  const htmlContent = `
+    <!DOCTYPE html>
+    <html lang="ja">
+    <head>
+      <meta charset="UTF-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <title>Web見積もり完了通知</title>
+    </head>
+    <body style="font-family: 'Hiragino Kaku Gothic Pro', 'ヒラギノ角ゴ Pro W3', Meiryo, sans-serif; line-height: 1.6; margin: 0; padding: 20px; background-color: #f5f5f5;">
+      <div style="max-width: 600px; margin: 0 auto; background-color: white; padding: 30px; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
+        <h1 style="color: #2c3e50; margin-top: 0; font-size: 20px;">Web見積もり完了通知</h1>
+        <p style="color: #34495e; font-size: 16px; margin: 0 0 15px 0;">
+          <strong>${customerName}</strong> 様がWebでの見積もりを完了しました。
+        </p>
+        <p style="color: #34495e; margin: 0 0 20px 0;">
+          社内管理画面にアクセスして、詳細をご確認ください。
+        </p>
+        <p style="margin: 0;">
+          <a href="${adminUrl}" style="background-color: #2c3e50; color: white; text-decoration: none; padding: 10px 20px; border-radius: 6px; display: inline-block;">
+            管理画面を開く
+          </a>
+        </p>
+      </div>
+    </body>
+    </html>
+  `;
+
+  const textContent = `
+${customerName} 様がWebでの見積もりを完了しました。
+
+社内管理画面にアクセスして、詳細をご確認ください。
+${adminUrl}
+  `;
+
+  return await sendEmail({
+    to: recipientEmail,
+    from: fromEmail,
+    subject: "【家づくり簡単シミュレーション】お客様のWeb見積もりが完了しました",
+    html: htmlContent,
+    text: textContent,
+  });
 }
 
 /**

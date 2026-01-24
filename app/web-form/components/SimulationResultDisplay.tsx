@@ -93,7 +93,7 @@ export function SimulationResultDisplay({
             {/* 建築プラン */}
             <div className="space-y-2">
                 <h4 className="font-semibold text-gray-800">建築プラン目安</h4>
-                <div className="grid grid-cols-2 gap-4 text-center">
+                <div className="grid grid-cols-3 gap-4 text-center">
                     <div>
                         <p className="text-sm text-gray-600">建築費用</p>
                         <p className="font-bold">
@@ -116,8 +116,17 @@ export function SimulationResultDisplay({
                             />
                         </p>
                     </div>
-                </div>
-                <div className="grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p className="text-sm text-gray-600">推定床面積</p>
+                        <p className="font-bold">
+                            <LoadingNumber
+                                loading={loading}
+                                value={simulationResult ? `${simulationResult.estimatedSquareMeters.toFixed(1)}㎡` : "---㎡"}
+                                skeletonWidth="w-12"
+                                skeletonHeight="h-5"
+                            />
+                        </p>
+                    </div>
                     <div>
                         <p className="text-sm text-gray-600">土地代</p>
                         <p className="font-bold">
@@ -151,20 +160,7 @@ export function SimulationResultDisplay({
                             />
                         </p>
                     </div>
-                </div>
-                <div className="grid grid-cols-2 gap-4 text-center">
-                    <div>
-                        <p className="text-sm text-gray-600">推定床面積</p>
-                        <p className="font-bold">
-                            <LoadingNumber
-                                loading={loading}
-                                value={simulationResult ? `${simulationResult.estimatedSquareMeters.toFixed(1)}㎡` : "---㎡"}
-                                skeletonWidth="w-12"
-                                skeletonHeight="h-5"
-                            />
-                        </p>
-                    </div>
-                    <div>
+                    <div className="col-span-3 text-left">
                         <p className="text-sm text-gray-600">仕様</p>
                         <p className="font-bold text-emerald-700">
                             {specLabel}
