@@ -40,6 +40,7 @@
    - `RESEND_API_KEY` / `RESEND_FROM_EMAIL` … PDFメール送信用（未設定なら送信スキップ）
    - `CONTACT_PHONE` / `CONTACT_EMAIL` … メール本文の連絡先表示
    - `PDF_JP_FONT_PATH` … 日本語フォントのパス（デフォルトで同梱フォントを参照）
+   - `COMPANY_NOTIFICATION_EMAIL` … Web完了時の社内通知メール送信先（未設定なら送信スキップ）
 4) DBマイグレーション  
    ```bash
    npx prisma migrate dev --name init

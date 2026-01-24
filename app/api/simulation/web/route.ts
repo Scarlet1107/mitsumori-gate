@@ -69,6 +69,27 @@ export async function POST(request: Request) {
             console.log("Email skipped (missing name or email)");
         }
 
+        // 社内向け通知（Web完了のみ・環境変数がある場合のみ）
+        const companyNotificationEmail = process.env.COMPANY_NOTIFICATION_EMAIL;
+        if (companyNotificationEmail) {
+            try {
+                const { sendCompanyWebCompletionEmail } = await import("@/lib/email/resend-client");
+                const result = await sendCompanyWebCompletionEmail(
+                    companyNotificationEmail,
+                    normalizedInput.name ?? ""
+                );
+                if (result.success) {
+                    console.log(`Company notification email sent to ${companyNotificationEmail}`);
+                } else {
+                    console.error(`Company notification email failed: ${result.error}`);
+                }
+            } catch (emailError) {
+                console.error("Company notification email error:", emailError);
+            }
+        } else {
+            console.log("Company notification email skipped (missing COMPANY_NOTIFICATION_EMAIL)");
+        }
+
         return NextResponse.json({
             ...result,
             customerId: customerId ?? undefined,
