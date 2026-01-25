@@ -13,7 +13,8 @@ import {
 type PlanPreview = {
     id: string;
     title: string;
-    tsuboMax: number;
+    tsuboMin?: number;
+    tsuboMax?: number;
     images: {
         src: string;
         alt: string;
@@ -23,178 +24,85 @@ type PlanPreview = {
 
 const PLAN_PREVIEWS: PlanPreview[] = [
     {
-        id: "tsubo-20",
-        title: "20坪以下プラン",
-        tsuboMax: 20,
-        images: [
-            {
-                src: "/plan-previews/tsubo-20-1f.svg",
-                alt: "20坪以下 1F 平面図",
-                label: "1F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-20-2f.svg",
-                alt: "20坪以下 2F 平面図",
-                label: "2F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-20-exterior.svg",
-                alt: "20坪以下 外観イメージ",
-                label: "外観CG",
-            },
-        ],
-    },
-    {
-        id: "tsubo-25",
-        title: "25坪以下プラン",
+        id: "tsubo-20-25",
+        title: "20〜25坪プラン",
         tsuboMax: 25,
         images: [
             {
-                src: "/plan-previews/tsubo-25-1f.svg",
-                alt: "25坪以下 1F 平面図",
-                label: "1F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-25-2f.svg",
-                alt: "25坪以下 2F 平面図",
-                label: "2F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-25-exterior.svg",
-                alt: "25坪以下 外観イメージ",
-                label: "外観CG",
+                src: "/plan-previews/tsubo-20-25.jpg",
+                alt: "20〜25坪 プランイメージ",
+                label: "プランイメージ",
             },
         ],
     },
     {
-        id: "tsubo-30",
-        title: "30坪以下プラン",
+        id: "tsubo-26-30",
+        title: "26〜30坪プラン",
         tsuboMax: 30,
         images: [
             {
-                src: "/plan-previews/tsubo-30-1f.svg",
-                alt: "30坪以下 1F 平面図",
-                label: "1F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-30-2f.svg",
-                alt: "30坪以下 2F 平面図",
-                label: "2F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-30-exterior.svg",
-                alt: "30坪以下 外観イメージ",
-                label: "外観CG",
+                src: "/plan-previews/tsubo-26-30.jpg",
+                alt: "26〜30坪 プランイメージ",
+                label: "プランイメージ",
             },
         ],
     },
     {
-        id: "tsubo-35",
-        title: "35坪以下プラン",
-        tsuboMax: 35,
+        id: "tsubo-31-34",
+        title: "31〜34坪プラン",
+        tsuboMax: 34,
         images: [
             {
-                src: "/plan-previews/tsubo-35-1f.svg",
-                alt: "35坪以下 1F 平面図",
-                label: "1F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-35-2f.svg",
-                alt: "35坪以下 2F 平面図",
-                label: "2F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-35-exterior.svg",
-                alt: "35坪以下 外観イメージ",
-                label: "外観CG",
+                src: "/plan-previews/tsubo-31-34.jpg",
+                alt: "31〜34坪 プランイメージ",
+                label: "プランイメージ",
             },
         ],
     },
     {
-        id: "tsubo-40",
-        title: "40坪以下プラン",
-        tsuboMax: 40,
+        id: "tsubo-35-36",
+        title: "35〜36坪プラン",
+        tsuboMax: 35.99,
         images: [
             {
-                src: "/plan-previews/tsubo-40-1f.svg",
-                alt: "40坪以下 1F 平面図",
-                label: "1F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-40-2f.svg",
-                alt: "40坪以下 2F 平面図",
-                label: "2F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-40-exterior.svg",
-                alt: "40坪以下 外観イメージ",
-                label: "外観CG",
+                src: "/plan-previews/tsubo-35-36.jpg",
+                alt: "35〜36坪 プランイメージ",
+                label: "プランイメージ",
             },
         ],
     },
     {
-        id: "tsubo-45",
-        title: "45坪以下プラン",
-        tsuboMax: 45,
+        id: "tsubo-36",
+        title: "36坪プラン",
+        tsuboMin: 36,
+        tsuboMax: 37.99,
         images: [
             {
-                src: "/plan-previews/tsubo-45-1f.svg",
-                alt: "45坪以下 1F 平面図",
-                label: "1F 平面図",
+                src: "/plan-previews/tsubo-36-2.jpg",
+                alt: "36坪 プランイメージ パターン1",
+                label: "パターン1",
             },
             {
-                src: "/plan-previews/tsubo-45-2f.svg",
-                alt: "45坪以下 2F 平面図",
-                label: "2F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-45-exterior.svg",
-                alt: "45坪以下 外観イメージ",
-                label: "外観CG",
+                src: "/plan-previews/tsubo-36-3.jpg",
+                alt: "36坪 プランイメージ パターン2",
+                label: "パターン2",
             },
         ],
     },
     {
-        id: "tsubo-50",
-        title: "50坪以下プラン",
-        tsuboMax: 50,
+        id: "tsubo-38",
+        title: "38坪プラン",
+        tsuboMin: 38,
         images: [
             {
-                src: "/plan-previews/tsubo-50-1f.svg",
-                alt: "50坪以下 1F 平面図",
-                label: "1F 平面図",
+                src: "/plan-previews/tsubo-38-0.jpg",
+                alt: "38坪 プランイメージ パターン1",
+                label: "パターン1",
             },
             {
-                src: "/plan-previews/tsubo-50-2f.svg",
-                alt: "50坪以下 2F 平面図",
-                label: "2F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-50-exterior.svg",
-                alt: "50坪以下 外観イメージ",
-                label: "外観CG",
-            },
-        ],
-    },
-    {
-        id: "tsubo-55",
-        title: "55坪以下プラン",
-        tsuboMax: 55,
-        images: [
-            {
-                src: "/plan-previews/tsubo-55-1f.svg",
-                alt: "55坪以下 1F 平面図",
-                label: "1F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-55-2f.svg",
-                alt: "55坪以下 2F 平面図",
-                label: "2F 平面図",
-            },
-            {
-                src: "/plan-previews/tsubo-55-exterior.svg",
-                alt: "55坪以下 外観イメージ",
-                label: "外観CG",
+                src: "/plan-previews/tsubo-38-1.jpg",
+                alt: "38坪 プランイメージ パターン2",
+                label: "パターン2",
             },
         ],
     },
@@ -202,7 +110,9 @@ const PLAN_PREVIEWS: PlanPreview[] = [
 
 const pickPlanPreview = (estimatedTsubo: number) => {
     for (const preview of PLAN_PREVIEWS) {
-        if (estimatedTsubo <= preview.tsuboMax) {
+        const meetsMin = preview.tsuboMin === undefined || estimatedTsubo >= preview.tsuboMin;
+        const meetsMax = preview.tsuboMax === undefined || estimatedTsubo <= preview.tsuboMax;
+        if (meetsMin && meetsMax) {
             return preview;
         }
     }
@@ -246,7 +156,7 @@ export function PlanPreviewCard({
                                         priority
                                     />
                                 </DialogTrigger>
-                                <DialogContent>
+                                <DialogContent className="w-[90vw] max-w-[90vw] h-[90vh] max-h-[90vh]">
                                     <DialogHeader>
                                         <DialogTitle>
                                             <div>

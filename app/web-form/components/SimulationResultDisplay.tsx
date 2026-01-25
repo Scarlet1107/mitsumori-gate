@@ -29,7 +29,7 @@ export function SimulationResultDisplay({
         if (usesTechnostructure === null || usesTechnostructure === undefined) {
             return "未選択";
         }
-        const base = usesTechnostructure ? "テクノストラクチャー + 長期優良住宅" : "長期優良住宅仕様";
+        const base = usesTechnostructure ? "長期優良住宅 + テクノストラクチャー" : "長期優良住宅仕様";
         if (usesAdditionalInsulation) {
             return `${base} + 付加断熱`;
         }
@@ -161,7 +161,7 @@ export function SimulationResultDisplay({
                         </p>
                     </div>
                     <div className="col-span-3 text-left">
-                        <p className="text-sm text-gray-600">仕様</p>
+                        <p className="text-sm text-gray-600">選択仕様</p>
                         <p className="font-bold text-emerald-700">
                             {specLabel}
                         </p>

@@ -135,6 +135,7 @@ export async function persistInPersonSubmission(
     return finalCustomerId;
 }
 
+// pdf用にデータ整形する関数
 export function buildSimulationData(
     normalizedInput: SimulationInput,
     result: SimulationResult

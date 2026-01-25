@@ -33,6 +33,7 @@ export function useForm<TFormData extends BaseFormData>(
     const [errors, setErrors] = useState<string | null>(null);
     const [loading, setLoading] = useState(false);
     const [history, setHistory] = useState<string[]>([]);
+    const [isTransitioning, setIsTransitioning] = useState(false);
     const [isRestored, setIsRestored] = useState(disablePersistence);
     const shouldUseCookies = formType === "inperson";
 
@@ -45,6 +46,8 @@ export function useForm<TFormData extends BaseFormData>(
     const [debounceTimer, setDebounceTimer] = useState<NodeJS.Timeout | null>(null);
     const autoProgressTimerRef = useRef<NodeJS.Timeout | null>(null);
     const autoProgressValueRef = useRef<boolean | undefined>(undefined);
+    const transitionLockRef = useRef(false);
+    const transitionTimerRef = useRef<NodeJS.Timeout | null>(null);
 
     // タイマーのクリーンアップ
     useEffect(() => {
@@ -53,6 +56,7 @@ export function useForm<TFormData extends BaseFormData>(
                 clearTimeout(autoProgressTimerRef.current);
             }
             if (debounceTimer) clearTimeout(debounceTimer);
+            if (transitionTimerRef.current) clearTimeout(transitionTimerRef.current);
         };
     }, [debounceTimer]);
 
@@ -219,6 +223,9 @@ export function useForm<TFormData extends BaseFormData>(
     }, [activeStep, form, formType, steps]);
 
     const handleNext = useCallback((selectedValue?: boolean) => {
+        if (transitionLockRef.current) {
+            return;
+        }
         const skipValidation = activeStep.type === "question" && typeof selectedValue === "boolean";
         if (activeStep.type !== "display" && !skipValidation && !validateCurrentStep().isValid) {
             return;
@@ -235,6 +242,16 @@ export function useForm<TFormData extends BaseFormData>(
 
         setDirection(1);
         setCurrentStepId(targetStep.id);
+        transitionLockRef.current = true;
+        setIsTransitioning(true);
+        if (transitionTimerRef.current) {
+            clearTimeout(transitionTimerRef.current);
+        }
+        transitionTimerRef.current = setTimeout(() => {
+            transitionLockRef.current = false;
+            setIsTransitioning(false);
+            transitionTimerRef.current = null;
+        }, 250);
         setHistory((prev) => {
             if (prev[prev.length - 1] === activeStep.id) {
                 return prev;
@@ -245,6 +262,9 @@ export function useForm<TFormData extends BaseFormData>(
 
     // 前に戻る
     const handlePrevious = useCallback(() => {
+        if (transitionLockRef.current) {
+            return;
+        }
         setHistory((prev) => {
             const nextHistory = [...prev];
             let candidateId: string | undefined;
@@ -261,6 +281,16 @@ export function useForm<TFormData extends BaseFormData>(
             if (candidateId) {
                 setDirection(-1);
                 setCurrentStepId(candidateId);
+                transitionLockRef.current = true;
+                setIsTransitioning(true);
+                if (transitionTimerRef.current) {
+                    clearTimeout(transitionTimerRef.current);
+                }
+                transitionTimerRef.current = setTimeout(() => {
+                    transitionLockRef.current = false;
+                    setIsTransitioning(false);
+                    transitionTimerRef.current = null;
+                }, 250);
                 return nextHistory;
             }
 
@@ -268,6 +298,16 @@ export function useForm<TFormData extends BaseFormData>(
             if (fallback) {
                 setDirection(-1);
                 setCurrentStepId(fallback.id);
+                transitionLockRef.current = true;
+                setIsTransitioning(true);
+                if (transitionTimerRef.current) {
+                    clearTimeout(transitionTimerRef.current);
+                }
+                transitionTimerRef.current = setTimeout(() => {
+                    transitionLockRef.current = false;
+                    setIsTransitioning(false);
+                    transitionTimerRef.current = null;
+                }, 250);
             }
             return nextHistory;
         });
@@ -416,6 +456,7 @@ export function useForm<TFormData extends BaseFormData>(
         isLastStep: currentStepIndex === visibleSteps.length - 1,
         isFirstStep: currentStepIndex === 0,
         canProceed: canProceed(),
+        isTransitioning,
     };
 }
 

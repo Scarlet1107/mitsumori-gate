@@ -67,6 +67,7 @@ export default function InPersonForm({
         isLastStep,
         isFirstStep,
         canProceed,
+        isTransitioning,
         resetForm,
     } = useForm({
         steps: formSteps,
@@ -321,6 +322,7 @@ export default function InPersonForm({
             onPrevious={handlePrevious}
             onNext={handleNext}
             onComplete={handleComplete}
+            navigationDisabled={isTransitioning}
 
             // タイトル・説明
             title={activeStep.displayVariant === "phase_intro" ? undefined : activeStep.title}
