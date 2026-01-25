@@ -18,7 +18,7 @@ import {
 function DoneContent() {
     const searchParams = useSearchParams();
     const mode = searchParams.get("mode");
-    const homeUrl = process.env.NEXT_PUBLIC_BASE_URL || "/";
+    const homeUrl = process.env.NEXT_PUBLIC_CORPORATE_HOME_URL || "/";
 
     const messages = {
         web: "ご入力ありがとうございました。より詳しい資金計画や土地・間取りのご相談は、対面にて丁寧にご案内いたします。ぜひお気軽にお問い合わせください。",
@@ -85,7 +85,7 @@ export default function DonePage() {
                         </CardHeader>
                         <CardContent className="pt-2 pb-6">
                             <Button asChild size="lg" className="rounded-full px-8">
-                                <Link href={process.env.NEXT_PUBLIC_BASE_URL || "/"}>
+                                <Link href={process.env.NEXT_PUBLIC_CORPORATE_HOME_URL || "/"}>
                                     ホームへ戻る
                                 </Link>
                             </Button>
