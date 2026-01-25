@@ -156,7 +156,7 @@ export function PlanPreviewCard({
                                         priority
                                     />
                                 </DialogTrigger>
-                                <DialogContent>
+                                <DialogContent className="w-[90vw] max-w-[90vw] h-[90vh] max-h-[90vh]">
                                     <DialogHeader>
                                         <DialogTitle>
                                             <div>

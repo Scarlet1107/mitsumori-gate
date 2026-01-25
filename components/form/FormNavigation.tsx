@@ -4,6 +4,17 @@
 
 import { memo } from "react";
 import { Button } from "@/components/ui/button";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 import { ChevronLeft, ChevronRight, Check, Loader2 } from "lucide-react";
 
 interface FormNavigationProps {
@@ -84,24 +95,43 @@ export const FormNavigation = memo<FormNavigationProps>(
 
                 {/* 次へ/完了ボタン */}
                 {isLastStep ? (
-                    <Button
-                        type="button"
-                        onClick={handleComplete}
-                        disabled={loading || disabled || !canProceed}
-                        className="flex items-center gap-2"
-                    >
-                        {loading ? (
-                            <>
-                                <Loader2 className="w-4 h-4 animate-spin" />
-                                結果をメールにお送りしています...
-                            </>
-                        ) : (
-                            <>
-                                <Check className="w-4 h-4" />
-                                {completeText}
-                            </>
-                        )}
-                    </Button>
+                    loading ? (
+                        <Button
+                            type="button"
+                            disabled
+                            className="flex items-center gap-2"
+                        >
+                            <Loader2 className="w-4 h-4 animate-spin" />
+                            結果をメールにお送りしています...
+                        </Button>
+                    ) : (
+                        <AlertDialog>
+                            <AlertDialogTrigger asChild>
+                                <Button
+                                    type="button"
+                                    disabled={disabled || !canProceed}
+                                    className="flex items-center gap-2"
+                                >
+                                    <Check className="w-4 h-4" />
+                                    {completeText}
+                                </Button>
+                            </AlertDialogTrigger>
+                            <AlertDialogContent>
+                                <AlertDialogHeader>
+                                    <AlertDialogTitle>送信確認</AlertDialogTitle>
+                                    <AlertDialogDescription>
+                                        今回の結果をメールにてお知らせいたします。よろしいですか？
+                                    </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                    <AlertDialogCancel>戻る</AlertDialogCancel>
+                                    <AlertDialogAction onClick={handleComplete}>
+                                        送信する
+                                    </AlertDialogAction>
+                                </AlertDialogFooter>
+                            </AlertDialogContent>
+                        </AlertDialog>
+                    )
                 ) : (
                     <Button
                         type="button"

@@ -3,6 +3,7 @@ import { getCustomerById } from "@/lib/customer-store";
 import { getTypedConfigs } from "@/lib/config-store";
 import { calculateSimulation, type SimulationInput } from "@/lib/simulation/engine";
 import { generatePDFBuffer, type SimulationData } from "@/lib/pdf/simulation-pdf";
+import { buildSimulationData } from "@/app/api/simulation/shared";
 
 const toNumber = (value?: number | null): number => {
     if (typeof value === "number" && Number.isFinite(value)) {
@@ -33,6 +34,8 @@ export async function GET(
         const config = await getTypedConfigs();
 
         const simulationInput: SimulationInput = {
+            name: customer.name,
+            email: customer.email ?? "",
             age: toNumber(customer.age),
             spouseAge: toNumber(customer.spouseAge),
             ownIncome: toNumber(customer.ownIncome),
@@ -43,6 +46,7 @@ export async function GET(
             wishMonthlyPayment: toNumber(customer.wishMonthlyPayment),
             wishPaymentYears: toNumber(customer.wishPaymentYears) || 35,
             usesBonus: toBoolean(customer.usesBonus, false),
+            bonusPayment: toNumber(customer.bonusPayment),
             hasLand: toBoolean(customer.hasLand, false),
             hasExistingBuilding: toBoolean(customer.hasExistingBuilding, false),
             hasLandBudget: toBoolean(customer.hasLandBudget, false),
@@ -53,52 +57,14 @@ export async function GET(
 
         const simulationResult = await calculateSimulation(simulationInput, config);
 
+        const baseSimulationData = buildSimulationData(simulationInput, simulationResult);
         const simulationData: SimulationData = {
-            customerName: customer.name,
-            email: customer.email || "",
-            age: simulationInput.age,
-            ownIncome: simulationInput.ownIncome,
-            spouseIncome: simulationInput.spouseIncome,
-            ownLoanPayment: simulationInput.ownLoanPayment,
-            spouseLoanPayment: simulationInput.spouseLoanPayment,
-            downPayment: simulationInput.downPayment,
-            wishMonthlyPayment: simulationInput.wishMonthlyPayment,
-            wishPaymentYears: simulationInput.wishPaymentYears,
-            hasSpouse: toBoolean(customer.hasSpouse, false),
-            usesBonus: simulationInput.usesBonus ?? false,
-            hasLand: simulationInput.hasLand ?? false,
-            usesTechnostructure: simulationInput.usesTechnostructure ?? false,
-            usesAdditionalInsulation: simulationInput.usesAdditionalInsulation ?? false,
+            ...baseSimulationData,
             phone: customer.phone ?? "",
             postalCode: customer.postalCode ?? "",
             address: customer.detailAddress
                 ? `${customer.baseAddress ?? ""}${customer.detailAddress}`
                 : (customer.baseAddress ?? ""),
-            hasExistingBuilding: simulationInput.hasExistingBuilding ?? false,
-            hasLandBudget: simulationInput.hasLandBudget ?? false,
-            landBudget: simulationInput.landBudget ?? 0,
-            bonusPayment: simulationInput.bonusPayment ?? 0,
-            result: {
-                maxLoanAmount: simulationResult.maxLoanAmount,
-                wishLoanAmount: simulationResult.wishLoanAmount,
-                totalBudget: simulationResult.totalBudget,
-                buildingBudget: simulationResult.buildingBudget,
-                estimatedTsubo: simulationResult.estimatedTsubo,
-                estimatedSquareMeters: simulationResult.estimatedSquareMeters,
-                landCost: simulationResult.landCost,
-                demolitionCost: simulationResult.demolitionCost,
-                miscCost: simulationResult.miscCost,
-                monthlyPaymentCapacity: simulationResult.monthlyPaymentCapacity,
-                dtiRatio: simulationResult.dtiRatio,
-                loanRatio: simulationResult.loanRatio,
-                totalPayment: simulationResult.totalPayment,
-                totalInterest: simulationResult.totalInterest,
-                maxLoanTotalPayment: simulationResult.maxLoanTotalPayment,
-                maxLoanTotalInterest: simulationResult.maxLoanTotalInterest,
-                screeningInterestRate: simulationResult.screeningInterestRate,
-                repaymentInterestRate: simulationResult.repaymentInterestRate,
-                loanTerm: simulationResult.loanTerm,
-            }
         };
 
         const pdfBuffer = await generatePDFBuffer(simulationData);
