@@ -308,7 +308,7 @@ export async function generatePDFBuffer(data: SimulationData): Promise<Buffer> {
         data.usesTechnostructure,
         data.usesAdditionalInsulation,
     );
-    conditionRows.push(["住宅仕様", specLabel]);
+    conditionRows.push(["選択仕様", specLabel]);
 
     drawTable(doc, conditionRows, 20, yPosition, (pageWidth - 40) / 2);
     yPosition += conditionRows.length * 8 + 15;
@@ -416,7 +416,7 @@ function buildSpecLabel(
     usesAdditionalInsulation?: boolean,
 ): string {
     const base = usesTechnostructure
-        ? "テクノストラクチャー + 長期優良住宅"
+        ? "長期優良住宅 + テクノストラクチャー"
         : "長期優良住宅仕様";
     return usesAdditionalInsulation ? `${base} + 付加断熱` : base;
 }
