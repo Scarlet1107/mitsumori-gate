@@ -39,6 +39,7 @@ export default function WebForm() {
         isLastStep,
         isFirstStep,
         canProceed,
+        isTransitioning,
     } = useForm({
         steps: formSteps,
         initialFormData: initialWebFormData,
@@ -113,6 +114,7 @@ export default function WebForm() {
             onPrevious={handlePrevious}
             onNext={handleNext}
             onComplete={handleComplete}
+            navigationDisabled={isTransitioning}
 
             // タイトル・説明
             title={activeStep.displayVariant === "phase_intro" ? undefined : activeStep.title}
