@@ -142,7 +142,7 @@ export function LoanAdjustmentPanel({
                                     希望返済月額
                                 </label>
                                 <span className="text-lg font-bold text-emerald-600">
-                                    {formatManWithOku(currentMonthlyPayment)}
+                                    {currentMonthlyPayment}万円
                                 </span>
                             </div>
                             <Slider
@@ -150,7 +150,7 @@ export function LoanAdjustmentPanel({
                                 onValueChange={(values: number[]) => handleSliderChange("monthly", values[0])}
                                 max={Math.min(simulationResult.monthlyPaymentCapacity, 50)}
                                 min={5}
-                                step={1}
+                                step={0.1}
                                 className="w-full"
                                 showTooltip={true}
                                 tooltipContent={(value) => `${value}万円`}
@@ -188,22 +188,22 @@ export function LoanAdjustmentPanel({
                         </div>
                         <div className="flex flex-wrap items-center justify-center gap-4">
                             <div className="flex items-center justify-between gap-3 rounded-md border border-gray-200 px-3 py-2">
-                                    <span className="text-sm text-gray-700">テクノストラクチャー</span>
-                                    <Switch
-                                        checked={Boolean(form.usesTechnostructure)}
-                                        onCheckedChange={(checked) =>
-                                            handleToggleChange("usesTechnostructure", checked)
-                                        }
-                                    />
+                                <span className="text-sm text-gray-700">テクノストラクチャー</span>
+                                <Switch
+                                    checked={Boolean(form.usesTechnostructure)}
+                                    onCheckedChange={(checked) =>
+                                        handleToggleChange("usesTechnostructure", checked)
+                                    }
+                                />
                             </div>
                             <div className="flex items-center justify-between gap-3 rounded-md border border-gray-200 px-3 py-2">
-                                    <span className="text-sm text-gray-700">付加断熱</span>
-                                    <Switch
-                                        checked={Boolean(form.usesAdditionalInsulation)}
-                                        onCheckedChange={(checked) =>
-                                            handleToggleChange("usesAdditionalInsulation", checked)
-                                        }
-                                    />
+                                <span className="text-sm text-gray-700">付加断熱</span>
+                                <Switch
+                                    checked={Boolean(form.usesAdditionalInsulation)}
+                                    onCheckedChange={(checked) =>
+                                        handleToggleChange("usesAdditionalInsulation", checked)
+                                    }
+                                />
                             </div>
                         </div>
                     </div>
