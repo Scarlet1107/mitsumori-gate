@@ -73,7 +73,7 @@ const PLAN_PREVIEWS: PlanPreview[] = [
     },
     {
         id: "tsubo-36",
-        title: "36坪プラン",
+        title: "36坪～38坪プラン",
         tsuboMin: 36,
         tsuboMax: 37.99,
         images: [
@@ -91,7 +91,7 @@ const PLAN_PREVIEWS: PlanPreview[] = [
     },
     {
         id: "tsubo-38",
-        title: "38坪プラン",
+        title: "38坪～プラン",
         tsuboMin: 38,
         images: [
             {
@@ -134,9 +134,6 @@ export function PlanPreviewCard({
         <Card className={`p-6 space-y-4 ${className ?? ""}`.trim()}>
             <div className="flex flex-wrap items-baseline justify-between gap-2">
                 <h3 className="text-lg font-semibold">{preview.title}</h3>
-                <span className="text-sm text-gray-500">
-                    建築予算目安: {formatManWithOku(buildingBudget)}
-                </span>
             </div>
             <div className="space-y-4">
                 <div className="flex flex-col gap-3">

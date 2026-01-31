@@ -142,15 +142,6 @@ export function WebFormConfirmation({ form }: WebFormConfirmationProps) {
                     </div>
                 </div>
             </Card>
-
-            {/* 注意事項 */}
-            <div className="text-sm text-gray-600 bg-gray-50 p-4 rounded-lg">
-                <p className="font-semibold mb-2">送信前にご確認ください</p>
-                <ul className="space-y-1 text-xs">
-                    <li>• 入力内容に間違いがないかご確認ください</li>
-                    <li>• より詳細な相談は店舗でも承っております</li>
-                </ul>
-            </div>
         </div>
     );
 }
