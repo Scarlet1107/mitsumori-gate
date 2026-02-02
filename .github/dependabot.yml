@@ -4,13 +4,8 @@ updates:
     directory: "/"
     schedule:
       interval: "daily"
-
-    # patch/minorだけ自動（重要）
-    allow:
-      - dependency-type: "all"
+    open-pull-requests-limit: 5
 
     ignore:
-      - dependency-type: "direct"
+      - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-
-    open-pull-requests-limit: 5
