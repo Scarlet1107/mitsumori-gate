@@ -1,6 +1,5 @@
 import Image from "next/image";
 import { Card } from "@/components/ui/card";
-import { formatManWithOku } from "@/lib/format";
 import {
     Dialog,
     DialogContent,
@@ -120,7 +119,6 @@ const pickPlanPreview = (estimatedTsubo: number) => {
 };
 
 export function PlanPreviewCard({
-    buildingBudget,
     estimatedTsubo,
     className,
 }: {

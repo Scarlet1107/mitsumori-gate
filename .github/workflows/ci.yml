@@ -80,10 +80,17 @@ jobs:
       - name: Install Playwright Browsers
         run: bunx playwright install --with-deps
 
+      - name: Prisma migrate deploy
+        run: bunx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.CI_DIRECT_DATABASE_URL }}
+
       - name: E2E
         run: bun run test:e2e
         env:
           DATABASE_URL: ${{ secrets.CI_DATABASE_URL }}
+          DIRECT_DATABASE_URL: ${{ secrets.CI_DIRECT_DATABASE_URL }}
           BASIC_AUTH_USER: ci-user
           BASIC_AUTH_PASS: ci-pass
           BASIC_AUTH_RATE_LIMIT_POINTS: "1000"

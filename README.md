@@ -36,11 +36,13 @@
 3) 環境変数  
    `.env.example` をコピーして `.env` を作成し、最低限以下を設定します。
    - `DATABASE_URL` … Postgres接続文字列
+   - `DIRECT_DATABASE_URL` … PrismaのdirectUrl用（migrate等で使用）
    - `BASIC_AUTH_USER` / `BASIC_AUTH_PASS` … `/admin` と `/api/admin/*` 用のBasic認証
    - `RESEND_API_KEY` / `RESEND_FROM_EMAIL` … PDFメール送信用（未設定なら送信スキップ）
    - `CONTACT_PHONE` / `CONTACT_EMAIL` … メール本文の連絡先表示
    - `PDF_JP_FONT_PATH` … 日本語フォントのパス（デフォルトで同梱フォントを参照）
    - `COMPANY_NOTIFICATION_EMAIL` … Web完了時の社内通知メール送信先（未設定なら送信スキップ）
+   - `CI_DATABASE_URL` / `CI_DIRECT_URL` … CI用のDB接続（GitHub Secretsに登録して `ci.yml` で参照）
 4) DBマイグレーション  
    ```bash
    npx prisma migrate dev --name init
