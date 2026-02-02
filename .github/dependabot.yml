@@ -1,0 +1,16 @@
+version: 2
+updates:
+  - package-ecosystem: "bun"
+    directory: "/"
+    schedule:
+      interval: "daily"
+
+    # patch/minorだけ自動（重要）
+    allow:
+      - dependency-type: "all"
+
+    ignore:
+      - dependency-type: "direct"
+        update-types: ["version-update:semver-major"]
+
+    open-pull-requests-limit: 5
