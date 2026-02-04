@@ -1,72 +1,37 @@
-name: Discord notify (merged into dev)
+name: Discord notify (dependabot merged into dev)
 
 on:
-  pull_request:
-    types: [closed]
-    # base(マージ先)がdevのPRだけに絞る（ノイズ削減）
+  push:
     branches: [dev]
 
 permissions:
   contents: read
 
 jobs:
-  debug:
-    name: Debug pull_request.closed payload
-    runs-on: ubuntu-latest
-    steps:
-      - name: Dump key fields
-        shell: bash
-        run: |
-          set -euo pipefail
-          echo "=== GitHub Context ==="
-          echo "event_name=${{ github.event_name }}"
-          echo "action=${{ github.event.action }}"
-          echo ""
-          echo "=== Pull Request ==="
-          echo "number=${{ github.event.pull_request.number }}"
-          echo "title=${{ github.event.pull_request.title }}"
-          echo "state=${{ github.event.pull_request.state }}"
-          echo "merged=${{ github.event.pull_request.merged }}"
-          echo "merged_at=${{ github.event.pull_request.merged_at }}"
-          echo "closed_at=${{ github.event.pull_request.closed_at }}"
-          echo ""
-          echo "=== Branches ==="
-          echo "base.ref=${{ github.event.pull_request.base.ref }}"
-          echo "head.ref=${{ github.event.pull_request.head.ref }}"
-          echo ""
-          echo "=== Actors ==="
-          echo "author=${{ github.event.pull_request.user.login }}"
-          echo "merged_by=${{ github.event.pull_request.merged_by && github.event.pull_request.merged_by.login || 'null' }}"
-          echo ""
-          echo "=== URLs ==="
-          echo "pr_url=${{ github.event.pull_request.html_url }}"
-
   notify:
-    name: Notify Discord
-    # PRがmergeされ、baseがdevのときだけ
-    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'dev'
     runs-on: ubuntu-latest
     steps:
-      - name: Send Discord webhook
+      - name: Send Discord webhook (dependabot only)
         shell: bash
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           REPO: ${{ github.repository }}
-          PR_URL: ${{ github.event.pull_request.html_url }}
-          TITLE: ${{ github.event.pull_request.title }}
-          AUTHOR: ${{ github.event.pull_request.user.login }}
-          MERGED_BY: ${{ github.event.pull_request.merged_by.login }}
-          NUMBER: ${{ github.event.pull_request.number }}
+          SHA: ${{ github.sha }}
+          ACTOR: ${{ github.actor }}
+          COMMIT_MSG: ${{ github.event.head_commit.message }}
+          URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
         run: |
           set -euo pipefail
 
-          if [[ -z "${DISCORD_WEBHOOK_URL:-}" ]]; then
-            echo "DISCORD_WEBHOOK_URL is empty. (Secrets may be unavailable for this event, e.g., fork PR)"
-            exit 1
+          # Dependabot由来のマージコミットを判定（運用に合わせて調整）
+          if ! echo "$COMMIT_MSG" | grep -Eqi 'dependabot|^Bump '; then
+            echo "Skip: not a dependabot-related commit"
+            echo "commit_msg=$COMMIT_MSG"
+            exit 0
           fi
 
           payload=$(jq -n \
-            --arg content "✅ **Merged into dev** (#$NUMBER)\n- Repo: $REPO\n- Title: $TITLE\n- Author: $AUTHOR\n- Merged by: $MERGED_BY\n- $PR_URL" \
+            --arg content "✅ **Dependabot merged into dev**\n- Repo: $REPO\n- Actor: $ACTOR\n- Commit: $SHA\n- Message: $COMMIT_MSG\n- $URL" \
             '{content:$content}')
 
           curl -sS -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK_URL"
