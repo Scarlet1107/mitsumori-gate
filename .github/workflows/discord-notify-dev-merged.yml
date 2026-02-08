@@ -23,7 +23,7 @@ jobs:
           echo "sha=${GITHUB_SHA}"
           echo ""
           echo "=== pull_request fields ==="
-          # GITHUB_EVENT_PATH はイベントJSONが入ってる
+          # GITHUB_EVENT_PATH はイベントJSONが入ってる。
           jq -r '
             {
               action: .action,
