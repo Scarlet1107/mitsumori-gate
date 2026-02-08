@@ -1,37 +1,125 @@
-name: Discord notify (dependabot merged into dev)
+name: Discord notify (dependabot merged into dev) + debug
 
 on:
-  push:
+  pull_request_target:
+    types: [closed]
     branches: [dev]
 
 permissions:
-  contents: read
+  pull-requests: read
 
 jobs:
-  notify:
+  debug:
     runs-on: ubuntu-latest
     steps:
-      - name: Send Discord webhook (dependabot only)
+      - name: Dump key context
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "=== Event Summary ==="
+          echo "event_name=${GITHUB_EVENT_NAME}"
+          echo "actor=${GITHUB_ACTOR}"
+          echo "ref=${GITHUB_REF}"
+          echo "sha=${GITHUB_SHA}"
+          echo ""
+          echo "=== pull_request fields ==="
+          # GITHUB_EVENT_PATH はイベントJSONが入ってる
+          jq -r '
+            {
+              action: .action,
+              base_ref: .pull_request.base.ref,
+              merged: .pull_request.merged,
+              merged_at: .pull_request.merged_at,
+              pr_number: .pull_request.number,
+              pr_title: .pull_request.title,
+              pr_user: .pull_request.user.login,
+              merge_commit_sha: .pull_request.merge_commit_sha,
+              html_url: .pull_request.html_url
+            }' "$GITHUB_EVENT_PATH"
+
+          echo ""
+          echo "=== Job Summary ===" >> "$GITHUB_STEP_SUMMARY"
+          jq -r '
+            [
+              "## Discord notify debug",
+              "",
+              "- event: \(.action)",
+              "- base: \(.pull_request.base.ref)",
+              "- merged: \(.pull_request.merged)",
+              "- pr: #\(.pull_request.number) \(.pull_request.title)",
+              "- pr_user: \(.pull_request.user.login)",
+              "- merge_sha: \(.pull_request.merge_commit_sha // "null")",
+              "- url: \(.pull_request.html_url)"
+            ] | join("\n")' "$GITHUB_EVENT_PATH" >> "$GITHUB_STEP_SUMMARY"
+
+  notify:
+    needs: [debug]
+    runs-on: ubuntu-latest
+
+    # ここで「条件に合うときだけ」通知処理を実行
+    if: >
+      github.event.pull_request.merged == true &&
+      github.event.pull_request.user.login == 'dependabot[bot]'
+
+    steps:
+      - name: Send Discord webhook (success)
         shell: bash
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
           REPO: ${{ github.repository }}
-          SHA: ${{ github.sha }}
-          ACTOR: ${{ github.actor }}
-          COMMIT_MSG: ${{ github.event.head_commit.message }}
-          URL: ${{ github.server_url }}/${{ github.repository }}/commit/${{ github.sha }}
+          PR_TITLE: ${{ github.event.pull_request.title }}
+          PR_URL: ${{ github.event.pull_request.html_url }}
+          MERGE_SHA: ${{ github.event.pull_request.merge_commit_sha }}
+          MERGED_BY: ${{ github.actor }}
         run: |
           set -euo pipefail
 
-          # Dependabot由来のマージコミットを判定（運用に合わせて調整）
-          if ! echo "$COMMIT_MSG" | grep -Eqi 'dependabot|^Bump '; then
-            echo "Skip: not a dependabot-related commit"
-            echo "commit_msg=$COMMIT_MSG"
-            exit 0
+          if [[ -z "${DISCORD_WEBHOOK_URL:-}" ]]; then
+            echo "DISCORD_WEBHOOK_URL is empty. (Secrets not available?)" >&2
+            exit 1
           fi
 
           payload=$(jq -n \
-            --arg content "✅ **Dependabot merged into dev**\n- Repo: $REPO\n- Actor: $ACTOR\n- Commit: $SHA\n- Message: $COMMIT_MSG\n- $URL" \
+            --arg content "✅ **Dependabot merged into dev**\n- Repo: $REPO\n- PR: $PR_TITLE\n- Merged by: $MERGED_BY\n- Merge commit: $MERGE_SHA\n- $PR_URL" \
             '{content:$content}')
 
-          curl -sS -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK_URL"
+          # 失敗理由が見えるようにステータス/レスポンスを取得
+          http_code=$(curl -sS -o /tmp/discord_resp.txt -w "%{http_code}" \
+            -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK_URL" || true)
+
+          echo "Discord HTTP status: $http_code"
+          echo "Discord response:"
+          cat /tmp/discord_resp.txt || true
+
+          # Discordは通常204 No Contentが成功
+          if [[ "$http_code" != "204" ]]; then
+            echo "Discord webhook failed (expected 204)." >&2
+            exit 1
+          fi
+
+      - name: Failure report to Discord (only if notify failed)
+        if: failure()
+        shell: bash
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          set -euo pipefail
+          # ここまで来てる時点で secret が空の可能性があるので guard
+          if [[ -z "${DISCORD_WEBHOOK_URL:-}" ]]; then
+            echo "Cannot send failure report: DISCORD_WEBHOOK_URL empty." >&2
+            exit 0
+          fi
+
+          # 重要フィールドだけ載せる（長すぎ防止）
+          info=$(jq -r '
+            {
+              action: .action,
+              base: .pull_request.base.ref,
+              merged: .pull_request.merged,
+              pr_user: .pull_request.user.login,
+              pr: ("#" + (.pull_request.number|tostring) + " " + .pull_request.title),
+              url: .pull_request.html_url
+            } | tostring' "$GITHUB_EVENT_PATH")
+
+          payload=$(jq -n --arg content "🚨 **Discord notify failed**\n```$info```" '{content:$content}')
+          curl -sS -H "Content-Type: application/json" -d "$payload" "$DISCORD_WEBHOOK_URL" || true
